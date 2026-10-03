@@ -36824,14 +36824,14 @@ void gf_ASInitializeActionDialogs () {
         if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) {
             DialogControlCreate(gv_actionDialog[0], c_triggerControlTypeLabel);
             DialogControlSetSize(DialogControlLastCreated(), PlayerGroupAll(), 60, 30);
-            DialogControlSetPosition(DialogControlLastCreated(), PlayerGroupAll(), c_anchorTopLeft, 34, (12 + (30 * (gv_playerSpot[lv_a] - 1))));
+            DialogControlSetPosition(DialogControlLastCreated(), PlayerGroupAll(), c_anchorTopLeft, 128, (12 + (30 * (gv_playerSpot[lv_a] - 1))));
             libNtve_gf_SetDialogItemText(DialogControlLastCreated(), (StringExternal("Param/Value/975A53A7") + IntToText(gv_playerSpot[lv_a]) + StringExternal("Param/Value/59BC12FC")), PlayerGroupAll());
             DialogControlFadeTransparency(DialogControlLastCreated(), PlayerGroupAll(), 0.0, 50.0);
             gv_e695B0E5AD97E7BC96E58FB7E7898C[lv_a] = DialogControlLastCreated();
             DialogControlCreate(gv_actionDialog[0], c_triggerControlTypeLabel);
             gv_actionDialogItem[lv_a][0] = DialogControlLastCreated();
-            DialogControlSetSize(gv_actionDialogItem[lv_a][0], PlayerGroupAll(), 260, 30);
-            DialogControlSetPosition(gv_actionDialogItem[lv_a][0], PlayerGroupAll(), c_anchorTopLeft, 48, (15 + (30 * (gv_playerSpot[lv_a] - 1))));
+            DialogControlSetSize(gv_actionDialogItem[lv_a][0], PlayerGroupAll(), 160, 30);
+            DialogControlSetPosition(gv_actionDialogItem[lv_a][0], PlayerGroupAll(), c_anchorTopLeft, 148, (15 + (30 * (gv_playerSpot[lv_a] - 1))));
             libNtve_gf_SetDialogItemText(gv_actionDialogItem[lv_a][0], (StringExternal("Param/Value/8E576D9E") + TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a])) + StringExternal("Param/Value/93609458")), PlayerGroupAll());
             DialogControlCreate(gv_actionDialog[0], c_triggerControlTypeLabel);
             gv_actionDialogItem[lv_a][1] = DialogControlLastCreated();
@@ -36866,11 +36866,10 @@ void gf_ASInitializeActionDialogs () {
             libNtve_gf_SetDialogItemImageType(gv_actionDialogItem[lv_a][6], c_triggerImageTypeNormal, PlayerGroupAll());
             libNtve_gf_SetDialogItemRenderPriority(gv_actionDialogItem[lv_a][6], 600, PlayerGroupAll());
             DialogControlSetVisible(gv_actionDialogItem[lv_a][6], PlayerGroupAll(), false);
-            libNtve_gf_CreateDialogItemButton(gv_actionDialog[0], 22, 22, c_anchorTopLeft, 8, (16 + (30 * (gv_playerSpot[lv_a] - 1))), StringToText(""), StringToText("标记身份"), "Assets\\Textures\\ui_waiting_playericon.dds");
+            libNtve_gf_CreateDialogItemButton(gv_actionDialog[0], 120, 26, c_anchorTopLeft, 4, (14 + (30 * (gv_playerSpot[lv_a] - 1))), StringToText(""), StringToText("标记身份"), "Assets\\Textures\\ui_generic_button_green_normaloverpressedover.dds");
             gv_markBtn[lv_a] = DialogControlLastCreated();
-            libNtve_gf_SetDialogItemImage(gv_markBtn[lv_a], "Assets\\Textures\\ui_waiting_playericon.dds", PlayerGroupAll());
-            libNtve_gf_SetDialogItemImageType(gv_markBtn[lv_a], c_triggerImageTypeNormal, PlayerGroupAll());
-            libNtve_gf_SetDialogItemColor(gv_markBtn[lv_a], Color(80.00, 80.00, 85.00), PlayerGroupAll());
+            libNtve_gf_SetDialogItemImage(gv_markBtn[lv_a], "Assets\\Textures\\ui_generic_button_green_normalpressed.dds", PlayerGroupAll());
+            libNtve_gf_SetDialogItemColor(gv_markBtn[lv_a], Color(45.00, 50.00, 60.00), PlayerGroupAll());
             libNtve_gf_SetDialogItemRenderPriority(gv_markBtn[lv_a], 700, PlayerGroupAll());
             DialogControlSetVisible(gv_markBtn[lv_a], PlayerGroupAll(), true);
         }
@@ -97477,6 +97476,7 @@ void gt_BHLaugh_Init () {
 void gf_BHMarkClose (int lp_player) {
     gv_markMode[lp_player] = false;
     gv_markTarget[lp_player] = 0;
+    DialogSetImageVisible(gv_e998B5E5AEB9E6A186, false);
     gf_ASE8A792E889B2E98089E9A1B9E585B3E997AD(lp_player);
     if ((gv_isNight == true) && (((gv_roles[lp_player][1] == 1) && (gv_roles[lp_player][0] == 26)) || ((gv_roles[lp_player][1] == 3) && (gv_roles[lp_player][0] == 32)))) {
         gf_ASE5AEA1E69FA5E98089E9A1B9(lp_player);
@@ -97486,29 +97486,15 @@ void gf_BHMarkClose (int lp_player) {
 void gf_BHMarkPaint (int lp_viewer, int lp_seat) {
     int lv_pool;
     int lv_role;
-    color lv_c;
 
     lv_pool = gv_markPool[lp_viewer][lp_seat];
     lv_role = gv_markRole[lp_viewer][lp_seat];
-    lv_c = Color(80.00, 80.00, 85.00);
-    if ((lv_pool == 1)) {
-        lv_c = Color(15.00, 70.00, 35.00);
-    }
-    else if ((lv_pool == 2)) {
-        lv_c = Color(100.00, 27.00, 53.00);
-    }
-    else if ((lv_pool == 5)) {
-        lv_c = Color(62.00, 56.00, 100.00);
-    }
-    else if ((lv_pool == 3)) {
-        lv_c = Color(85.00, 75.00, 20.00);
-    }
-
-    libNtve_gf_SetDialogItemColor(gv_markBtn[lp_seat], lv_c, PlayerGroupSingle(lp_viewer));
     if ((lv_pool == 0) || (gv_roleNameArray[lv_pool][lv_role] == null)) {
+        libNtve_gf_SetDialogItemText(gv_markBtn[lp_seat], StringToText(""), PlayerGroupSingle(lp_viewer));
         libNtve_gf_SetDialogItemTooltip(gv_markBtn[lp_seat], StringToText("标记身份"), PlayerGroupSingle(lp_viewer));
     }
     else {
+        libNtve_gf_SetDialogItemText(gv_markBtn[lp_seat], gv_roleNameArray[lv_pool][lv_role], PlayerGroupSingle(lp_viewer));
         libNtve_gf_SetDialogItemTooltip(gv_markBtn[lp_seat], gv_roleNameArray[lv_pool][lv_role], PlayerGroupSingle(lp_viewer));
     }
 }
@@ -97519,22 +97505,27 @@ bool gt_BHMark_Func (bool testConds, bool runActions) {
     int lv_pool;
     int lv_role;
     int lv_pick;
+    bool lv_hit;
 
+    lv_hit = false;
     if (testConds) {
         if ((gv_markMode[EventPlayer()] == true) && (EventDialogControl() == gv_e7A1AEE8AEA4E68EA7E4BBB6)) {
-            return true;
+            lv_hit = true;
         }
+        else {
+            lv_a = 1;
+            while (true) {
+                if ((lv_a > 15)) { break; }
+                if ((EventDialogControl() == gv_markBtn[lv_a])) {
+                    lv_hit = true;
+                }
 
-        lv_a = 1;
-        while (true) {
-            if ((lv_a > 15)) { break; }
-            if ((EventDialogControl() == gv_markBtn[lv_a])) {
-                return true;
+                lv_a += 1;
             }
-
-            lv_a += 1;
         }
-        return false;
+        if ((lv_hit == false)) {
+            return false;
+        }
     }
 
     if (!runActions) {
@@ -97551,6 +97542,7 @@ bool gt_BHMark_Func (bool testConds, bool runActions) {
             }
             else {
                 gf_ASE5AEA1E69FA5E98089E9A1B9(lv_p);
+                DialogSetImageVisible(gv_e998B5E5AEB9E6A186, true);
                 gv_markMode[lv_p] = true;
                 gv_markTarget[lv_p] = lv_a;
                 gv_markPick[lv_p] = 0;
