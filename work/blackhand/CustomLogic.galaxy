@@ -97416,7 +97416,7 @@ bool gt_BHLaugh_Func (bool testConds, bool runActions) {
     lv_a = 1;
     while (true) {
         if ((lv_a > 15)) { break; }
-        if ((PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (gv_oP[lv_a][7] == true)) {
+        if ((PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true)) {
             gf_CBSystemMessage(StringToText(gv_name[lv_p] + " 按了大笑。"), lv_a, lv_p, 0, SoundLink("Silent", -1), Color(0,0,0));
         }
 
