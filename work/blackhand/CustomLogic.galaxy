@@ -36870,8 +36870,8 @@ void gf_ASInitializeActionDialogs () {
             libNtve_gf_CreateDialogItemButton(gv_actionDialog[0], 120, 26, c_anchorTopLeft, 4, (14 + (30 * (gv_playerSpot[lv_a] - 1))), StringToText(""), StringToText("标记身份"), "Assets\\Textures\\ui_checkboxbutton_normaloverpressedover_terran.dds");
             gv_markBtn[lv_a] = DialogControlLastCreated();
             libNtve_gf_SetDialogItemImage(gv_markBtn[lv_a], "Assets\\Textures\\ui_checkboxbutton_normalpressed_terran.dds", PlayerGroupAll());
-            libNtve_gf_SetDialogItemColor(gv_markBtn[lv_a], Color(55.00, 60.00, 65.00), PlayerGroupAll());
             libNtve_gf_SetDialogItemRenderPriority(gv_markBtn[lv_a], 700, PlayerGroupAll());
+            DialogControlFadeTransparency(gv_markBtn[lv_a], PlayerGroupAll(), 0.0, 100.0);
             DialogControlSetVisible(gv_markBtn[lv_a], PlayerGroupAll(), true);
             DialogControlCreate(gv_actionDialog[0], c_triggerControlTypeLabel);
             gv_markLbl[lv_a] = DialogControlLastCreated();
