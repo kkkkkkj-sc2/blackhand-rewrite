@@ -97484,7 +97484,6 @@ void gt_BHLaugh_Init () {
 void gf_BHMarkClose (int lp_player) {
     gv_markMode[lp_player] = false;
     gv_markTarget[lp_player] = 0;
-    DialogSetImageVisible(gv_e998B5E5AEB9E6A186, false);
     gf_ASE8A792E889B2E98089E9A1B9E585B3E997AD(lp_player);
     if ((gv_isNight == true) && (((gv_roles[lp_player][1] == 1) && (gv_roles[lp_player][0] == 26)) || ((gv_roles[lp_player][1] == 3) && (gv_roles[lp_player][0] == 32)))) {
         gf_ASE5AEA1E69FA5E98089E9A1B9(lp_player);
@@ -97550,7 +97549,6 @@ bool gt_BHMark_Func (bool testConds, bool runActions) {
             }
             else {
                 gf_ASE5AEA1E69FA5E98089E9A1B9(lv_p);
-                DialogSetImageVisible(gv_e998B5E5AEB9E6A186, true);
                 gv_markMode[lv_p] = true;
                 gv_markTarget[lv_p] = lv_a;
                 gv_markPick[lv_p] = 0;
