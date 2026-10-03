@@ -214,6 +214,8 @@ MON3TR_MODELS = [
     ('BHMon3trL', DDS_DIR / 'BHSpriteL.m3', r'Assets\Units\BHSpriteL\BHSpriteL.m3',
      DDS_DIR / 'BHMonstrBocL.dds', r'Assets\Textures\BHMonstrBocL.dds', MON3TR_L_MODEL),
 ]
+# 网格的脸在 +X，引擎正前方是 +Y。data/Nailong.m3 的 Origin 绑定旋转已预乘 +90° 绕 Z
+# （IREF 不动，蒙皮结果整模转到 +Y）。下次从 Blender 重导出要在 extract 的 Z 旋转上再加 90°，否则覆盖回来。
 NAILONG_MODELS = [
     ('Nailong', DDS_DIR / 'Nailong.m3', r'Assets\Units\Nailong\Nailong.m3',
      DDS_DIR / 'Nailong_Diffuse.dds', r'Assets\Textures\Nailong_Diffuse.dds', NAILONG_MODEL),
