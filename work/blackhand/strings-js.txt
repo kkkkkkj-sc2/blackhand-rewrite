@@ -20,6 +20,9 @@ Param/Value/JSRPSHERO= 赢下了<c val="E85D4C">精神病患者</c>！
 Param/Value/JSRPSHEROM=他是城镇的英雄，他在今晚会拥有夜间无敌，且在明天投下的票数相当于3人。
 Param/Value/JSRPSHEROF=她是城镇的英雄，她在今晚会拥有夜间无敌，且在明天投下的票数相当于3人。
 Param/Value/JSRPSYOU=你选择了
+Param/Value/WLKFACHS=<c val="44FF88"> 赢得了成就 </c></s><s val="ModCenterSize16Bold"><c val="E85D4C">物理康复疗法</c></s><s val="ModCenterSize16"><c val="44FF88">!</c></s>
+Param/Value/WLKFACHN=<s val="ModCenterSize16Bold"><c val="E85D4C">物理康复疗法</c></s>
+Param/Value/WLKFACHD=<s val="ModCenterSize16"><c val="E85D4C">你用石头、剪刀和布，让一位精神病患者安静了下来。</c></s>
 Param/Value/JSBOX4=一位精神病患者，可能会随机地杀人。法律未必能制裁得了你。
 Param/Value/JSBOX6=- 使用能力杀死至少两个人，并且存活到最后。
 Param/Value/JSCOUNT=你已经用能力杀死了 

@@ -81,7 +81,7 @@ fixed[16][9][41] gv_bankSaveWeights;
 string[16][41][6] gv_bankSaveStrings;
 int[16][2] gv_bankSpecialIntegers;
 int[16][9][21] gv_bankRoleAchievements;
-int[16][80] gv_bankOtherAchievements;
+int[16][81] gv_bankOtherAchievements;
 int[16] gv_checka;
 int[16][3] gv_confessem;
 string[16] gv_checka2;
@@ -17187,7 +17187,7 @@ bool auto_gf_CAssembleMainBank_TriggerFunc (bool testConds, bool runActions) {
     const int autoBB6D3424_ai = 1;
     const int auto6EA2A789_ae = 20;
     const int auto6EA2A789_ai = 1;
-    const int auto4ED0B346_ae = 79;
+    const int auto4ED0B346_ae = 80;
     const int auto4ED0B346_ai = 1;
     const int auto6C58849E_ae = 19;
     const int auto6C58849E_ai = 1;
@@ -17499,7 +17499,7 @@ bool auto_gf_CDisassembleMainBank_TriggerFunc (bool testConds, bool runActions) 
     const int autoB01F6BD7_ai = 1;
     const int auto6CA74BDE_ae = 20;
     const int auto6CA74BDE_ai = 1;
-    const int autoD26F95A3_ae = 79;
+    const int autoD26F95A3_ae = 80;
     const int autoD26F95A3_ai = 1;
     const int autoADBA8FFC_ae = 3;
     const int autoADBA8FFC_ai = 1;
@@ -54733,7 +54733,7 @@ bool gt_AccountIDHandler_Func (bool testConds, bool runActions) {
     int auto1350D98A_var;
     const int auto1792A69C_ae = 20;
     const int auto1792A69C_ai = 1;
-    const int auto2B9E0491_ae = 79;
+    const int auto2B9E0491_ae = 80;
     const int auto2B9E0491_ai = 1;
     playergroup auto9E352062_g;
     int auto9E352062_var;
@@ -56341,7 +56341,7 @@ bool gt_Stats_Func (bool testConds, bool runActions) {
     const int auto7357CED9_ai = 1;
     const int autoD85D5D59_ae = 15;
     const int autoD85D5D59_ai = 1;
-    const int auto69BE7284_ae = 79;
+    const int auto69BE7284_ae = 80;
     const int auto69BE7284_ai = 1;
     int autoE7789229_val;
     const int auto292129B5_ae = 5;
@@ -56709,6 +56709,9 @@ bool gt_Stats_Func (bool testConds, bool runActions) {
                     }
                     else if (autoE7789229_val == 79) {
                         lv_x = StringExternal("Param/Value/MYXACHN");
+                    }
+                    else if (autoE7789229_val == 80) {
+                        lv_x = StringExternal("Param/Value/WLKFACHN");
                     }
                     else {
                         lv_x = null;
@@ -58091,6 +58094,9 @@ bool gt_Achieve_Func (bool testConds, bool runActions) {
             }
             else if (autoD1168222_val == 79) {
                 lv_x = StringExternal("Param/Value/MYXACHN");
+            }
+            else if (autoD1168222_val == 80) {
+                lv_x = StringExternal("Param/Value/WLKFACHN");
             }
             else {
                 lv_x = null;
@@ -102240,6 +102246,8 @@ bool gf_JSRps (int lp_player) {
     int[16] lv_cand;
     bool lv_lost;
     text lv_end;
+    playergroup autoWLKF_g;
+    int autoWLKF_var;
 
     lv_n = 0;
     lv_foe = 0;
@@ -102334,6 +102342,18 @@ bool gf_JSRps (int lp_player) {
         }
         else {
             gf_JSTellAll((StringExternal("Param/Value/JSSIZE") + gf_JSWho(lv_foe) + StringExternal("Param/Value/JSRPSHERO") + StringExternal("Param/Value/JSRPSHEROF") + StringExternal("Param/Value/JSCLOSE")));
+        }
+        if ((gv_bankOtherAchievements[lv_foe][80] == 0) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_foe) == true)) {
+            gv_bankOtherAchievements[lv_foe][80] = 1;
+            autoWLKF_g = gv_currentPlayers;
+            autoWLKF_var = -1;
+            while (true) {
+                autoWLKF_var = PlayerGroupNextPlayer(autoWLKF_g, autoWLKF_var);
+                if (autoWLKF_var < 0) { break; }
+                gf_CBSystemMessage((StringExternal("Param/Value/CWACHP") + TextWithColor(PlayerName(lv_foe), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_foe])) + StringExternal("Param/Value/WLKFACHS")), autoWLKF_var, lv_foe, 0, SoundLink("UI_BnetGameFound", -1), Color(0,0,0));
+                gf_CBSystemMessage(StringExternal("Param/Value/WLKFACHD"), autoWLKF_var, lv_foe, 0, SoundLink("Silent", -1), Color(0,0,0));
+            }
+            gf_GiveBonus(lv_foe, 150);
         }
     }
 

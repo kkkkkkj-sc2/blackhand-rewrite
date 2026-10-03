@@ -506,7 +506,7 @@ def main() -> int:
     #   命令链 = gt_Achieve_Func（管理员 -achieve <玩家> <索引>）
     #   第三处 = 解锁写入点 gv_bankOtherAchievements[玩家][索引] = 1/2/3
     print("\n[1e] 成就索引一致性（列表链 / 命令链 / 解锁写入）")
-    ACH_TOTAL = 80          # gv_bankOtherAchievements[16][80]（0..79）
+    ACH_TOTAL = 81          # gv_bankOtherAchievements[16][81]（0..80）
 
     def chain_indices(fn_name):
         """名称链所在的自动变量 = 该函数里出现次数最多的 `X == 数字`，再取它的索引集合。"""

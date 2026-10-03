@@ -440,6 +440,7 @@ MUST_HAVE_KEYS = [
   'Param/Value/QZACH1S', 'Param/Value/QZACH1N', 'Param/Value/QZACH1D',
   'Param/Value/QZACH2S', 'Param/Value/QZACH2N', 'Param/Value/QZACH2D',
   'Param/Value/MYXACHS', 'Param/Value/MYXACHN', 'Param/Value/MYXACHD',
+  'Param/Value/WLKFACHS', 'Param/Value/WLKFACHN', 'Param/Value/WLKFACHD',
   'Param/Value/BWZYN',
   'Param/Value/SHWWILLBTN', 'Param/Value/SHWWILLTIP',
   'Param/Value/VETSELF', 'Param/Value/XMVIST', 'Param/Value/DLNOBLOCK',
