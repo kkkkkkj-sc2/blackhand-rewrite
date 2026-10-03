@@ -1,13 +1,13 @@
 Param/Value/BZNAME=<c val="FF4488">庇护者</c>
 Param/Value/BZDESC=黑手党的另一位领袖。夜里可以杀人；对队友则是一场安排好的假死。
-Param/Value/BZTAG= (<c val="FF0000">致命</c>)
+Param/Value/BZTAG= (<c val="FF0000">致命</c>，<c val="FF0000">领袖</c>)
 Param/Value/BZBOX1=每晚杀死一人。
 Param/Value/BZBOX2=- 你可以“杀死”一个黑手党成员。<n/>- 若你“杀死”的是一个黑手党成员，你可以把他伪装成你指定的城镇角色。除了伪装者之外，这位成员将会保留他的能力。<n/>- 被你“杀死”者夜间仍然可以参加黑手党的频道。<n/>- 被你“杀死”者在白天无法投票和发言，同时不计入存活人数和胜利条件。<n/>- 你拥有夜间无敌。
 Param/Value/BZBOX4=你是黑手党的领袖。
 Param/Value/BZCRIME=非法闯入，谋杀
 Param/Value/QLNAME=<c val="9F8EFF">潜龙</c>
 Param/Value/QLDESC=三合会的另一位领袖。夜里可以杀人；对队友则是一场安排好的假死。
-Param/Value/QLTAG= (<c val="3366FF">致命</c>)
+Param/Value/QLTAG= (<c val="3366FF">致命</c>，<c val="3366FF">领袖</c>)
 Param/Value/QLBOX1=每晚杀死一人。
 Param/Value/QLBOX2=- 你可以“杀死”一个三合会成员。<n/>- 若你“杀死”的是一个三合会成员，你可以把他伪装成你指定的城镇角色。除了渗透者之外，这位成员将会保留他的能力。<n/>- 被你“杀死”者夜间仍然可以参加三合会的频道。<n/>- 被你“杀死”者在白天无法投票和发言，同时不计入存活人数和胜利条件。<n/>- 你拥有夜间无敌。
 Param/Value/QLBOX4=你是三合会的领袖。
@@ -26,9 +26,11 @@ Param/Value/BZBLOC=你的目标没有死。
 Param/Value/BZHEAL=有人救下了你的目标。
 Param/Value/BZDIE=死于枪伤。
 Param/Value/BZLEAD=<c val="FF0000">黑手党</c> <c val="00CCFF">领袖</c>
-Param/Value/BZLEADD=从教父、庇护者和族长中随机出现一名。
+Param/Value/BZLEADD=从教父、庇护者、族长和野兽中随机出现一名。
+Param/Value/EC547BEA= (<c val="FF0000">致命</c>，<c val="FF0000">领袖</c>)
 Param/Value/QLLEAD=<c val="3366FF">三合会</c> <c val="00CCFF">领袖</c>
-Param/Value/QLLEADD=从龙头、潜龙和宗师中随机出现一名。
+Param/Value/QLLEADD=从龙头、潜龙、宗师和霸王中随机出现一名。
+Param/Value/5A8FC7F3= (<c val="3366FF">致命</c>，<c val="3366FF">领袖</c>)
 Param/Value/FZNAME=<c val="FF4488">族长</c>
 Param/Value/FZDESC=黑手党的领袖。在场时，其余黑手党开局都是门徒。
 Param/Value/FZTAG= (<c val="FF0000">致命</c>，<c val="FF0000">领袖</c>)

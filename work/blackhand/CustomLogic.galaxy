@@ -101141,10 +101141,12 @@ void gf_BHPickLeader (int lp_kind) {
     int lv_r2;
     int lv_r3;
     int lv_r4;
+    int lv_r5;
     fixed lv_w1;
     fixed lv_w2;
     fixed lv_w3;
     fixed lv_w4;
+    fixed lv_w5;
     fixed lv_sum;
     fixed lv_roll;
 
@@ -101154,6 +101156,7 @@ void gf_BHPickLeader (int lp_kind) {
     lv_r2 = 2;
     lv_r3 = 17;
     lv_r4 = 18;
+    lv_r5 = 19;
     if ((lp_kind == 21)) {
         lv_pool = 2;
     }
@@ -101161,30 +101164,37 @@ void gf_BHPickLeader (int lp_kind) {
         lv_pool = 5;
     }
 
-    // 领袖随机不含党徒/暴徒。
+    // 领袖随机不含党徒/暴徒。四名领袖各算 1，不走板子权重（族长/野兽会被清成 0）。
     lv_w1 = 0.0;
     if ((gv_roleOptions[lv_pool][lv_r2][10] == true)) {
         lv_w2 = 0.0;
     }
     else {
-        lv_w2 = gv_roleWeights[lv_pool][lv_r2];
+        lv_w2 = 1.0;
     }
 
     if ((gv_roleOptions[lv_pool][lv_r3][10] == true)) {
         lv_w3 = 0.0;
     }
     else {
-        lv_w3 = gv_roleWeights[lv_pool][lv_r3];
+        lv_w3 = 1.0;
     }
 
     if ((gv_roleOptions[lv_pool][lv_r4][10] == true)) {
         lv_w4 = 0.0;
     }
     else {
-        lv_w4 = gv_roleWeights[lv_pool][lv_r4];
+        lv_w4 = 1.0;
     }
 
-    lv_sum = (((lv_w1 + lv_w2) + lv_w3) + lv_w4);
+    if ((gv_roleOptions[lv_pool][lv_r5][10] == true)) {
+        lv_w5 = 0.0;
+    }
+    else {
+        lv_w5 = 1.0;
+    }
+
+    lv_sum = ((((lv_w1 + lv_w2) + lv_w3) + lv_w4) + lv_w5);
     if ((lv_sum <= 0.0)) {
         return;
     }
@@ -101207,9 +101217,17 @@ void gf_BHPickLeader (int lp_kind) {
                 }
             }
             else {
-                if ((lv_w4 > 0.0)) {
-                    gv_bhPickPool = lv_pool;
-                    gv_bhPickRole = lv_r4;
+                if ((lv_roll < (((lv_w1 + lv_w2) + lv_w3) + lv_w4))) {
+                    if ((lv_w4 > 0.0)) {
+                        gv_bhPickPool = lv_pool;
+                        gv_bhPickRole = lv_r4;
+                    }
+                }
+                else {
+                    if ((lv_w5 > 0.0)) {
+                        gv_bhPickPool = lv_pool;
+                        gv_bhPickRole = lv_r5;
+                    }
                 }
             }
         }
