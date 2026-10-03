@@ -23,6 +23,7 @@
 @loading-line 1. 修复了护林人的概率错误。
 @loading-line 2. 黑三可以看到弃子/死士的行动了。
 @loading-line 3. 加入大量实验性角色。
+@loading-line 4. 现在随机无法再出现栽赃者。
 @promote major
 @release 1.113 9/20/2026
 192	1. 修复了护林人的概率错误。
