@@ -512,7 +512,7 @@ sound[2] gv_music;
 int gv_votesNeeded;
 bool gv_dayOver;
 timer gv_overtimer;
-string[16][2] gv_lastWill;
+string[16][5] gv_lastWill;
 string[16] gv_deathNote;
 string[16] gv_placedNote;
 bool gv_isNight;
@@ -641,7 +641,7 @@ point[25] gv_houseOutsideLocation;
 int[16] gv_playerHouse;
 bool[16] gv_houseDestroyed;
 int gv_lastWillBox;
-int[3] gv_lastWillBoxItem;
+int[6] gv_lastWillBoxItem;
 int gv_save64Box;
 int[3] gv_save64BoxItem;
 int gv_upgrade;
@@ -1019,7 +1019,7 @@ void SH_InitGlobals () {
     }
     gv_overtimer = TimerCreate();
     for (init_i = 0; init_i <= 15; init_i += 1) {
-        for (init_j = 0; init_j <= 1; init_j += 1) {
+        for (init_j = 0; init_j <= 4; init_j += 1) {
             gv_lastWill[init_i][init_j] = "";
         }
     }
@@ -1124,7 +1124,7 @@ void SH_InitGlobals () {
     }
     gv_bhHistMyPreferSlot = 0;
     gv_lastWillBox = c_invalidDialogId;
-    for (init_i = 0; init_i <= 2; init_i += 1) {
+    for (init_i = 0; init_i <= 5; init_i += 1) {
         gv_lastWillBoxItem[init_i] = c_invalidDialogControlId;
     }
     gv_save64Box = c_invalidDialogId;
@@ -2043,6 +2043,13 @@ void gf_CBAddChat (int lp_player, string lp_message, text lp_title, bool lp_bool
 void gf_BHPlayerChat (int lp_player, string lp_message);
 void gf_CBWhisper (int lp_player, int lp_recipient, string lp_message, text lp_name);
 void gf_CBSystemMessage (text lp_message, int lp_player, int lp_sender, int lp_option, soundlink lp_sound, color lp_color);
+bool gf_BHWillAny (int lp_p);
+void gf_BHWillMore (int lp_who, int lp_viewer, int lp_sender, text lp_open, text lp_close, color lp_ink);
+void gf_BHWillCopy (int lp_dst, int lp_src);
+void gf_BHWillClear (int lp_p);
+void gf_BHWillSwap (int lp_a, int lp_b);
+void gf_BHWillLoad (int lp_p);
+void gf_BHWillSave (int lp_p);
 string gf_BHItalicize (string lp_s);
 bool gf_BHNameLatinOnly (string lp_s);
 bool gt_BHItalicTest_Init ();
@@ -8502,7 +8509,7 @@ bool auto_gf_DayTransition_TriggerFunc (bool testConds, bool runActions) {
                                 }
                             }
                         }
-                        if (((StringLength(gv_lastWill[lv_a][0]) >= 1) || (StringLength(gv_lastWill[lv_a][1]) >= 1))) {
+                        if ((gf_BHWillAny(lv_a) == true)) {
                             Wait(1.0, c_timeGame);
                             autoEBEB4433_g = gv_currentPlayers;
                             autoEBEB4433_var = -1;
@@ -8524,6 +8531,7 @@ bool auto_gf_DayTransition_TriggerFunc (bool testConds, bool runActions) {
                                 if (autoD3D4148A_var < 0) { break; }
                                 gf_CBSystemMessage((StringExternal("Param/Value/DD6E9B0C") + StringToText(gv_lastWill[lv_a][0]) + StringExternal("Param/Value/5A85DFC4")), autoD3D4148A_var, lv_a, 0, SoundLink("UI_BnetSelectNegative", -1), Color(100.00, 100.00, 0.00));
                                 gf_CBSystemMessage((StringExternal("Param/Value/A9E1F386") + StringToText(gv_lastWill[lv_a][1]) + StringExternal("Param/Value/CD1D0C2F")), autoD3D4148A_var, lv_a, 0, SoundLink("Silent", -1), Color(100.00, 100.00, 0.00));
+                                gf_BHWillMore(lv_a, autoD3D4148A_var, lv_a, StringExternal("Param/Value/A9E1F386"), StringExternal("Param/Value/CD1D0C2F"), Color(100.00, 100.00, 0.00));
                             }
                             Wait(4.0, c_timeGame);
                         }
@@ -8550,7 +8558,7 @@ bool auto_gf_DayTransition_TriggerFunc (bool testConds, bool runActions) {
                             libNtve_gf_SetDialogItemText(gv_deadBoxItem[3], gv_deadBoxText[0], PlayerGroupAll());
                             gv_deadBoxText[1] = (gv_deadBoxText[1] + StringExternal("Param/Value/E489F26E") + StringToText(gv_number[lv_a]) + StringExternal("Param/Value/F81F3BC5") + TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a])) + StringExternal("Param/Value/F3BF1D76") + StringExternal("Param/Value/9F84B8FB") + StringExternal("Param/Value/E7DFD917") + gv_deathText[lv_a] + StringExternal("Param/Value/7D20568F") + IntToText(gv_dayNumber) + StringExternal("Param/Value/1C365BCF"));
                             libNtve_gf_SetDialogItemTooltip(gv_deadBoxItem[3], gv_deadBoxText[1], PlayerGroupAll());
-                            if (((StringLength(gv_lastWill[lv_a][0]) >= 1) || (StringLength(gv_lastWill[lv_a][1]) >= 1))) {
+                            if ((gf_BHWillAny(lv_a) == true)) {
                                 Wait(1.0, c_timeGame);
                                 auto61BB23A1_g = gv_currentPlayers;
                                 auto61BB23A1_var = -1;
@@ -8587,7 +8595,7 @@ bool auto_gf_DayTransition_TriggerFunc (bool testConds, bool runActions) {
                             libNtve_gf_SetDialogItemText(gv_deadBoxItem[3], gv_deadBoxText[0], PlayerGroupAll());
                             gv_deadBoxText[1] = (gv_deadBoxText[1] + StringExternal("Param/Value/98E9E06A") + StringToText(gv_number[lv_a]) + StringExternal("Param/Value/0E4A3579") + TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a])) + StringExternal("Param/Value/D41D3ADD") + StringExternal("Param/Value/CB4CE876") + StringExternal("Param/Value/A5F54D92") + gv_deathText[lv_a] + StringExternal("Param/Value/2AE9CA9A") + IntToText(gv_dayNumber) + StringExternal("Param/Value/88FF675A"));
                             libNtve_gf_SetDialogItemTooltip(gv_deadBoxItem[3], gv_deadBoxText[1], PlayerGroupAll());
-                            if (((StringLength(gv_lastWill[lv_a][0]) >= 1) || (StringLength(gv_lastWill[lv_a][1]) >= 1))) {
+                            if ((gf_BHWillAny(lv_a) == true)) {
                                 Wait(1.0, c_timeGame);
                                 autoFD6A8D36_g = gv_currentPlayers;
                                 autoFD6A8D36_var = -1;
@@ -9516,7 +9524,7 @@ bool auto_gf_CheckVoteWin_TriggerFunc (bool testConds, bool runActions) {
                     for ( ; ( (autoA2B1FF82_ai >= 0 && lv_a <= autoA2B1FF82_ae) || (autoA2B1FF82_ai < 0 && lv_a >= autoA2B1FF82_ae) ) ; lv_a += autoA2B1FF82_ai ) {
                         gv_deadBoxText[1] = (gv_deadBoxText[1] + StringExternal("Param/Value/CA653E95") + StringToText(gv_number[gv_executionList[lv_a]]) + StringExternal("Param/Value/7A02C84A") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/DD74A60A") + StringExternal("Param/Value/D7B6A0D0") + StringExternal("Param/Value/8007050B") + IntToText(gv_dayNumber) + StringExternal("Param/Value/9748DB1D"));
                         libNtve_gf_SetDialogItemTooltip(gv_deadBoxItem[3], gv_deadBoxText[1], PlayerGroupAll());
-                        if (((StringLength(gv_lastWill[gv_executionList[lv_a]][0]) >= 1) || (StringLength(gv_lastWill[gv_executionList[lv_a]][1]) >= 1))) {
+                        if ((gf_BHWillAny(gv_executionList[lv_a]) == true)) {
                             Wait(1.0, c_timeGame);
                             auto30365480_g = gv_currentPlayers;
                             auto30365480_var = -1;
@@ -9538,6 +9546,7 @@ bool auto_gf_CheckVoteWin_TriggerFunc (bool testConds, bool runActions) {
                                 if (auto6AC680F7_var < 0) { break; }
                                 gf_CBSystemMessage((StringExternal("Param/Value/0E3DCE8B") + StringToText(gv_lastWill[gv_executionList[lv_a]][0]) + StringExternal("Param/Value/5B872FF4")), auto6AC680F7_var, gv_executionList[lv_a], 0, SoundLink("UI_BnetSelectNegative", -1), Color(0.00, 0.00, 0.00));
                                 gf_CBSystemMessage((StringExternal("Param/Value/BF9FB0AE") + StringToText(gv_lastWill[gv_executionList[lv_a]][1]) + StringExternal("Param/Value/C58C9758")), auto6AC680F7_var, gv_executionList[lv_a], 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+                                gf_BHWillMore(gv_executionList[lv_a], auto6AC680F7_var, gv_executionList[lv_a], StringExternal("Param/Value/BF9FB0AE"), StringExternal("Param/Value/C58C9758"), Color(0.00, 0.00, 0.00));
                             }
                             Wait(4.0, c_timeGame);
                         }
@@ -9561,7 +9570,7 @@ bool auto_gf_CheckVoteWin_TriggerFunc (bool testConds, bool runActions) {
                             gf_ELAddMessage((StringExternal("Param/Value/08CEBA77") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/FAA88393") + gf_DQSeenName(gv_executionList[lv_a]) + StringExternal("Param/Value/7F940192")), auto07FDA567_var, Color(25.10, 0.00, 50.20), lv_a, 0);
                         }
                         UIDisplayMessage(PlayerGroupAll(), c_messageAreaDirective, (StringExternal("Param/Value/642CA6EB") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/51987162") + gf_DQSeenName(gv_executionList[lv_a]) + StringExternal("Param/Value/2E2227E4")));
-                        if (((StringLength(gv_lastWill[gv_executionList[lv_a]][0]) >= 1) || (StringLength(gv_lastWill[gv_executionList[lv_a]][1]) >= 1))) {
+                        if ((gf_BHWillAny(gv_executionList[lv_a]) == true)) {
                             Wait(1.0, c_timeGame);
                             auto87047C23_g = gv_currentPlayers;
                             auto87047C23_var = -1;
@@ -9583,6 +9592,7 @@ bool auto_gf_CheckVoteWin_TriggerFunc (bool testConds, bool runActions) {
                                 if (auto10AE5D06_var < 0) { break; }
                                 gf_CBSystemMessage((StringExternal("Param/Value/C7144C7E") + StringToText(gv_lastWill[gv_executionList[lv_a]][0]) + StringExternal("Param/Value/31080B67")), auto10AE5D06_var, gv_executionList[lv_a], 0, SoundLink("UI_BnetSelectNegative", -1), Color(0.00, 0.00, 0.00));
                                 gf_CBSystemMessage((StringExternal("Param/Value/16B8146E") + StringToText(gv_lastWill[gv_executionList[lv_a]][1]) + StringExternal("Param/Value/57EAC227")), auto10AE5D06_var, gv_executionList[lv_a], 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+                                gf_BHWillMore(gv_executionList[lv_a], auto10AE5D06_var, gv_executionList[lv_a], StringExternal("Param/Value/16B8146E"), StringExternal("Param/Value/57EAC227"), Color(0.00, 0.00, 0.00));
                             }
                             Wait(4.0, c_timeGame);
                         }
@@ -21049,7 +21059,7 @@ bool auto_gf_EExecution_TriggerFunc (bool testConds, bool runActions) {
             gv_deadBoxText[1] = (gv_deadBoxText[1] + StringExternal("Param/Value/A634B380") + StringToText(gv_number[lp_player]) + StringExternal("Param/Value/F3928044") + TextWithColor(StringToText(gv_name[lp_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_player])) + StringExternal("Param/Value/870771F3") + StringExternal("Param/Value/4657063B") + StringExternal("Param/Value/B707329F") + IntToText(gv_dayNumber) + StringExternal("Param/Value/DDC2336C"));
             libNtve_gf_SetDialogItemTooltip(gv_deadBoxItem[3], gv_deadBoxText[1], PlayerGroupAll());
             libNtve_gf_SetDialogItemText(gv_deadBoxItem[3], gv_deadBoxText[0], PlayerGroupAll());
-            if (((StringLength(gv_lastWill[lp_player][0]) >= 1) || (StringLength(gv_lastWill[lp_player][1]) >= 1))) {
+            if ((gf_BHWillAny(lp_player) == true)) {
                 Wait(1.0, c_timeGame);
                 auto3D7F99BB_g = gv_currentPlayers;
                 auto3D7F99BB_var = -1;
@@ -21071,6 +21081,7 @@ bool auto_gf_EExecution_TriggerFunc (bool testConds, bool runActions) {
                     if (auto11887D2F_var < 0) { break; }
                     gf_CBSystemMessage((StringExternal("Param/Value/F9288400") + StringToText(gv_lastWill[lp_player][0]) + StringExternal("Param/Value/5FE6794E")), auto11887D2F_var, lp_player, 0, SoundLink("UI_BnetSelectNegative", -1), Color(0.00, 0.00, 0.00));
                     gf_CBSystemMessage((StringExternal("Param/Value/D68A2550") + StringToText(gv_lastWill[lp_player][1]) + StringExternal("Param/Value/B30E55F0")), auto11887D2F_var, lp_player, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+                    gf_BHWillMore(lp_player, auto11887D2F_var, lp_player, StringExternal("Param/Value/D68A2550"), StringExternal("Param/Value/B30E55F0"), Color(0.00, 0.00, 0.00));
                 }
                 Wait(4.0, c_timeGame);
             }
@@ -21094,7 +21105,7 @@ bool auto_gf_EExecution_TriggerFunc (bool testConds, bool runActions) {
             }
             UIDisplayMessage(PlayerGroupAll(), c_messageAreaDirective, (StringExternal("Param/Value/5F8DB049") + TextWithColor(StringToText(gv_name[lp_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_player])) + StringExternal("Param/Value/05CCB497") + gf_DQSeenName(lp_player) + StringExternal("Param/Value/B745A03C")));
             libNtve_gf_SetDialogItemText(gv_deadBoxItem[3], gv_deadBoxText[0], PlayerGroupAll());
-            if (((StringLength(gv_lastWill[lp_player][0]) >= 1) || (StringLength(gv_lastWill[lp_player][1]) >= 1))) {
+            if ((gf_BHWillAny(lp_player) == true)) {
                 Wait(1.0, c_timeGame);
                 autoEC38FB51_g = gv_currentPlayers;
                 autoEC38FB51_var = -1;
@@ -21116,6 +21127,7 @@ bool auto_gf_EExecution_TriggerFunc (bool testConds, bool runActions) {
                     if (auto1840B5B9_var < 0) { break; }
                     gf_CBSystemMessage((StringExternal("Param/Value/4BB51DB0") + StringToText(gv_lastWill[lp_player][0]) + StringExternal("Param/Value/017350CA")), auto1840B5B9_var, lp_player, 0, SoundLink("UI_BnetSelectNegative", -1), Color(100.00, 100.00, 0.00));
                     gf_CBSystemMessage((StringExternal("Param/Value/EE681A16") + StringToText(gv_lastWill[lp_player][1]) + StringExternal("Param/Value/8983EC22")), auto1840B5B9_var, lp_player, 0, SoundLink("Silent", -1), Color(100.00, 100.00, 0.00));
+                    gf_BHWillMore(lp_player, auto1840B5B9_var, lp_player, StringExternal("Param/Value/EE681A16"), StringExternal("Param/Value/8983EC22"), Color(100.00, 100.00, 0.00));
                 }
                 Wait(4.0, c_timeGame);
             }
@@ -21336,7 +21348,7 @@ bool auto_gf_EExecution_TriggerFunc (bool testConds, bool runActions) {
                     for ( ; ( (autoF8FAE316_ai >= 0 && lv_a <= autoF8FAE316_ae) || (autoF8FAE316_ai < 0 && lv_a >= autoF8FAE316_ae) ) ; lv_a += autoF8FAE316_ai ) {
                         gv_deadBoxText[1] = (gv_deadBoxText[1] + StringExternal("Param/Value/452E8B5D") + StringToText(gv_number[gv_executionList[lv_a]]) + StringExternal("Param/Value/77EF89DD") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/C913EE46") + StringExternal("Param/Value/FA6A0EE3") + StringExternal("Param/Value/E745741B") + IntToText(gv_dayNumber) + StringExternal("Param/Value/078D1C32"));
                         libNtve_gf_SetDialogItemTooltip(gv_deadBoxItem[3], gv_deadBoxText[1], PlayerGroupAll());
-                        if (((StringLength(gv_lastWill[gv_executionList[lv_a]][0]) >= 1) || (StringLength(gv_lastWill[gv_executionList[lv_a]][1]) >= 1))) {
+                        if ((gf_BHWillAny(gv_executionList[lv_a]) == true)) {
                             Wait(1.0, c_timeGame);
                             auto0198FCE7_g = gv_currentPlayers;
                             auto0198FCE7_var = -1;
@@ -21358,6 +21370,7 @@ bool auto_gf_EExecution_TriggerFunc (bool testConds, bool runActions) {
                                 if (auto9985C80A_var < 0) { break; }
                                 gf_CBSystemMessage((StringExternal("Param/Value/0951C0A6") + StringToText(gv_lastWill[gv_executionList[lv_a]][0]) + StringExternal("Param/Value/F0577F4F")), auto9985C80A_var, gv_executionList[lv_a], 0, SoundLink("UI_BnetSelectNegative", -1), Color(100.00, 100.00, 0.00));
                                 gf_CBSystemMessage((StringExternal("Param/Value/D46C18D0") + StringToText(gv_lastWill[gv_executionList[lv_a]][1]) + StringExternal("Param/Value/FDB71526")), auto9985C80A_var, gv_executionList[lv_a], 0, SoundLink("Silent", -1), Color(100.00, 100.00, 0.00));
+                                gf_BHWillMore(gv_executionList[lv_a], auto9985C80A_var, gv_executionList[lv_a], StringExternal("Param/Value/D46C18D0"), StringExternal("Param/Value/FDB71526"), Color(100.00, 100.00, 0.00));
                             }
                             Wait(4.0, c_timeGame);
                         }
@@ -21381,7 +21394,7 @@ bool auto_gf_EExecution_TriggerFunc (bool testConds, bool runActions) {
                             gf_ELAddMessage((StringExternal("Param/Value/095A893A") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/EBA71EA0") + gf_DQSeenName(gv_executionList[lv_a]) + StringExternal("Param/Value/FA49A348")), auto911EC0F6_var, Color(25.10, 0.00, 50.20), lv_a, 0);
                         }
                         UIDisplayMessage(PlayerGroupAll(), c_messageAreaDirective, (StringExternal("Param/Value/19352ABB") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/A3CBB333") + gf_DQSeenName(gv_executionList[lv_a]) + StringExternal("Param/Value/4A56C361")));
-                        if (((StringLength(gv_lastWill[gv_executionList[lv_a]][0]) >= 1) || (StringLength(gv_lastWill[gv_executionList[lv_a]][1]) >= 1))) {
+                        if ((gf_BHWillAny(gv_executionList[lv_a]) == true)) {
                             Wait(1.0, c_timeGame);
                             autoBCBBD245_g = gv_currentPlayers;
                             autoBCBBD245_var = -1;
@@ -21403,6 +21416,7 @@ bool auto_gf_EExecution_TriggerFunc (bool testConds, bool runActions) {
                                 if (autoF5334BCB_var < 0) { break; }
                                 gf_CBSystemMessage((StringExternal("Param/Value/B2374A03") + StringToText(gv_lastWill[gv_executionList[lv_a]][0]) + StringExternal("Param/Value/E677F9BD")), autoF5334BCB_var, gv_executionList[lv_a], 0, SoundLink("UI_BnetSelectNegative", -1), Color(100.00, 100.00, 0.00));
                                 gf_CBSystemMessage((StringExternal("Param/Value/B8D9C413") + StringToText(gv_lastWill[gv_executionList[lv_a]][1]) + StringExternal("Param/Value/E85EEC10")), autoF5334BCB_var, gv_executionList[lv_a], 0, SoundLink("Silent", -1), Color(100.00, 100.00, 0.00));
+                                gf_BHWillMore(gv_executionList[lv_a], autoF5334BCB_var, gv_executionList[lv_a], StringExternal("Param/Value/B8D9C413"), StringExternal("Param/Value/E85EEC10"), Color(100.00, 100.00, 0.00));
                             }
                             Wait(4.0, c_timeGame);
                         }
@@ -26828,16 +26842,16 @@ void gf_ESpretender1 (int lp_player, int lp_killer) {
             gf_BHCrimeMurder(lp_killer);
             gv_pretenderFramed[lv_target] = lp_killer;
             gf_CBSystemMessage(StringExternal("Param/Value/B3EAE093"), lp_killer, lp_killer, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
-            if (((StringLength(gv_lastWill[lv_target][0]) > 0) || (StringLength(gv_lastWill[lv_target][1]) > 0))) {
+            if ((gf_BHWillAny(lv_target) == true)) {
                 gf_CBSystemMessage(StringExternal("Param/Value/0A5D0625"), lp_killer, lp_killer, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
                 gf_CBSystemMessage((StringExternal("Param/Value/40A50A21") + StringToText(gv_lastWill[lv_target][0]) + StringExternal("Param/Value/2DF32655")), lp_killer, lp_killer, 0, SoundLink("UI_BnetSelectNegative", -1), Color(100.00, 100.00, 0.00));
                 gf_CBSystemMessage((StringExternal("Param/Value/0415B919") + StringToText(gv_lastWill[lv_target][1]) + StringExternal("Param/Value/C90128C3")), lp_killer, lp_killer, 0, SoundLink("Silent", -1), Color(100.00, 100.00, 0.00));
+                gf_BHWillMore(lv_target, lp_killer, lp_killer, StringExternal("Param/Value/0415B919"), StringExternal("Param/Value/C90128C3"), Color(100.00, 100.00, 0.00));
             }
             else {
                 gf_CBSystemMessage(StringExternal("Param/Value/B479C519"), lp_killer, lp_killer, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
             }
-            gv_lastWill[lv_target][0] = gv_lastWill[lp_killer][0];
-            gv_lastWill[lv_target][1] = gv_lastWill[lp_killer][1];
+            gf_BHWillCopy(lv_target, lp_killer);
             gv_pretended[lp_killer] = true;
             gf_BHCrimeMurder(lp_killer);
         }
@@ -30605,8 +30619,7 @@ void gf_ESPossessioSuicide2 (int lp_player, int lp_driver) {
                 }
             }
             gv_deathDesc[lv_target] = true;
-            gv_lastWill[lv_target][0] = "";
-            gv_lastWill[lv_target][1] = "";
+            gf_BHWillClear(lv_target);
             gf_CBSystemMessage(StringExternal("Param/Value/F1609FF7"), lv_target, lv_target, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
             if ((gv_nightSequence == true)) {
                 autoFA9E8A51_g = PlayerGroupAll();
@@ -57825,8 +57838,7 @@ bool gt_DeleteWill_Func (bool testConds, bool runActions) {
     }
 
     if ((lv_hit != 0)) {
-        gv_lastWill[lv_hit][0] = "";
-        gv_lastWill[lv_hit][1] = "";
+        gf_BHWillClear(lv_hit);
         gf_CBSystemMessage((StringExternal("Param/Value/BB149FEA") + TextWithColor(StringToText(gv_name[lv_hit]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_hit])) + StringExternal("Param/Value/9F7C0A61")), EventPlayer(), 16, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
     }
 
@@ -60057,19 +60069,31 @@ bool gt_Start_Func (bool testConds, bool runActions) {
     gv_voteInfoItem[1] = DialogControlLastCreated();
     DialogControlSetSize(gv_voteInfoItem[1], PlayerGroupAll(), 375, 150);
     DialogControlSetPosition(gv_voteInfoItem[1], PlayerGroupAll(), c_anchorCenter, 0, 0);
-    DialogCreate(1430, 135, c_anchorCenter, 0, -20, true);
+    DialogCreate(1430, 290, c_anchorCenter, 0, 0, true);
     gv_lastWillBox = DialogLastCreated();
     DialogControlCreate(gv_lastWillBox, c_triggerControlTypeEditBox);
     gv_lastWillBoxItem[0] = DialogControlLastCreated();
-    DialogControlSetPosition(gv_lastWillBoxItem[0], PlayerGroupAll(), c_anchorTopLeft, 25, 23);
-    DialogControlSetSize(gv_lastWillBoxItem[0], PlayerGroupAll(), 1300, 50);
+    DialogControlSetPosition(gv_lastWillBoxItem[0], PlayerGroupAll(), c_anchorTopLeft, 20, 16);
+    DialogControlSetSize(gv_lastWillBoxItem[0], PlayerGroupAll(), 1280, 46);
     DialogControlCreate(gv_lastWillBox, c_triggerControlTypeEditBox);
     gv_lastWillBoxItem[1] = DialogControlLastCreated();
-    DialogControlSetPosition(gv_lastWillBoxItem[1], PlayerGroupAll(), c_anchorBottomLeft, 25, 20);
-    DialogControlSetSize(gv_lastWillBoxItem[1], PlayerGroupAll(), 1300, 50);
-    libNtve_gf_CreateDialogItemButton(gv_lastWillBox, 80, 90, c_anchorRight, 25, 3, StringExternal("Param/Value/4319ADC7"), StringToText(""), "Assets\\Textures\\ui_generic_button_green_normaloverpressedover.dds");
+    DialogControlSetPosition(gv_lastWillBoxItem[1], PlayerGroupAll(), c_anchorTopLeft, 20, 66);
+    DialogControlSetSize(gv_lastWillBoxItem[1], PlayerGroupAll(), 1280, 46);
+    DialogControlCreate(gv_lastWillBox, c_triggerControlTypeEditBox);
     gv_lastWillBoxItem[2] = DialogControlLastCreated();
-    libNtve_gf_SetDialogItemImage(gv_lastWillBoxItem[2], "Assets\\Textures\\ui_generic_button_green_normalpressed.dds", PlayerGroupAll());
+    DialogControlSetPosition(gv_lastWillBoxItem[2], PlayerGroupAll(), c_anchorTopLeft, 20, 116);
+    DialogControlSetSize(gv_lastWillBoxItem[2], PlayerGroupAll(), 1280, 46);
+    DialogControlCreate(gv_lastWillBox, c_triggerControlTypeEditBox);
+    gv_lastWillBoxItem[3] = DialogControlLastCreated();
+    DialogControlSetPosition(gv_lastWillBoxItem[3], PlayerGroupAll(), c_anchorTopLeft, 20, 166);
+    DialogControlSetSize(gv_lastWillBoxItem[3], PlayerGroupAll(), 1280, 46);
+    DialogControlCreate(gv_lastWillBox, c_triggerControlTypeEditBox);
+    gv_lastWillBoxItem[4] = DialogControlLastCreated();
+    DialogControlSetPosition(gv_lastWillBoxItem[4], PlayerGroupAll(), c_anchorTopLeft, 20, 216);
+    DialogControlSetSize(gv_lastWillBoxItem[4], PlayerGroupAll(), 1280, 46);
+    libNtve_gf_CreateDialogItemButton(gv_lastWillBox, 80, 240, c_anchorRight, 18, 0, StringExternal("Param/Value/4319ADC7"), StringToText(""), "Assets\\Textures\\ui_generic_button_green_normaloverpressedover.dds");
+    gv_lastWillBoxItem[5] = DialogControlLastCreated();
+    libNtve_gf_SetDialogItemImage(gv_lastWillBoxItem[5], "Assets\\Textures\\ui_generic_button_green_normalpressed.dds", PlayerGroupAll());
     DialogSetVisible(gv_lastWillBox, PlayerGroupAll(), false);
     gf_DisplayRoles();
     gf_ASInitializeActionDialogs();
@@ -61231,14 +61255,14 @@ bool gt_UIButtons_Func (bool testConds, bool runActions) {
 
     }
 
-    if ((EventDialogControl() == gv_lastWillBoxItem[2]) && (gv_willsEnabled == true)) {
+    if ((EventDialogControl() == gv_lastWillBoxItem[5]) && (gv_willsEnabled == true)) {
         if ((PlayerGroupHasPlayer(gv_alivePlayers, EventPlayer()) == true)) {
             if ((gv_willsAllowed == true)) {
-                gv_lastWill[EventPlayer()][0] = libNtve_gf_DialogItemEditValue(gv_lastWillBoxItem[0], EventPlayer());
-                gv_lastWill[EventPlayer()][1] = libNtve_gf_DialogItemEditValue(gv_lastWillBoxItem[1], EventPlayer());
+                gf_BHWillSave(EventPlayer());
                 gf_CBSystemMessage(StringExternal("Param/Value/AFF5A71F"), EventPlayer(), EventPlayer(), 0, SoundLink("UI_CampaignHintNotify", -1), Color(0,0,0));
                 gf_CBSystemMessage((StringExternal("Param/Value/5B389404") + StringToText(gv_lastWill[EventPlayer()][0]) + StringExternal("Param/Value/0085779F")), EventPlayer(), EventPlayer(), 0, SoundLink("Silent", -1), Color(0,0,0));
                 gf_CBSystemMessage((StringExternal("Param/Value/A41D6B99") + StringToText(gv_lastWill[EventPlayer()][1]) + StringExternal("Param/Value/0319D50B")), EventPlayer(), EventPlayer(), 0, SoundLink("Silent", -1), Color(0,0,0));
+                gf_BHWillMore(EventPlayer(), EventPlayer(), EventPlayer(), StringExternal("Param/Value/A41D6B99"), StringExternal("Param/Value/0319D50B"), Color(0,0,0));
                 DialogSetVisible(gv_lastWillBox, PlayerGroupSingle(EventPlayer()), false);
             }
             else {
@@ -62924,14 +62948,7 @@ bool gt_LastWill_Func (bool testConds, bool runActions) {
     }
 
     if (((EventChatMessage(false) == "-last will") || (EventChatMessage(false) == "-lw"))) {
-        if (((StringLength(gv_lastWill[EventPlayer()][0]) >= 1) || (StringLength(gv_lastWill[EventPlayer()][1]) >= 1))) {
-            libNtve_gf_SetDialogItemEditorValue(gv_lastWillBoxItem[0], gv_lastWill[EventPlayer()][0], PlayerGroupSingle(EventPlayer()));
-            libNtve_gf_SetDialogItemEditorValue(gv_lastWillBoxItem[1], gv_lastWill[EventPlayer()][1], PlayerGroupSingle(EventPlayer()));
-        }
-        else {
-            libNtve_gf_SetDialogItemEditorValue(gv_lastWillBoxItem[0], "", PlayerGroupSingle(EventPlayer()));
-            libNtve_gf_SetDialogItemEditorValue(gv_lastWillBoxItem[1], "", PlayerGroupSingle(EventPlayer()));
-        }
+        gf_BHWillLoad(EventPlayer());
         DialogSetVisible(gv_lastWillBox, PlayerGroupSingle(EventPlayer()), true);
     }
     else {
@@ -62997,6 +63014,7 @@ bool gt_LastWill_Func (bool testConds, bool runActions) {
             gf_CBSystemMessage((StringExternal("Param/Value/9F4113D6") + TextWithColor(StringToText(gv_name[lv_hit]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_hit])) + StringExternal("Param/Value/FC6B3801")), EventPlayer(), 0, 0, SoundLink("UI_CampaignHintNotify", -1), Color(0,0,0));
             gf_CBSystemMessage((StringExternal("Param/Value/4257F67C") + StringToText(gv_lastWill[lv_hit][0]) + StringExternal("Param/Value/2D13487D")), EventPlayer(), 0, 0, SoundLink("Silent", -1), Color(0,0,0));
             gf_CBSystemMessage((StringExternal("Param/Value/7D3E06C4") + StringToText(gv_lastWill[lv_hit][1]) + StringExternal("Param/Value/212C61EC")), EventPlayer(), 0, 0, SoundLink("Silent", -1), Color(0,0,0));
+            gf_BHWillMore(lv_hit, EventPlayer(), 0, StringExternal("Param/Value/7D3E06C4"), StringExternal("Param/Value/212C61EC"), Color(0,0,0));
         }
 
     }
@@ -69675,7 +69693,7 @@ bool gt_DaySequence_Func (bool testConds, bool runActions) {
                         for ( ; ( (autoA2495A9D_ai >= 0 && lv_a <= autoA2495A9D_ae) || (autoA2495A9D_ai < 0 && lv_a >= autoA2495A9D_ae) ) ; lv_a += autoA2495A9D_ai ) {
                             gv_deadBoxText[1] = (gv_deadBoxText[1] + StringExternal("Param/Value/B0B37CEF") + StringToText(gv_number[gv_executionList[lv_a]]) + StringExternal("Param/Value/4B7618FB") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/94782F6E") + StringExternal("Param/Value/F351A267") + StringExternal("Param/Value/579F86C8") + IntToText(gv_dayNumber) + StringExternal("Param/Value/7A15B4DB"));
                             libNtve_gf_SetDialogItemTooltip(gv_deadBoxItem[3], gv_deadBoxText[1], PlayerGroupAll());
-                            if (((StringLength(gv_lastWill[gv_executionList[lv_a]][0]) >= 1) || (StringLength(gv_lastWill[gv_executionList[lv_a]][1]) >= 1))) {
+                            if ((gf_BHWillAny(gv_executionList[lv_a]) == true)) {
                                 Wait(1.0, c_timeGame);
                                 auto4FCE83AE_g = gv_currentPlayers;
                                 auto4FCE83AE_var = -1;
@@ -69697,6 +69715,7 @@ bool gt_DaySequence_Func (bool testConds, bool runActions) {
                                     if (autoEEEDB952_var < 0) { break; }
                                     gf_CBSystemMessage((StringExternal("Param/Value/C0338775") + StringToText(gv_lastWill[gv_executionList[lv_a]][0]) + StringExternal("Param/Value/19A715A5")), autoEEEDB952_var, gv_executionList[lv_a], 0, SoundLink("UI_BnetSelectNegative", -1), Color(0.00, 0.00, 0.00));
                                     gf_CBSystemMessage((StringExternal("Param/Value/ED6696CE") + StringToText(gv_lastWill[gv_executionList[lv_a]][1]) + StringExternal("Param/Value/BE447589")), autoEEEDB952_var, gv_executionList[lv_a], 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+                                    gf_BHWillMore(gv_executionList[lv_a], autoEEEDB952_var, gv_executionList[lv_a], StringExternal("Param/Value/ED6696CE"), StringExternal("Param/Value/BE447589"), Color(0.00, 0.00, 0.00));
                                 }
                                 Wait(4.0, c_timeGame);
                             }
@@ -69720,7 +69739,7 @@ bool gt_DaySequence_Func (bool testConds, bool runActions) {
                                 gf_ELAddMessage((StringExternal("Param/Value/96126402") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/536ECE7D") + gf_DQSeenName(gv_executionList[lv_a]) + StringExternal("Param/Value/17F39EFC")), auto16DEF60A_var, Color(25.10, 0.00, 50.20), lv_a, 0);
                             }
                             UIDisplayMessage(PlayerGroupAll(), c_messageAreaDirective, (StringExternal("Param/Value/A2BB73A9") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/33A67199") + gf_DQSeenName(gv_executionList[lv_a]) + StringExternal("Param/Value/13B76712")));
-                            if (((StringLength(gv_lastWill[gv_executionList[lv_a]][0]) >= 1) || (StringLength(gv_lastWill[gv_executionList[lv_a]][1]) >= 1))) {
+                            if ((gf_BHWillAny(gv_executionList[lv_a]) == true)) {
                                 Wait(1.0, c_timeGame);
                                 autoEE334CD3_g = gv_currentPlayers;
                                 autoEE334CD3_var = -1;
@@ -69742,6 +69761,7 @@ bool gt_DaySequence_Func (bool testConds, bool runActions) {
                                     if (auto8DD1C8BF_var < 0) { break; }
                                     gf_CBSystemMessage((StringExternal("Param/Value/54E4FD4C") + StringToText(gv_lastWill[gv_executionList[lv_a]][0]) + StringExternal("Param/Value/557C007E")), auto8DD1C8BF_var, gv_executionList[lv_a], 0, SoundLink("UI_BnetSelectNegative", -1), Color(0.00, 0.00, 0.00));
                                     gf_CBSystemMessage((StringExternal("Param/Value/2E268713") + StringToText(gv_lastWill[gv_executionList[lv_a]][1]) + StringExternal("Param/Value/3FBDF640")), auto8DD1C8BF_var, gv_executionList[lv_a], 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+                                    gf_BHWillMore(gv_executionList[lv_a], auto8DD1C8BF_var, gv_executionList[lv_a], StringExternal("Param/Value/2E268713"), StringExternal("Param/Value/3FBDF640"), Color(0.00, 0.00, 0.00));
                                 }
                                 Wait(4.0, c_timeGame);
                             }
@@ -70231,12 +70251,16 @@ bool gt_NightSequence_Func (bool testConds, bool runActions) {
                 gf_CBSystemMessage(StringExternal("Param/Value/1C6D9AB8"), gv_janitized[lv_a], gv_janitized[lv_a], 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
             }
 
-            if ((StringLength(gv_lastWill[lv_a][0]) >= 1)) {
+            if ((gf_BHWillAny(lv_a) == true)) {
                 gf_CBSystemMessage((StringExternal("Param/Value/AA0549FB") + TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a])) + StringExternal("Param/Value/C0477C48")), gv_janitized[lv_a], gv_janitized[lv_a], 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
                 gf_CBSystemMessage((StringExternal("Param/Value/2781B796") + StringToText(gv_lastWill[lv_a][0]) + StringExternal("Param/Value/05C2B720")), gv_janitized[lv_a], gv_janitized[lv_a], 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
                 gf_CBSystemMessage((StringExternal("Param/Value/97699F3C") + StringToText(gv_lastWill[lv_a][1]) + StringExternal("Param/Value/68D9312E")), gv_janitized[lv_a], gv_janitized[lv_a], 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+                gf_BHWillMore(lv_a, gv_janitized[lv_a], gv_janitized[lv_a], StringExternal("Param/Value/97699F3C"), StringExternal("Param/Value/68D9312E"), Color(0.00, 0.00, 0.00));
                 gv_lastWill[lv_a][0] = ".";
                 gv_lastWill[lv_a][1] = "";
+                gv_lastWill[lv_a][2] = "";
+                gv_lastWill[lv_a][3] = "";
+                gv_lastWill[lv_a][4] = "";
             }
 
             lv_wait[3] = true;
@@ -76822,7 +76846,7 @@ bool gt_ASSendWillButton_Func (bool testConds, bool runActions) {
     int lv_p;
     int lv_i;
     string lv_line;
-    const int autoSHWWILL_ae = 1;
+    const int autoSHWWILL_ae = 4;
     const int autoSHWWILL_ai = 1;
 
     if (testConds) {
@@ -76846,11 +76870,10 @@ bool gt_ASSendWillButton_Func (bool testConds, bool runActions) {
     }
 
     if ((DialogIsVisible(gv_lastWillBox, lv_p) == true)) {
-        gv_lastWill[lv_p][0] = libNtve_gf_DialogItemEditValue(gv_lastWillBoxItem[0], lv_p);
-        gv_lastWill[lv_p][1] = libNtve_gf_DialogItemEditValue(gv_lastWillBoxItem[1], lv_p);
+        gf_BHWillSave(lv_p);
     }
 
-    if ((StringLength(gv_lastWill[lv_p][0]) < 1) && (StringLength(gv_lastWill[lv_p][1]) < 1)) {
+    if ((gf_BHWillAny(lv_p) == false)) {
         gf_CBSystemMessage(StringExternal("Param/Value/SHWWILLEMPTY"), lv_p, lv_p, 0, SoundLink("UI_GenericError", -1), Color(0.00, 0.00, 0.00));
         return true;
     }
@@ -83575,14 +83598,7 @@ bool gt_ELEventLogButtons_Func (bool testConds, bool runActions) {
 
     if ((PlayerGroupHasPlayer(gv_alivePlayers, EventPlayer()) == true) && (EventDialogControl() == gv_lWButtonItem)) {
         if ((gv_willsAllowed == true) && (gv_willsEnabled == true)) {
-            if (((StringLength(gv_lastWill[EventPlayer()][0]) >= 1) || (StringLength(gv_lastWill[EventPlayer()][1]) >= 1))) {
-                libNtve_gf_SetDialogItemEditorValue(gv_lastWillBoxItem[0], gv_lastWill[EventPlayer()][0], PlayerGroupSingle(EventPlayer()));
-                libNtve_gf_SetDialogItemEditorValue(gv_lastWillBoxItem[1], gv_lastWill[EventPlayer()][1], PlayerGroupSingle(EventPlayer()));
-            }
-            else {
-                libNtve_gf_SetDialogItemEditorValue(gv_lastWillBoxItem[0], "", PlayerGroupSingle(EventPlayer()));
-                libNtve_gf_SetDialogItemEditorValue(gv_lastWillBoxItem[1], "", PlayerGroupSingle(EventPlayer()));
-            }
+            gf_BHWillLoad(EventPlayer());
             DialogSetVisible(gv_lastWillBox, PlayerGroupSingle(EventPlayer()), true);
         }
         else {
@@ -83802,14 +83818,7 @@ bool gt_ELHotkeys_Func (bool testConds, bool runActions) {
 
     if ((PlayerGroupHasPlayer(gv_alivePlayers, EventPlayer()) == true) && (EventKeyPressed() == c_keyQ)) {
         if ((gv_willsAllowed == true) && (gv_willsEnabled == true)) {
-            if (((StringLength(gv_lastWill[EventPlayer()][0]) >= 1) || (StringLength(gv_lastWill[EventPlayer()][1]) >= 1))) {
-                libNtve_gf_SetDialogItemEditorValue(gv_lastWillBoxItem[0], gv_lastWill[EventPlayer()][0], PlayerGroupSingle(EventPlayer()));
-                libNtve_gf_SetDialogItemEditorValue(gv_lastWillBoxItem[1], gv_lastWill[EventPlayer()][1], PlayerGroupSingle(EventPlayer()));
-            }
-            else {
-                libNtve_gf_SetDialogItemEditorValue(gv_lastWillBoxItem[0], "", PlayerGroupSingle(EventPlayer()));
-                libNtve_gf_SetDialogItemEditorValue(gv_lastWillBoxItem[1], "", PlayerGroupSingle(EventPlayer()));
-            }
+            gf_BHWillLoad(EventPlayer());
             DialogSetVisible(gv_lastWillBox, PlayerGroupSingle(EventPlayer()), true);
         }
         else {
@@ -91477,10 +91486,14 @@ if ((PlayerGroupHasPlayer(gv_alivePlayers, gv_visitation[lv_a]) == false)) {
         }
     }
 
-    if ((gv_roleOptions[1][10][1] == true) && ((StringLength(gv_lastWill[gv_visitation[lv_a]][0]) >= 1) || (StringLength(gv_lastWill[gv_visitation[lv_a]][1]) >= 1))) {
+    if ((gv_roleOptions[1][10][1] == true) && (gf_BHWillAny(gv_visitation[lv_a]) == true)) {
         gf_CBSystemMessage((StringExternal("Param/Value/10E7CC1D") + TextWithColor(StringToText(gv_name[gv_visitation[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_visitation[lv_a]])) + StringExternal("Param/Value/EEA37E18")), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
         gf_CBSystemMessage((StringExternal("Param/Value/875590AC") + StringToText(gv_lastWill[gv_visitation[lv_a]][0]) + StringExternal("Param/Value/F55517B7")), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
         gf_CBSystemMessage((StringExternal("Param/Value/9637AEF4") + StringToText(gv_lastWill[gv_visitation[lv_a]][1]) + StringExternal("Param/Value/322C9637")), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+        gf_BHWillMore(gv_visitation[lv_a], lv_a, lv_a, StringExternal("Param/Value/9637AEF4"), StringExternal("Param/Value/322C9637"), Color(0.00, 0.00, 0.00));
+        if ((StringLength(gv_lastWill[gv_visitation[lv_a]][2]) >= 1)) { lv_fgsd += 1; }
+        if ((StringLength(gv_lastWill[gv_visitation[lv_a]][3]) >= 1)) { lv_fgsd += 1; }
+        if ((StringLength(gv_lastWill[gv_visitation[lv_a]][4]) >= 1)) { lv_fgsd += 1; }
         lv_fgsd += 3;
     }
 
@@ -92016,12 +92029,7 @@ gv_playerSpot[gv_disguised[lv_a]] = lv_i;
 lv_s = gv_name[lv_a];
 gv_name[lv_a] = gv_name[gv_disguised[lv_a]];
 gv_name[gv_disguised[lv_a]] = lv_s;
-lv_s = gv_lastWill[lv_a][0];
-gv_lastWill[lv_a][0] = gv_lastWill[gv_disguised[lv_a]][0];
-gv_lastWill[gv_disguised[lv_a]][0] = lv_s;
-lv_s = gv_lastWill[lv_a][1];
-gv_lastWill[lv_a][1] = gv_lastWill[gv_disguised[lv_a]][1];
-gv_lastWill[gv_disguised[lv_a]][1] = lv_s;
+gf_BHWillSwap(lv_a, gv_disguised[lv_a]);
 lv_s = gv_deathNote[lv_a];
 gv_deathNote[lv_a] = gv_deathNote[gv_disguised[lv_a]];
 gv_deathNote[gv_disguised[lv_a]] = lv_s;
@@ -92055,10 +92063,11 @@ TextTagCreate(TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlaye
 TextTagAttachToUnit(TextTagLastCreated(), gv_unit[lv_a], 1.5);
 gv_nameTag[lv_a] = TextTagLastCreated();
 TextTagShow(gv_nameTag[lv_a], PlayerGroupAll(), false);
-if (((StringLength(gv_lastWill[lv_a][0]) >= 1) || (StringLength(gv_lastWill[lv_a][1]) >= 1))) {
+if ((gf_BHWillAny(lv_a) == true)) {
     gf_CBSystemMessage((StringExternal("Param/Value/9161E9E2") + TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a])) + StringExternal("Param/Value/7CCA9645")), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
     gf_CBSystemMessage((StringExternal("Param/Value/D5F814A5") + StringToText(gv_lastWill[lv_a][0]) + StringExternal("Param/Value/E5FCDE49")), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
     gf_CBSystemMessage((StringExternal("Param/Value/DCBA0CF3") + StringToText(gv_lastWill[lv_a][1]) + StringExternal("Param/Value/5C2CBD55")), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+    gf_BHWillMore(lv_a, lv_a, lv_a, StringExternal("Param/Value/DCBA0CF3"), StringExternal("Param/Value/5C2CBD55"), Color(0.00, 0.00, 0.00));
 }
 
 gv_seqAfterWait[2] = true;
@@ -92117,12 +92126,7 @@ if ((gv_e5BC80E585B3[lv_a] == true) && (gv_disguised[lv_a] != 0) && (gv_diedAtNi
     lv_s = gv_name[lv_a];
     gv_name[lv_a] = gv_name[gv_disguised[lv_a]];
     gv_name[gv_disguised[lv_a]] = lv_s;
-    lv_s = gv_lastWill[lv_a][0];
-    gv_lastWill[lv_a][0] = gv_lastWill[gv_disguised[lv_a]][0];
-    gv_lastWill[gv_disguised[lv_a]][0] = lv_s;
-    lv_s = gv_lastWill[lv_a][1];
-    gv_lastWill[lv_a][1] = gv_lastWill[gv_disguised[lv_a]][1];
-    gv_lastWill[gv_disguised[lv_a]][1] = lv_s;
+    gf_BHWillSwap(lv_a, gv_disguised[lv_a]);
     lv_s = gv_deathNote[lv_a];
     gv_deathNote[lv_a] = gv_deathNote[gv_disguised[lv_a]];
     gv_deathNote[gv_disguised[lv_a]] = lv_s;
@@ -92152,10 +92156,11 @@ if ((gv_e5BC80E585B3[lv_a] == true) && (gv_disguised[lv_a] != 0) && (gv_diedAtNi
     TextTagAttachToUnit(TextTagLastCreated(), gv_unit[lv_a], 1.5);
     gv_nameTag[lv_a] = TextTagLastCreated();
     TextTagShow(gv_nameTag[lv_a], PlayerGroupAll(), false);
-    if (((StringLength(gv_lastWill[lv_a][0]) >= 1) || (StringLength(gv_lastWill[lv_a][1]) >= 1))) {
+    if ((gf_BHWillAny(lv_a) == true)) {
         gf_CBSystemMessage((StringExternal("Param/Value/826905B0") + TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a])) + StringExternal("Param/Value/5A29A3F2")), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
         gf_CBSystemMessage((StringExternal("Param/Value/503384B2") + StringToText(gv_lastWill[lv_a][0]) + StringExternal("Param/Value/8B114027")), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
         gf_CBSystemMessage((StringExternal("Param/Value/B0B5360A") + StringToText(gv_lastWill[lv_a][1]) + StringExternal("Param/Value/A9960B2E")), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+        gf_BHWillMore(lv_a, lv_a, lv_a, StringExternal("Param/Value/B0B5360A"), StringExternal("Param/Value/A9960B2E"), Color(0.00, 0.00, 0.00));
     }
 
     gv_seqAfterWait[2] = true;
@@ -92211,12 +92216,7 @@ gv_playerSpot[gv_disguised[lv_a]] = lv_i;
 lv_s = gv_name[lv_a];
 gv_name[lv_a] = gv_name[gv_disguised[lv_a]];
 gv_name[gv_disguised[lv_a]] = lv_s;
-lv_s = gv_lastWill[lv_a][0];
-gv_lastWill[lv_a][0] = gv_lastWill[gv_disguised[lv_a]][0];
-gv_lastWill[gv_disguised[lv_a]][0] = lv_s;
-lv_s = gv_lastWill[lv_a][1];
-gv_lastWill[lv_a][1] = gv_lastWill[gv_disguised[lv_a]][1];
-gv_lastWill[gv_disguised[lv_a]][1] = lv_s;
+gf_BHWillSwap(lv_a, gv_disguised[lv_a]);
 lv_s = gv_deathNote[lv_a];
 gv_deathNote[lv_a] = gv_deathNote[gv_disguised[lv_a]];
 gv_deathNote[gv_disguised[lv_a]] = lv_s;
@@ -92250,10 +92250,11 @@ TextTagCreate(TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlaye
 TextTagAttachToUnit(TextTagLastCreated(), gv_unit[lv_a], 1.5);
 gv_nameTag[lv_a] = TextTagLastCreated();
 TextTagShow(gv_nameTag[lv_a], PlayerGroupAll(), false);
-if (((StringLength(gv_lastWill[lv_a][0]) >= 1) || (StringLength(gv_lastWill[lv_a][1]) >= 1))) {
+if ((gf_BHWillAny(lv_a) == true)) {
     gf_CBSystemMessage((StringExternal("Param/Value/60D83607") + TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a])) + StringExternal("Param/Value/9464DED7")), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
     gf_CBSystemMessage((StringExternal("Param/Value/73118DAC") + StringToText(gv_lastWill[lv_a][0]) + StringExternal("Param/Value/C28DDB1D")), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
     gf_CBSystemMessage((StringExternal("Param/Value/0DD9F2AF") + StringToText(gv_lastWill[lv_a][1]) + StringExternal("Param/Value/44C59D3D")), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+    gf_BHWillMore(lv_a, lv_a, lv_a, StringExternal("Param/Value/0DD9F2AF"), StringExternal("Param/Value/44C59D3D"), Color(0.00, 0.00, 0.00));
 }
 
 gv_seqAfterWait[2] = true;
@@ -102617,6 +102618,94 @@ void gf_JSTellAll (text lp_msg) {
     }
 }
 
+
+bool gf_BHWillAny (int lp_p) {
+    int lv_i;
+
+    lv_i = 0;
+    while (true) {
+        if ((lv_i > 4)) { break; }
+        if ((StringLength(gv_lastWill[lp_p][lv_i]) >= 1)) {
+            return true;
+        }
+
+        lv_i += 1;
+    }
+    return false;
+}
+
+void gf_BHWillMore (int lp_who, int lp_viewer, int lp_sender, text lp_open, text lp_close, color lp_ink) {
+    int lv_i;
+
+    lv_i = 2;
+    while (true) {
+        if ((lv_i > 4)) { break; }
+        if ((StringLength(gv_lastWill[lp_who][lv_i]) >= 1)) {
+            gf_CBSystemMessage((lp_open + StringToText(gv_lastWill[lp_who][lv_i]) + lp_close), lp_viewer, lp_sender, 0, SoundLink("Silent", -1), lp_ink);
+        }
+
+        lv_i += 1;
+    }
+}
+
+void gf_BHWillCopy (int lp_dst, int lp_src) {
+    int lv_i;
+
+    lv_i = 0;
+    while (true) {
+        if ((lv_i > 4)) { break; }
+        gv_lastWill[lp_dst][lv_i] = gv_lastWill[lp_src][lv_i];
+        lv_i += 1;
+    }
+}
+
+void gf_BHWillClear (int lp_p) {
+    int lv_i;
+
+    lv_i = 0;
+    while (true) {
+        if ((lv_i > 4)) { break; }
+        gv_lastWill[lp_p][lv_i] = "";
+        lv_i += 1;
+    }
+}
+
+void gf_BHWillSwap (int lp_a, int lp_b) {
+    int lv_i;
+    string lv_s;
+
+    lv_i = 0;
+    while (true) {
+        if ((lv_i > 4)) { break; }
+        lv_s = gv_lastWill[lp_a][lv_i];
+        gv_lastWill[lp_a][lv_i] = gv_lastWill[lp_b][lv_i];
+        gv_lastWill[lp_b][lv_i] = lv_s;
+        lv_i += 1;
+    }
+}
+
+void gf_BHWillLoad (int lp_p) {
+    int lv_i;
+
+    lv_i = 0;
+    while (true) {
+        if ((lv_i > 4)) { break; }
+        libNtve_gf_SetDialogItemEditorValue(gv_lastWillBoxItem[lv_i], gv_lastWill[lp_p][lv_i], PlayerGroupSingle(lp_p));
+        lv_i += 1;
+    }
+}
+
+void gf_BHWillSave (int lp_p) {
+    int lv_i;
+
+    lv_i = 0;
+    while (true) {
+        if ((lv_i > 4)) { break; }
+        gv_lastWill[lp_p][lv_i] = libNtve_gf_DialogItemEditValue(gv_lastWillBoxItem[lv_i], lp_p);
+        lv_i += 1;
+    }
+}
+
 text gf_JSWho (int lp_who) {
     return (StringToText(gv_number[lp_who]) + StringExternal("Param/Value/JSDASH") + TextWithColor(StringToText(gv_name[lp_who]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_who])));
 }
@@ -102634,7 +102723,7 @@ void gf_JSReadWill (int lp_player) {
     text lv_w1b;
     color lv_ink;
 
-    if ((StringLength(gv_lastWill[lp_player][0]) < 1) && (StringLength(gv_lastWill[lp_player][1]) < 1)) {
+    if ((gf_BHWillAny(lp_player) == false)) {
         return;
     }
 
@@ -102683,6 +102772,7 @@ void gf_JSReadWill (int lp_player) {
         if (autoJSWL_var < 0) { break; }
         gf_CBSystemMessage((lv_w0a + StringToText(gv_lastWill[lp_player][0]) + lv_w0b), autoJSWL_var, lp_player, 0, SoundLink("UI_BnetSelectNegative", -1), lv_ink);
         gf_CBSystemMessage((lv_w1a + StringToText(gv_lastWill[lp_player][1]) + lv_w1b), autoJSWL_var, lp_player, 0, SoundLink("Silent", -1), lv_ink);
+        gf_BHWillMore(lp_player, autoJSWL_var, lp_player, lv_w1a, lv_w1b, lv_ink);
     }
 
     Wait(4.0, c_timeGame);
