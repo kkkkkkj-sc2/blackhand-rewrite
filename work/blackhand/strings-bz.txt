@@ -26,9 +26,9 @@ Param/Value/BZBLOC=你的目标没有死。
 Param/Value/BZHEAL=有人救下了你的目标。
 Param/Value/BZDIE=死于枪伤。
 Param/Value/BZLEAD=<c val="FF0000">黑手党</c> <c val="00CCFF">领袖</c>
-Param/Value/BZLEADD=从党徒、教父、庇护者和族长中随机出现一名。
+Param/Value/BZLEADD=从教父、庇护者和族长中随机出现一名。
 Param/Value/QLLEAD=<c val="3366FF">三合会</c> <c val="00CCFF">领袖</c>
-Param/Value/QLLEADD=从暴徒、龙头、潜龙和宗师中随机出现一名。
+Param/Value/QLLEADD=从龙头、潜龙和宗师中随机出现一名。
 Param/Value/FZNAME=<c val="FF4488">族长</c>
 Param/Value/FZDESC=黑手党的领袖。在场时，其余黑手党开局都是门徒。
 Param/Value/FZTAG= (<c val="FF0000">致命</c>，<c val="FF0000">领袖</c>)

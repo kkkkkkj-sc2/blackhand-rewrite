@@ -101161,7 +101161,8 @@ void gf_BHPickLeader (int lp_kind) {
         lv_pool = 5;
     }
 
-    lv_w1 = gv_roleWeights[lv_pool][lv_r1];
+    // 领袖随机不含党徒/暴徒。
+    lv_w1 = 0.0;
     if ((gv_roleOptions[lv_pool][lv_r2][10] == true)) {
         lv_w2 = 0.0;
     }
