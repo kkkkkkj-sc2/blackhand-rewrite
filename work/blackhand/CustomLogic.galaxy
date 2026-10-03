@@ -109,7 +109,8 @@ int[16] gv_e5AEA1E69FA5E998B5E890A5E98089E68BA9;
 int[16] gv_e5AEA1E69FA5E8A792E889B2E98089E68BA9;
 int[16] gv_e8AFACE999B7E98089E68BA9E79A84E8A792E889B2;
 int[16][7] gv_actionDialogItem;
-int[16] gv_markBtn; // 座位列表左侧的身份标记方块
+int[16] gv_markBtn; // 座位列表蓝框外的身份标记框
+int[16] gv_markLbl; // 标记框上的角色名，单独一层才能保住角色色
 bool[16] gv_markMode; // 这个玩家正在用审查员底栏给某人标身份
 int[16] gv_markTarget;
 int[16] gv_markPick;
@@ -36869,9 +36870,14 @@ void gf_ASInitializeActionDialogs () {
             libNtve_gf_CreateDialogItemButton(gv_actionDialog[0], 120, 26, c_anchorTopLeft, 4, (14 + (30 * (gv_playerSpot[lv_a] - 1))), StringToText(""), StringToText("标记身份"), "Assets\\Textures\\ui_checkboxbutton_normaloverpressedover_terran.dds");
             gv_markBtn[lv_a] = DialogControlLastCreated();
             libNtve_gf_SetDialogItemImage(gv_markBtn[lv_a], "Assets\\Textures\\ui_checkboxbutton_normalpressed_terran.dds", PlayerGroupAll());
-            libNtve_gf_SetDialogItemColor(gv_markBtn[lv_a], Color(100.00, 100.00, 100.00), PlayerGroupAll());
+            libNtve_gf_SetDialogItemColor(gv_markBtn[lv_a], Color(55.00, 60.00, 65.00), PlayerGroupAll());
             libNtve_gf_SetDialogItemRenderPriority(gv_markBtn[lv_a], 700, PlayerGroupAll());
             DialogControlSetVisible(gv_markBtn[lv_a], PlayerGroupAll(), true);
+            DialogControlCreate(gv_actionDialog[0], c_triggerControlTypeLabel);
+            gv_markLbl[lv_a] = DialogControlLastCreated();
+            DialogControlSetSize(gv_markLbl[lv_a], PlayerGroupAll(), 120, 26);
+            DialogControlSetPosition(gv_markLbl[lv_a], PlayerGroupAll(), c_anchorTopLeft, 4, (14 + (30 * (gv_playerSpot[lv_a] - 1))));
+            libNtve_gf_SetDialogItemRenderPriority(gv_markLbl[lv_a], 800, PlayerGroupAll());
         }
 
     }
@@ -97490,11 +97496,11 @@ void gf_BHMarkPaint (int lp_viewer, int lp_seat) {
     lv_pool = gv_markPool[lp_viewer][lp_seat];
     lv_role = gv_markRole[lp_viewer][lp_seat];
     if ((lv_pool == 0) || (gv_roleNameArray[lv_pool][lv_role] == null)) {
-        libNtve_gf_SetDialogItemText(gv_markBtn[lp_seat], StringToText(""), PlayerGroupSingle(lp_viewer));
+        libNtve_gf_SetDialogItemText(gv_markLbl[lp_seat], StringToText(""), PlayerGroupSingle(lp_viewer));
         libNtve_gf_SetDialogItemTooltip(gv_markBtn[lp_seat], StringToText("标记身份"), PlayerGroupSingle(lp_viewer));
     }
     else {
-        libNtve_gf_SetDialogItemText(gv_markBtn[lp_seat], gv_roleNameArray[lv_pool][lv_role], PlayerGroupSingle(lp_viewer));
+        libNtve_gf_SetDialogItemText(gv_markLbl[lp_seat], gv_roleNameArray[lv_pool][lv_role], PlayerGroupSingle(lp_viewer));
         libNtve_gf_SetDialogItemTooltip(gv_markBtn[lp_seat], gv_roleNameArray[lv_pool][lv_role], PlayerGroupSingle(lp_viewer));
     }
 }
@@ -97516,7 +97522,7 @@ bool gt_BHMark_Func (bool testConds, bool runActions) {
             lv_a = 1;
             while (true) {
                 if ((lv_a > 15)) { break; }
-                if ((EventDialogControl() == gv_markBtn[lv_a])) {
+                if ((EventDialogControl() == gv_markBtn[lv_a]) || (EventDialogControl() == gv_markLbl[lv_a])) {
                     lv_hit = true;
                 }
 
@@ -97536,7 +97542,7 @@ bool gt_BHMark_Func (bool testConds, bool runActions) {
     lv_a = 1;
     while (true) {
         if ((lv_a > 15)) { break; }
-        if ((EventDialogControl() == gv_markBtn[lv_a])) {
+        if ((EventDialogControl() == gv_markBtn[lv_a]) || (EventDialogControl() == gv_markLbl[lv_a])) {
             if ((gv_markMode[lv_p] == true) && (gv_markTarget[lv_p] == lv_a)) {
                 gf_BHMarkClose(lv_p);
             }
