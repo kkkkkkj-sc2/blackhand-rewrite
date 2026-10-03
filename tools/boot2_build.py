@@ -214,8 +214,8 @@ MON3TR_MODELS = [
     ('BHMon3trL', DDS_DIR / 'BHSpriteL.m3', r'Assets\Units\BHSpriteL\BHSpriteL.m3',
      DDS_DIR / 'BHMonstrBocL.dds', r'Assets\Textures\BHMonstrBocL.dds', MON3TR_L_MODEL),
 ]
-# 导出的网格脸在 +X，引擎正前方是 -Y。data/Nailong.m3 的 Origin 绑定旋转已预乘 -90° 绕 Z
-# （IREF 不动，蒙皮结果整模转到 -Y）。重导出若仍是脸朝 +X，要同样再转 -90°，转 +90° 会背对圆心。
+# 奶龙已从源工程按 -Y 前向、+Z 向上整份重导出；GAME 只施加贴地平移，不加 Z 旋转。
+# Stand 为 4 秒循环，Walk 保留。不要再叠加历史 Origin -90° 补丁或旋转 IREF；见 docs/NAILONG-MODEL.md。
 NAILONG_MODELS = [
     ('Nailong', DDS_DIR / 'Nailong.m3', r'Assets\Units\Nailong\Nailong.m3',
      DDS_DIR / 'Nailong_Diffuse.dds', r'Assets\Textures\Nailong_Diffuse.dds', NAILONG_MODEL),
