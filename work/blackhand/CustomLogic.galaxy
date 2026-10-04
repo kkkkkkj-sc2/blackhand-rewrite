@@ -328,6 +328,18 @@ int[16] gv_bhAssertForceCat;
 int[16] gv_bhAssertForceRole;
 void gf_BHNotify (text lp_msg, int lp_target, soundlink lp_sound);
 bool gf_BHRestrictAllowed (int lp_target);
+int[16] gv_ylMark;
+bool[16] gv_ylIntro;
+void gf_YLIntro (int lv_a);
+void gf_YLTellFaction (int lv_who, int lv_target);
+void gf_SKN_3_yanluo (int lv_a);
+void gf_SKP_3_yanluo_0 (int lv_a);
+void gf_SKP_3_yanluo (int lv_a);
+void gf_SKK_3_yanluo (int lv_a);
+void gf_SKA_3_yanluo (int lv_source, int lv_target);
+void gf_RAYanluoActions (int lp_player);
+void gf_ESYanluoKill (int lp_target, int lp_killer);
+void gf_ETYanluoWin ();
 void gf_SKN_3_ganranzhe (int lv_a);
 void gf_SKP_3_ganranzhe (int lv_a);
 void gf_SKK_3_ganranzhe (int lv_a);
@@ -5769,6 +5781,18 @@ void gf_InitializeVariables () {
     gv_roleInvestigatorArray[3][25][1] = gv_investigatorE7B2BEE7A59E2;
     gv_e78AAFE7BDAAE58FAFE883BD[3][25] = StringExternal("Param/Value/JSCRIME");
     gv_roleWeights[3][25] = 0.25;
+    gv_roleNameArray[3][26] = StringExternal("Param/Value/YLNAME");
+    gv_roleDescriptionArray[3][26] = StringExternal("Param/Value/YLDESC");
+    gv_roleInvestigatorArray[3][26][0] = gv_investigatorE58DB1E999A9E789A9E593811;
+    gv_roleInvestigatorArray[3][26][1] = gv_investigatorE58DB1E999A9E789A9E593812;
+    gv_roleOptionExists[3][26][0] = true;
+    gv_roleOptionsImportant[3][26][0] = 2;
+    gv_roleOptions[3][26][0] = true;
+    gv_roleOptionsText[3][26][0] = StringExternal("Param/Value/YLOPTIMM");
+    gv_roleOptions[3][26][10] = true;
+    gv_e78AAFE7BDAAE58FAFE883BD[3][26] = StringExternal("Param/Value/YLCRIME");
+    gv_roleWeights[3][26] = 0.0;
+    gv_bankSaveWeights[0][3][26] = 0.0;
     gv_bankSaveWeights[0][3][25] = 0.25;
     gv_roleNameArray[4][1] = StringExternal("Param/Value/98018FB9");
     gv_roleDescriptionArray[4][1] = StringExternal("Param/Value/1610EA42");
@@ -6357,6 +6381,7 @@ void gf_InitializeOther () {
     gv_roleNameInput[3][23] = "tiaotingzhe";
     gv_roleNameInput[3][24] = "limao";
     gv_roleNameInput[3][25] = "jingshenbinghuanzhe";
+    gv_roleNameInput[3][26] = "yanluo";
     gv_roleNameInput[5][1] = "baotu";
     gv_roleNameInput[5][2] = "longtou";
     gv_roleNameInput[5][3] = "jiaojihua";
@@ -7590,6 +7615,11 @@ void gf_MakeHelpMenu () {
                         if ((lv_category == 3) && (lv_role == 25)) {
                             lv_t[5] = StringExternal("Param/Value/JSCARD");
                             libNtve_gf_SetDialogItemColor(gv_roleHelpPanelItem[lv_x][0], Color(91.00, 22.00, 28.00), PlayerGroupAll());
+                        }
+
+                        if ((lv_category == 3) && (lv_role == 26)) {
+                            lv_t[5] = StringExternal("Param/Value/YLCARD");
+                            libNtve_gf_SetDialogItemColor(gv_roleHelpPanelItem[lv_x][0], Color(55.69, 10.59, 22.75), PlayerGroupAll());
                         }
 
                         libNtve_gf_CreateDialogItemLabel(gv_roleHelpPanel, 36, 24, c_anchorLeft, ((30 * lv_x) - 3), 2, (lv_t[5] + StringToText(StringCase(StringSub(gv_roleNameInput[lv_category][lv_role], 1, 1), true)) + StringExternal("Param/Value/01EDEAB5")), ColorWithAlpha(0,0,0,0), false, 0.0);
@@ -11556,6 +11586,10 @@ void gf_SequencePrep () {
                 gf_SKP_3_limao_0(lv_a);
             }
 
+            if ((gv_roles[lv_a][1] == 3) && (gv_roles[lv_a][0] == 26)) {
+                gf_SKP_3_yanluo_0(lv_a);
+            }
+
             if ((gv_roles[lv_a][1] == 1) && (gv_roles[lv_a][0] == 29)) {
                 gf_SKP_1_bihuzhe(lv_a);
             }
@@ -11865,6 +11899,10 @@ void gf_SequencePrep () {
 
             if ((gv_roles[lv_a][1] == 3) && (gv_roles[lv_a][0] == 24) && (gv_action[lv_a][0] > 0)) {
                 gf_SKP_3_limao(lv_a);
+            }
+
+            if ((gv_roles[lv_a][1] == 3) && (gv_roles[lv_a][0] == 26) && (gv_action[lv_a][0] > 0)) {
+                gf_SKP_3_yanluo(lv_a);
             }
 
             if ((gv_roles[lv_a][1] == 3) && (gv_roles[lv_a][0] == 14) && (gv_action[lv_a][0] > 0)) {
@@ -12304,7 +12342,7 @@ void gf_SequenceBullshit () {
                 lv_b[0] += 1;
                 if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) {
                     if (((gv_roles[lv_a][1] == 2) || (gv_roles[lv_a][1] == 5)) && (gv_roles[lv_a][0] == 11)) {
-                        if ((gv_visitation[lv_a] > 0)) {
+                        if ((gv_visitation[lv_a] > 0) && (((gv_roles[gv_visitation[lv_a]][1] != 3) || (gv_roles[gv_visitation[lv_a]][0] != 26)))) {
                             if ((gv_switched[gv_visitation[lv_a]] != 0) && (gv_switched[lv_a] != 0)) {
                                 lv_t[1] = gv_switched[gv_visitation[lv_a]];
                                 gv_switched[gv_switched[lv_a]] = gv_switched[gv_visitation[lv_a]];
@@ -13133,6 +13171,10 @@ void gf_SequenceKills () {
 
         if ((gv_visitation[lv_a] != 0) && (gv_roles[lv_a][1] == 3) && (gv_roles[lv_a][0] == 22) && (gv_veteraned[lv_a] == false) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gv_diedAtNight[lv_a] == false) && (gv_roleblocked[lv_a] == 0) && (gv_jailed[lv_a] == 0) && (gv_grRestNight[lv_a] != gv_dayNumber) && ((gv_grParent[lv_a] == 0) || (gv_grRestNight[lv_a] != (gv_dayNumber + 1)))) {
             gf_SKK_3_ganranzhe(lv_a);
+        }
+
+        if ((gv_roles[lv_a][1] == 3) && (gv_roles[lv_a][0] == 26) && (gv_veteraned[lv_a] == false) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gv_diedAtNight[lv_a] == false) && (gv_roleblocked[lv_a] == 0) && (gv_jailed[lv_a] == 0)) {
+            gf_SKK_3_yanluo(lv_a);
         }
 
     }
@@ -14545,6 +14587,9 @@ int gf_CheckEnd () {
             if ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 22)) {
                 lv_x[28] += 1;
             }
+            if ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 26)) {
+                lv_x[29] += 1;
+            }
 
         }
 
@@ -14561,7 +14606,7 @@ int gf_CheckEnd () {
         }
 
     }
-    if ((PlayerGroupCount(gv_alivePlayers) == 2) && ((lv_x[2] + lv_x[6] + lv_x[14] + lv_x[24] + lv_x[25] + lv_x[18] + lv_x[27] + lv_x[28]) >= 1) && ((lv_x[1] + lv_x[15]) >= 1)) {
+    if ((PlayerGroupCount(gv_alivePlayers) == 2) && ((lv_x[2] + lv_x[6] + lv_x[14] + lv_x[24] + lv_x[25] + lv_x[18] + lv_x[27] + lv_x[28] + lv_x[29]) >= 1) && ((lv_x[1] + lv_x[15]) >= 1)) {
         if ((lv_x[6] >= 1)) {
             return 8;
         }
@@ -14581,6 +14626,9 @@ int gf_CheckEnd () {
         if ((lv_x[28] >= 1)) {
             return 22;
         }
+        if ((lv_x[29] >= 1)) {
+            return 26;
+        }
 
         if ((lv_x[24] >= 1)) {
             return 16;
@@ -14594,7 +14642,7 @@ int gf_CheckEnd () {
 
     }
 
-    if ((PlayerGroupCount(gv_alivePlayers) == 2) && (lv_x[0] == 0) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[3] == 0) && (lv_x[4] == 0) && (lv_x[5] == 0) && (lv_x[7] == 0) && (lv_x[8] == 0) && (lv_x[9] == 0) && (lv_x[12] == 0) && (lv_x[13] == 0) && (lv_x[16] == 0) && (lv_x[17] == 0) && (lv_x[19] == 0) && (lv_x[20] == 0) && (lv_x[21] == 0) && (lv_x[26] == 0) && (lv_x[22] == 0) && (lv_x[23] == 0) && ((lv_x[2] + lv_x[6] + lv_x[14] + lv_x[24] + lv_x[25] + lv_x[18] + lv_x[27] + lv_x[28]) == 2)) {
+    if ((PlayerGroupCount(gv_alivePlayers) == 2) && (lv_x[0] == 0) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[3] == 0) && (lv_x[4] == 0) && (lv_x[5] == 0) && (lv_x[7] == 0) && (lv_x[8] == 0) && (lv_x[9] == 0) && (lv_x[12] == 0) && (lv_x[13] == 0) && (lv_x[16] == 0) && (lv_x[17] == 0) && (lv_x[19] == 0) && (lv_x[20] == 0) && (lv_x[21] == 0) && (lv_x[26] == 0) && (lv_x[22] == 0) && (lv_x[23] == 0) && ((lv_x[2] + lv_x[6] + lv_x[14] + lv_x[24] + lv_x[25] + lv_x[18] + lv_x[27] + lv_x[28] + lv_x[29]) == 2)) {
         if ((lv_x[6] >= 1)) {
             return 8;
         }
@@ -14614,6 +14662,9 @@ int gf_CheckEnd () {
         if ((lv_x[28] >= 1)) {
             return 22;
         }
+        if ((lv_x[29] >= 1)) {
+            return 26;
+        }
 
         if ((lv_x[24] >= 1)) {
             return 16;
@@ -14627,7 +14678,7 @@ int gf_CheckEnd () {
 
     }
 
-    if ((lv_x[0] >= 1) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[5] == 0) && (lv_x[21] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[16] == 0) && (lv_x[17] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0) && (lv_x[20] == 0) && (lv_x[21] == 0) && (lv_x[26] == 0)) {
+    if ((lv_x[0] >= 1) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[5] == 0) && (lv_x[21] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[16] == 0) && (lv_x[17] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0) && (lv_x[20] == 0) && (lv_x[21] == 0) && (lv_x[26] == 0)) {
         if ((gv_roleOptions[1][1][1] == true) && (lv_x[11] == lv_x[0])) {
             gv_specialCaseFlag[0] = 1;
         }
@@ -14659,7 +14710,7 @@ int gf_CheckEnd () {
         }
 
     }
-    if ((lv_x[0] == 0) && (lv_x[1] >= 1) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[20] == 0) && (lv_x[19] == 0)) {
+    if ((lv_x[0] == 0) && (lv_x[1] >= 1) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[20] == 0) && (lv_x[19] == 0)) {
         lv_a = 1;
         for ( ; ( (auto17FF05F9_ai >= 0 && lv_a <= auto17FF05F9_ae) || (auto17FF05F9_ai < 0 && lv_a >= auto17FF05F9_ae) ) ; lv_a += auto17FF05F9_ai ) {
             if ((gf_LMCat(lv_a) == 2)) {
@@ -14683,7 +14734,7 @@ int gf_CheckEnd () {
         return 2;
     }
 
-    if ((lv_x[0] == 0) && (lv_x[1] <= lv_x[15]) && (lv_x[15] >= 1) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[20] == 0) && (lv_x[19] == 0) && (lv_x[14] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0)) {
+    if ((lv_x[0] == 0) && (lv_x[1] <= lv_x[15]) && (lv_x[15] >= 1) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[20] == 0) && (lv_x[19] == 0) && (lv_x[14] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0)) {
         lv_a = 1;
         for ( ; ( (autoA9F1223C_ai >= 0 && lv_a <= autoA9F1223C_ae) || (autoA9F1223C_ai < 0 && lv_a >= autoA9F1223C_ae) ) ; lv_a += autoA9F1223C_ai ) {
             if ((gf_LMCat(lv_a) == 5)) {
@@ -14707,31 +14758,34 @@ int gf_CheckEnd () {
         return 13;
     }
 
-    if ((lv_x[0] <= 1) && ((lv_x[1] + lv_x[15]) <= 1) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[20] >= 1) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0)) {
+    if ((lv_x[0] <= 1) && ((lv_x[1] + lv_x[15]) <= 1) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[20] >= 1) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0)) {
         return 18;
     }
 
-    if ((lv_x[0] <= 1) && ((lv_x[1] + lv_x[15]) <= 1) && (lv_x[19] >= 1) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[20] == 0)) {
+    if ((lv_x[0] <= 1) && ((lv_x[1] + lv_x[15]) <= 1) && (lv_x[19] >= 1) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[20] == 0)) {
         return 17;
     }
 
-    if ((lv_x[0] == 0) && ((lv_x[1] + lv_x[15]) <= 1) && (lv_x[2] >= 1) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0) && (lv_x[20] == 0)) {
+    if ((lv_x[0] == 0) && ((lv_x[1] + lv_x[15]) <= 1) && (lv_x[2] >= 1) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0) && (lv_x[20] == 0)) {
         return 3;
     }
 
-    if ((lv_x[0] == 0) && ((lv_x[1] + lv_x[15]) <= 1) && (lv_x[27] >= 1) && (lv_x[2] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0) && (lv_x[20] == 0) && (lv_x[28] == 0)) {
+    if ((lv_x[0] == 0) && ((lv_x[1] + lv_x[15]) <= 1) && (lv_x[27] >= 1) && (lv_x[2] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0) && (lv_x[20] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0)) {
         return 21;
     }
 
-    if ((lv_x[0] == 0) && ((lv_x[1] + lv_x[15]) <= 1) && (lv_x[28] >= 1) && (lv_x[2] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0) && (lv_x[20] == 0) && (lv_x[27] == 0)) {
+    if ((lv_x[0] == 0) && ((lv_x[1] + lv_x[15]) <= 1) && (lv_x[28] >= 1) && (lv_x[2] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0) && (lv_x[20] == 0) && (lv_x[27] == 0) && (lv_x[29] == 0)) {
         return 22;
     }
+    if ((lv_x[0] == 0) && ((lv_x[1] + lv_x[15]) <= 1) && (lv_x[29] >= 1) && (lv_x[2] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0) && (lv_x[20] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0)) {
+        return 26;
+    }
 
-    if ((lv_x[0] == 0) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[3] >= 1) && (lv_x[7] == 0) && (lv_x[5] == 0) && (lv_x[21] == 0) && (lv_x[6] == 0) && (lv_x[9] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[16] == 0) && (lv_x[17] == 0) && (lv_x[19] == 0) && (lv_x[20] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[26] == 0)) {
+    if ((lv_x[0] == 0) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[3] >= 1) && (lv_x[7] == 0) && (lv_x[5] == 0) && (lv_x[21] == 0) && (lv_x[6] == 0) && (lv_x[9] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[16] == 0) && (lv_x[17] == 0) && (lv_x[19] == 0) && (lv_x[20] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[26] == 0)) {
         return 5;
     }
 
-    if ((lv_x[0] == 0) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[3] == 0) && (lv_x[7] == 0) && (lv_x[5] == 0) && (lv_x[21] == 0) && (lv_x[6] == 0) && (lv_x[9] == 0) && (lv_x[12] == 0) && (lv_x[13] == 0) && (lv_x[20] == 0) && (lv_x[14] == 0) && (lv_x[16] == 0) && (lv_x[17] == 0) && (lv_x[19] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[23] == 0) && (lv_x[26] == 0)) {
+    if ((lv_x[0] == 0) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[3] == 0) && (lv_x[7] == 0) && (lv_x[5] == 0) && (lv_x[21] == 0) && (lv_x[6] == 0) && (lv_x[9] == 0) && (lv_x[12] == 0) && (lv_x[13] == 0) && (lv_x[20] == 0) && (lv_x[14] == 0) && (lv_x[16] == 0) && (lv_x[17] == 0) && (lv_x[19] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[23] == 0) && (lv_x[26] == 0)) {
         lv_a = 1;
         while ((lv_a <= 15)) {
             if ((gf_JSWon(lv_a) == true)) {
@@ -14743,31 +14797,31 @@ int gf_CheckEnd () {
         return 4;
     }
 
-    if ((lv_x[0] == 0) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[7] >= 1) && (lv_x[5] == 0) && (lv_x[21] == 0) && (lv_x[6] == 0) && (lv_x[9] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[16] == 0) && (lv_x[20] == 0) && (lv_x[17] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0) && (lv_x[26] == 0)) {
+    if ((lv_x[0] == 0) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[7] >= 1) && (lv_x[5] == 0) && (lv_x[21] == 0) && (lv_x[6] == 0) && (lv_x[9] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[16] == 0) && (lv_x[20] == 0) && (lv_x[17] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0) && (lv_x[26] == 0)) {
         return 6;
     }
 
-    if ((lv_x[0] == 0) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[5] >= 1) && (lv_x[6] == 0) && (lv_x[20] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0)) {
+    if ((lv_x[0] == 0) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[5] >= 1) && (lv_x[6] == 0) && (lv_x[20] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0)) {
         return 7;
     }
 
-    if ((lv_x[0] == 0) && ((lv_x[1] + lv_x[15]) <= 1) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[6] >= 1) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[20] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0)) {
+    if ((lv_x[0] == 0) && ((lv_x[1] + lv_x[15]) <= 1) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[6] >= 1) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[20] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0)) {
         return 8;
     }
 
-    if ((lv_x[0] == 0) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[5] == 0) && (lv_x[21] == 0) && (lv_x[6] == 0) && (lv_x[20] == 0) && (lv_x[9] >= 1) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[16] == 0) && (lv_x[17] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0) && (lv_x[26] == 0)) {
+    if ((lv_x[0] == 0) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[5] == 0) && (lv_x[21] == 0) && (lv_x[6] == 0) && (lv_x[20] == 0) && (lv_x[9] >= 1) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[16] == 0) && (lv_x[17] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0) && (lv_x[26] == 0)) {
         return 9;
     }
 
-    if ((lv_x[0] == 0) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[3] == 0) && (lv_x[7] == 0) && (lv_x[5] == 0) && (lv_x[21] == 0) && (lv_x[6] == 0) && (lv_x[9] == 0) && (lv_x[12] >= 1) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[16] == 0) && (lv_x[20] == 0) && (lv_x[17] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0) && (lv_x[26] == 0)) {
+    if ((lv_x[0] == 0) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[3] == 0) && (lv_x[7] == 0) && (lv_x[5] == 0) && (lv_x[21] == 0) && (lv_x[6] == 0) && (lv_x[9] == 0) && (lv_x[12] >= 1) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[16] == 0) && (lv_x[20] == 0) && (lv_x[17] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0) && (lv_x[26] == 0)) {
         return 10;
     }
 
-    if ((lv_x[0] == 0) && ((lv_x[1] + lv_x[15]) <= 1) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[14] >= 1) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[20] == 0) && (lv_x[19] == 0)) {
+    if ((lv_x[0] == 0) && ((lv_x[1] + lv_x[15]) <= 1) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[14] >= 1) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[20] == 0) && (lv_x[19] == 0)) {
         return 12;
     }
 
-    if ((lv_x[0] == 0) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[6] == 0) && (lv_x[13] >= 1) && (lv_x[14] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0) && (lv_x[20] == 0)) {
+    if ((lv_x[0] == 0) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[6] == 0) && (lv_x[13] >= 1) && (lv_x[14] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0) && (lv_x[20] == 0)) {
         lv_a = 1;
         for ( ; ( (autoCBDF2485_ai >= 0 && lv_a <= autoCBDF2485_ae) || (autoCBDF2485_ai < 0 && lv_a >= autoCBDF2485_ae) ) ; lv_a += autoCBDF2485_ai ) {
             if ((gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 8) || (gf_LMRole(lv_a) == 10))) {
@@ -14791,20 +14845,20 @@ int gf_CheckEnd () {
         return 11;
     }
 
-    if ((lv_x[0] == 0) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[5] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[16] >= 1) && (lv_x[17] == 0) && (lv_x[21] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[20] == 0) && (lv_x[19] == 0) && (lv_x[26] == 0)) {
+    if ((lv_x[0] == 0) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[5] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[16] >= 1) && (lv_x[17] == 0) && (lv_x[21] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[20] == 0) && (lv_x[19] == 0) && (lv_x[26] == 0)) {
         return 14;
     }
 
-    if ((lv_x[0] <= 1) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[5] == 0) && (lv_x[21] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && ((lv_x[17] >= 1) || (lv_x[26] >= 1)) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0) && (lv_x[20] == 0)) {
+    if ((lv_x[0] <= 1) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[5] == 0) && (lv_x[21] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && ((lv_x[17] >= 1) || (lv_x[26] >= 1)) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0) && (lv_x[20] == 0)) {
         return 15;
     }
 
-    if ((lv_x[0] == 0) && ((lv_x[1] + lv_x[15]) <= 1) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && ((lv_x[18] + lv_x[24] + lv_x[25]) >= 1) && (lv_x[20] == 0) && (lv_x[19] == 0)) {
+    if ((lv_x[0] == 0) && ((lv_x[1] + lv_x[15]) <= 1) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && ((lv_x[18] + lv_x[24] + lv_x[25]) >= 1) && (lv_x[20] == 0) && (lv_x[19] == 0)) {
         return 16;
     }
 
     if ((((lv_x[10] == 2) && (gv_dayOver == false)) || (gv_tieTicker >= 7))) {
-        if (((((gv_roleOptions[1][1][1] == false) || (lv_x[11] == 0)) && ((lv_x[1] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))) < lv_x[0]) && ((lv_x[15] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))) < lv_x[0])) || ((gv_roleOptions[1][1][1] == true) && (lv_x[11] > 0) && ((lv_x[1] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))) <= lv_x[0]) && ((lv_x[15] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))) <= lv_x[0]))) && ((lv_x[2] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))) < lv_x[0]) && ((lv_x[6] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))) < lv_x[0]) && ((lv_x[13] + lv_x[24] + lv_x[25] + lv_x[18] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))) < lv_x[0]) && ((lv_x[14] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))) < lv_x[0]) && ((lv_x[18] + lv_x[24] + lv_x[25] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))) < lv_x[0]) && ((lv_x[28] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))) < lv_x[0]) && (lv_x[17] == 0) && (lv_x[26] == 0) && (lv_x[0] > 0)) {
+        if (((((gv_roleOptions[1][1][1] == false) || (lv_x[11] == 0)) && ((lv_x[1] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))) < lv_x[0]) && ((lv_x[15] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))) < lv_x[0])) || ((gv_roleOptions[1][1][1] == true) && (lv_x[11] > 0) && ((lv_x[1] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))) <= lv_x[0]) && ((lv_x[15] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))) <= lv_x[0]))) && ((lv_x[2] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))) < lv_x[0]) && ((lv_x[6] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))) < lv_x[0]) && ((lv_x[13] + lv_x[24] + lv_x[25] + lv_x[18] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))) < lv_x[0]) && ((lv_x[14] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))) < lv_x[0]) && ((lv_x[18] + lv_x[24] + lv_x[25] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))) < lv_x[0]) && ((lv_x[28] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))) < lv_x[0]) && ((lv_x[29] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))) < lv_x[0]) && (lv_x[17] == 0) && (lv_x[26] == 0) && (lv_x[0] > 0)) {
             if ((gv_roleOptions[1][1][1] == true) && (lv_x[11] == lv_x[0])) {
                 gv_specialCaseFlag[0] = 1;
             }
@@ -14832,7 +14886,7 @@ int gf_CheckEnd () {
             return 1;
         }
 
-        if (((((gv_roleOptions[1][1][1] == false) || (lv_x[11] == 0)) && (lv_x[0] <= (lv_x[1] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))))) || ((gv_roleOptions[1][1][1] == true) && (lv_x[11] > 0) && (lv_x[0] < (lv_x[1] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26])))))))) && (lv_x[2] < lv_x[1]) && (lv_x[27] < lv_x[1]) && (lv_x[28] < lv_x[1]) && (lv_x[6] < lv_x[1]) && (lv_x[13] <= lv_x[1]) && (lv_x[14] < lv_x[1]) && (lv_x[15] < lv_x[1]) && (lv_x[18] < lv_x[1]) && (lv_x[24] < lv_x[1]) && (lv_x[25] < lv_x[1]) && (lv_x[19] < lv_x[1]) && (lv_x[20] < lv_x[1]) && (lv_x[21] < lv_x[1]) && (lv_x[1] > 0)) {
+        if (((((gv_roleOptions[1][1][1] == false) || (lv_x[11] == 0)) && (lv_x[0] <= (lv_x[1] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))))) || ((gv_roleOptions[1][1][1] == true) && (lv_x[11] > 0) && (lv_x[0] < (lv_x[1] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26])))))))) && (lv_x[2] < lv_x[1]) && (lv_x[27] < lv_x[1]) && (lv_x[28] < lv_x[1]) && (lv_x[29] < lv_x[1]) && (lv_x[6] < lv_x[1]) && (lv_x[13] <= lv_x[1]) && (lv_x[14] < lv_x[1]) && (lv_x[15] < lv_x[1]) && (lv_x[18] < lv_x[1]) && (lv_x[24] < lv_x[1]) && (lv_x[25] < lv_x[1]) && (lv_x[19] < lv_x[1]) && (lv_x[20] < lv_x[1]) && (lv_x[21] < lv_x[1]) && (lv_x[1] > 0)) {
             lv_a = 1;
             for ( ; ( (autoD4ACE952_ai >= 0 && lv_a <= autoD4ACE952_ae) || (autoD4ACE952_ai < 0 && lv_a >= autoD4ACE952_ae) ) ; lv_a += autoD4ACE952_ai ) {
                 if ((gf_LMCat(lv_a) == 2)) {
@@ -14856,7 +14910,7 @@ int gf_CheckEnd () {
             return 2;
         }
 
-        if (((((gv_roleOptions[1][1][1] == false) || (lv_x[11] == 0)) && (lv_x[0] <= (lv_x[15] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))))) || ((gv_roleOptions[1][1][1] == true) && (lv_x[11] > 0) && (lv_x[0] < (lv_x[15] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26])))))))) && (lv_x[2] < lv_x[15]) && (lv_x[27] < lv_x[15]) && (lv_x[28] < lv_x[15]) && (lv_x[6] < lv_x[15]) && (lv_x[13] <= lv_x[15]) && (lv_x[14] < lv_x[15]) && (lv_x[18] < lv_x[15]) && (lv_x[24] < lv_x[15]) && (lv_x[25] < lv_x[15]) && (lv_x[19] < lv_x[15]) && (lv_x[20] == lv_x[15]) && (lv_x[1] <= lv_x[15]) && (lv_x[15] > 0)) {
+        if (((((gv_roleOptions[1][1][1] == false) || (lv_x[11] == 0)) && (lv_x[0] <= (lv_x[15] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26]))))))) || ((gv_roleOptions[1][1][1] == true) && (lv_x[11] > 0) && (lv_x[0] < (lv_x[15] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26])))))))) && (lv_x[2] < lv_x[15]) && (lv_x[27] < lv_x[15]) && (lv_x[28] < lv_x[15]) && (lv_x[29] < lv_x[15]) && (lv_x[6] < lv_x[15]) && (lv_x[13] <= lv_x[15]) && (lv_x[14] < lv_x[15]) && (lv_x[18] < lv_x[15]) && (lv_x[24] < lv_x[15]) && (lv_x[25] < lv_x[15]) && (lv_x[19] < lv_x[15]) && (lv_x[20] == lv_x[15]) && (lv_x[1] <= lv_x[15]) && (lv_x[15] > 0)) {
             lv_a = 1;
             for ( ; ( (auto768C6371_ai >= 0 && lv_a <= auto768C6371_ae) || (auto768C6371_ai < 0 && lv_a >= auto768C6371_ae) ) ; lv_a += auto768C6371_ai ) {
                 if ((gf_LMCat(lv_a) == 5)) {
@@ -14880,19 +14934,22 @@ int gf_CheckEnd () {
             return 13;
         }
 
-        if ((lv_x[0] <= (lv_x[2] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26])))))) && (lv_x[1] <= lv_x[2]) && (lv_x[15] <= lv_x[2]) && (((lv_x[6] < lv_x[2]) && (gv_roleOptions[3][1][2] == false)) || ((lv_x[6] <= lv_x[2]) && (gv_roleOptions[3][1][2] == true))) && (lv_x[13] <= lv_x[2]) && (lv_x[14] <= lv_x[2]) && (lv_x[18] <= lv_x[2]) && (lv_x[24] <= lv_x[2]) && (lv_x[25] <= lv_x[2]) && (lv_x[19] <= lv_x[2]) && (lv_x[20] <= lv_x[2]) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[2] > 0)) {
+        if ((lv_x[0] <= (lv_x[2] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26])))))) && (lv_x[1] <= lv_x[2]) && (lv_x[15] <= lv_x[2]) && (((lv_x[6] < lv_x[2]) && (gv_roleOptions[3][1][2] == false)) || ((lv_x[6] <= lv_x[2]) && (gv_roleOptions[3][1][2] == true))) && (lv_x[13] <= lv_x[2]) && (lv_x[14] <= lv_x[2]) && (lv_x[18] <= lv_x[2]) && (lv_x[24] <= lv_x[2]) && (lv_x[25] <= lv_x[2]) && (lv_x[19] <= lv_x[2]) && (lv_x[20] <= lv_x[2]) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[2] > 0)) {
             return 3;
         }
 
-        if ((lv_x[0] <= (lv_x[27] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26])))))) && (lv_x[1] <= lv_x[27]) && (lv_x[15] <= lv_x[27]) && (lv_x[2] == 0) && (lv_x[6] < lv_x[27]) && (lv_x[13] <= lv_x[27]) && (lv_x[14] <= lv_x[27]) && (lv_x[18] <= lv_x[27]) && (lv_x[24] <= lv_x[27]) && (lv_x[25] <= lv_x[27]) && (lv_x[19] <= lv_x[27]) && (lv_x[20] <= lv_x[27]) && (lv_x[27] > 0) && (lv_x[28] == 0)) {
+        if ((lv_x[0] <= (lv_x[27] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26])))))) && (lv_x[1] <= lv_x[27]) && (lv_x[15] <= lv_x[27]) && (lv_x[2] == 0) && (lv_x[6] < lv_x[27]) && (lv_x[13] <= lv_x[27]) && (lv_x[14] <= lv_x[27]) && (lv_x[18] <= lv_x[27]) && (lv_x[24] <= lv_x[27]) && (lv_x[25] <= lv_x[27]) && (lv_x[19] <= lv_x[27]) && (lv_x[20] <= lv_x[27]) && (lv_x[27] > 0) && (lv_x[28] == 0) && (lv_x[29] == 0)) {
             return 21;
         }
 
-        if ((lv_x[0] <= (lv_x[28] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26])))))) && (lv_x[1] <= lv_x[28]) && (lv_x[15] <= lv_x[28]) && (lv_x[2] == 0) && (lv_x[6] < lv_x[28]) && (lv_x[13] <= lv_x[28]) && (lv_x[14] <= lv_x[28]) && (lv_x[18] <= lv_x[28]) && (lv_x[24] <= lv_x[28]) && (lv_x[25] <= lv_x[28]) && (lv_x[19] <= lv_x[28]) && (lv_x[20] <= lv_x[28]) && (lv_x[28] > 0) && (lv_x[27] == 0)) {
+        if ((lv_x[0] <= (lv_x[28] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26])))))) && (lv_x[1] <= lv_x[28]) && (lv_x[15] <= lv_x[28]) && (lv_x[2] == 0) && (lv_x[6] < lv_x[28]) && (lv_x[13] <= lv_x[28]) && (lv_x[14] <= lv_x[28]) && (lv_x[18] <= lv_x[28]) && (lv_x[24] <= lv_x[28]) && (lv_x[25] <= lv_x[28]) && (lv_x[19] <= lv_x[28]) && (lv_x[20] <= lv_x[28]) && (lv_x[28] > 0) && (lv_x[27] == 0) && (lv_x[29] == 0)) {
             return 22;
         }
+        if ((lv_x[0] <= (lv_x[29] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26])))))) && (lv_x[1] <= lv_x[29]) && (lv_x[15] <= lv_x[29]) && (lv_x[2] == 0) && (lv_x[6] < lv_x[29]) && (lv_x[13] <= lv_x[29]) && (lv_x[14] <= lv_x[29]) && (lv_x[18] <= lv_x[29]) && (lv_x[24] <= lv_x[29]) && (lv_x[25] <= lv_x[29]) && (lv_x[19] <= lv_x[29]) && (lv_x[20] <= lv_x[29]) && (lv_x[29] > 0) && (lv_x[27] == 0) && (lv_x[28] == 0)) {
+            return 26;
+        }
 
-        if ((lv_x[0] <= (lv_x[13] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26])))))) && (lv_x[1] < lv_x[13]) && (lv_x[15] < lv_x[13]) && (lv_x[2] < lv_x[13]) && (lv_x[27] < lv_x[13]) && (lv_x[28] < lv_x[13]) && (lv_x[6] < lv_x[13]) && (lv_x[14] < lv_x[13]) && (lv_x[18] < lv_x[13]) && (lv_x[24] < lv_x[13]) && (lv_x[25] < lv_x[13]) && (lv_x[19] < lv_x[13]) && (lv_x[20] < lv_x[13]) && (lv_x[13] > 0)) {
+        if ((lv_x[0] <= (lv_x[13] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26])))))) && (lv_x[1] < lv_x[13]) && (lv_x[15] < lv_x[13]) && (lv_x[2] < lv_x[13]) && (lv_x[27] < lv_x[13]) && (lv_x[28] < lv_x[13]) && (lv_x[29] < lv_x[13]) && (lv_x[6] < lv_x[13]) && (lv_x[14] < lv_x[13]) && (lv_x[18] < lv_x[13]) && (lv_x[24] < lv_x[13]) && (lv_x[25] < lv_x[13]) && (lv_x[19] < lv_x[13]) && (lv_x[20] < lv_x[13]) && (lv_x[13] > 0)) {
             lv_a = 1;
             for ( ; ( (autoBDD14553_ai >= 0 && lv_a <= autoBDD14553_ae) || (autoBDD14553_ai < 0 && lv_a >= autoBDD14553_ae) ) ; lv_a += autoBDD14553_ai ) {
                 if ((gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 8) || (gf_LMRole(lv_a) == 10))) {
@@ -14916,39 +14973,39 @@ int gf_CheckEnd () {
             return 11;
         }
 
-        if ((lv_x[0] <= lv_x[5]) && (lv_x[2] < lv_x[5]) && (lv_x[27] < lv_x[5]) && (lv_x[28] < lv_x[5]) && (lv_x[6] < lv_x[5]) && (lv_x[14] < lv_x[5]) && (lv_x[16] <= lv_x[5]) && (lv_x[18] < lv_x[5]) && (lv_x[24] < lv_x[5]) && (lv_x[25] < lv_x[5]) && (lv_x[19] < lv_x[5]) && (lv_x[20] < lv_x[5]) && (lv_x[21] < lv_x[5]) && (lv_x[5] > 0)) {
+        if ((lv_x[0] <= lv_x[5]) && (lv_x[2] < lv_x[5]) && (lv_x[27] < lv_x[5]) && (lv_x[28] < lv_x[5]) && (lv_x[29] < lv_x[5]) && (lv_x[6] < lv_x[5]) && (lv_x[14] < lv_x[5]) && (lv_x[16] <= lv_x[5]) && (lv_x[18] < lv_x[5]) && (lv_x[24] < lv_x[5]) && (lv_x[25] < lv_x[5]) && (lv_x[19] < lv_x[5]) && (lv_x[20] < lv_x[5]) && (lv_x[21] < lv_x[5]) && (lv_x[5] > 0)) {
             return 7;
         }
 
-        if ((lv_x[0] <= lv_x[16]) && (lv_x[2] < lv_x[16]) && (lv_x[27] < lv_x[16]) && (lv_x[28] < lv_x[16]) && (lv_x[6] < lv_x[16]) && (lv_x[14] < lv_x[16]) && (lv_x[21] < lv_x[16]) && (lv_x[18] < lv_x[16]) && (lv_x[24] < lv_x[16]) && (lv_x[25] < lv_x[16]) && (lv_x[19] < lv_x[16]) && (lv_x[20] < lv_x[16]) && (lv_x[16] > 0)) {
+        if ((lv_x[0] <= lv_x[16]) && (lv_x[2] < lv_x[16]) && (lv_x[27] < lv_x[16]) && (lv_x[28] < lv_x[16]) && (lv_x[29] < lv_x[16]) && (lv_x[6] < lv_x[16]) && (lv_x[14] < lv_x[16]) && (lv_x[21] < lv_x[16]) && (lv_x[18] < lv_x[16]) && (lv_x[24] < lv_x[16]) && (lv_x[25] < lv_x[16]) && (lv_x[19] < lv_x[16]) && (lv_x[20] < lv_x[16]) && (lv_x[16] > 0)) {
             return 14;
         }
 
-        if ((lv_x[0] <= lv_x[21]) && (lv_x[2] < lv_x[21]) && (lv_x[27] < lv_x[21]) && (lv_x[28] < lv_x[21]) && (lv_x[6] < lv_x[21]) && (lv_x[14] < lv_x[21]) && (lv_x[19] < lv_x[21]) && (lv_x[20] < lv_x[21]) && (lv_x[21] > 0)) {
+        if ((lv_x[0] <= lv_x[21]) && (lv_x[2] < lv_x[21]) && (lv_x[27] < lv_x[21]) && (lv_x[28] < lv_x[21]) && (lv_x[29] < lv_x[21]) && (lv_x[6] < lv_x[21]) && (lv_x[14] < lv_x[21]) && (lv_x[19] < lv_x[21]) && (lv_x[20] < lv_x[21]) && (lv_x[21] > 0)) {
             return 19;
         }
 
-        if ((lv_x[0] <= lv_x[17]) && (lv_x[2] < lv_x[17]) && (lv_x[27] < lv_x[17]) && (lv_x[28] < lv_x[17]) && (lv_x[6] < lv_x[17]) && (lv_x[14] < lv_x[17]) && (lv_x[5] < lv_x[17]) && (lv_x[21] < lv_x[17]) && (lv_x[16] <= lv_x[17]) && (lv_x[17] > 0) && (lv_x[18] < lv_x[17]) && (lv_x[24] < lv_x[17]) && (lv_x[25] < lv_x[17]) && (lv_x[19] < lv_x[17]) && (lv_x[20] < lv_x[17])) {
+        if ((lv_x[0] <= lv_x[17]) && (lv_x[2] < lv_x[17]) && (lv_x[27] < lv_x[17]) && (lv_x[28] < lv_x[17]) && (lv_x[29] < lv_x[17]) && (lv_x[6] < lv_x[17]) && (lv_x[14] < lv_x[17]) && (lv_x[5] < lv_x[17]) && (lv_x[21] < lv_x[17]) && (lv_x[16] <= lv_x[17]) && (lv_x[17] > 0) && (lv_x[18] < lv_x[17]) && (lv_x[24] < lv_x[17]) && (lv_x[25] < lv_x[17]) && (lv_x[19] < lv_x[17]) && (lv_x[20] < lv_x[17])) {
             return 15;
         }
 
-        if ((lv_x[0] <= lv_x[26]) && (lv_x[2] < lv_x[26]) && (lv_x[27] < lv_x[26]) && (lv_x[28] < lv_x[26]) && (lv_x[6] < lv_x[26]) && (lv_x[14] < lv_x[26]) && (lv_x[5] < lv_x[26]) && (lv_x[21] < lv_x[26]) && (lv_x[16] <= lv_x[26]) && (lv_x[17] < lv_x[26]) && (lv_x[26] > 0) && (lv_x[18] < lv_x[26]) && (lv_x[24] < lv_x[26]) && (lv_x[25] < lv_x[26]) && (lv_x[19] < lv_x[26]) && (lv_x[20] < lv_x[26])) {
+        if ((lv_x[0] <= lv_x[26]) && (lv_x[2] < lv_x[26]) && (lv_x[27] < lv_x[26]) && (lv_x[28] < lv_x[26]) && (lv_x[29] < lv_x[26]) && (lv_x[6] < lv_x[26]) && (lv_x[14] < lv_x[26]) && (lv_x[5] < lv_x[26]) && (lv_x[21] < lv_x[26]) && (lv_x[16] <= lv_x[26]) && (lv_x[17] < lv_x[26]) && (lv_x[26] > 0) && (lv_x[18] < lv_x[26]) && (lv_x[24] < lv_x[26]) && (lv_x[25] < lv_x[26]) && (lv_x[19] < lv_x[26]) && (lv_x[20] < lv_x[26])) {
             return 15;
         }
 
-        if ((lv_x[0] <= (lv_x[6] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26])))))) && (lv_x[1] <= lv_x[6]) && (lv_x[15] <= lv_x[6]) && (((lv_x[2] <= lv_x[6]) && (lv_x[27] <= lv_x[6]) && (lv_x[28] <= lv_x[6]) && (gv_roleOptions[3][1][2] == false)) || ((lv_x[2] < lv_x[6]) && (lv_x[27] < lv_x[6]) && (lv_x[28] < lv_x[6]) && (gv_roleOptions[3][1][2] == true))) && (lv_x[13] <= lv_x[6]) && (lv_x[14] <= lv_x[6]) && (lv_x[18] <= lv_x[6]) && (lv_x[24] <= lv_x[6]) && (lv_x[25] <= lv_x[6]) && (lv_x[19] <= lv_x[6]) && (lv_x[20] <= lv_x[6]) && (lv_x[6] > 0)) {
+        if ((lv_x[0] <= (lv_x[6] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26])))))) && (lv_x[1] <= lv_x[6]) && (lv_x[15] <= lv_x[6]) && (((lv_x[2] <= lv_x[6]) && (lv_x[27] <= lv_x[6]) && (lv_x[28] <= lv_x[6]) && (lv_x[29] <= lv_x[6]) && (gv_roleOptions[3][1][2] == false)) || ((lv_x[2] < lv_x[6]) && (lv_x[27] < lv_x[6]) && (lv_x[28] < lv_x[6]) && (lv_x[29] < lv_x[6]) && (gv_roleOptions[3][1][2] == true))) && (lv_x[13] <= lv_x[6]) && (lv_x[14] <= lv_x[6]) && (lv_x[18] <= lv_x[6]) && (lv_x[24] <= lv_x[6]) && (lv_x[25] <= lv_x[6]) && (lv_x[19] <= lv_x[6]) && (lv_x[20] <= lv_x[6]) && (lv_x[6] > 0)) {
             return 8;
         }
 
-        if ((lv_x[0] <= (lv_x[14] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26])))))) && (lv_x[1] <= lv_x[14]) && (lv_x[15] <= lv_x[14]) && (lv_x[2] < lv_x[14]) && (lv_x[27] < lv_x[14]) && (lv_x[28] < lv_x[14]) && (lv_x[6] < lv_x[14]) && (lv_x[13] <= lv_x[14]) && (lv_x[14] > 0) && (lv_x[18] <= lv_x[14]) && (lv_x[24] <= lv_x[14]) && (lv_x[25] <= lv_x[14]) && (lv_x[19] <= lv_x[14]) && (lv_x[20] <= lv_x[14])) {
+        if ((lv_x[0] <= (lv_x[14] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26])))))) && (lv_x[1] <= lv_x[14]) && (lv_x[15] <= lv_x[14]) && (lv_x[2] < lv_x[14]) && (lv_x[27] < lv_x[14]) && (lv_x[28] < lv_x[14]) && (lv_x[29] < lv_x[14]) && (lv_x[6] < lv_x[14]) && (lv_x[13] <= lv_x[14]) && (lv_x[14] > 0) && (lv_x[18] <= lv_x[14]) && (lv_x[24] <= lv_x[14]) && (lv_x[25] <= lv_x[14]) && (lv_x[19] <= lv_x[14]) && (lv_x[20] <= lv_x[14])) {
             return 12;
         }
 
-        if ((lv_x[0] <= (lv_x[18] + lv_x[24] + lv_x[25] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26])))))) && (lv_x[1] <= lv_x[18]) && (lv_x[15] <= lv_x[18]) && (lv_x[2] < lv_x[18]) && (lv_x[27] < lv_x[18]) && (lv_x[28] < lv_x[18]) && (lv_x[6] < lv_x[18]) && (lv_x[13] <= lv_x[18]) && (lv_x[14] < lv_x[18]) && (lv_x[18] > 0)) {
+        if ((lv_x[0] <= (lv_x[18] + lv_x[24] + lv_x[25] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26])))))) && (lv_x[1] <= lv_x[18]) && (lv_x[15] <= lv_x[18]) && (lv_x[2] < lv_x[18]) && (lv_x[27] < lv_x[18]) && (lv_x[28] < lv_x[18]) && (lv_x[29] < lv_x[18]) && (lv_x[6] < lv_x[18]) && (lv_x[13] <= lv_x[18]) && (lv_x[14] < lv_x[18]) && (lv_x[18] > 0)) {
             return 16;
         }
 
-        if ((lv_x[0] == 0) && (lv_x[1] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[3] == 0) && (lv_x[5] == 0) && (lv_x[6] == 0) && (lv_x[7] == 0) && (lv_x[9] == 0) && (lv_x[12] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[15] == 0) && (lv_x[16] == 0) && (lv_x[17] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0) && (lv_x[20] == 0) && (lv_x[21] == 0) && (lv_x[23] > 0) && (lv_x[26] == 0)) {
+        if ((lv_x[0] == 0) && (lv_x[1] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[3] == 0) && (lv_x[5] == 0) && (lv_x[6] == 0) && (lv_x[7] == 0) && (lv_x[9] == 0) && (lv_x[12] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[15] == 0) && (lv_x[16] == 0) && (lv_x[17] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0) && (lv_x[20] == 0) && (lv_x[21] == 0) && (lv_x[23] > 0) && (lv_x[26] == 0)) {
             return 20;
         }
 
@@ -15237,6 +15294,10 @@ bool auto_gf_EndGame_TriggerFunc (bool testConds, bool runActions) {
 
     if ((lp_end == 22)) {
         gf_ETGanranzheWin();
+    }
+
+    if ((lp_end == 26)) {
+        gf_ETYanluoWin();
     }
 
     if ((lp_end == 23)) {
@@ -33159,6 +33220,10 @@ void gf_RSNeutralSetup () {
     for ( ; ( (auto5C9418FF_ai >= 0 && lv_a <= auto5C9418FF_ae) || (auto5C9418FF_ai < 0 && lv_a >= auto5C9418FF_ae) ) ; lv_a += auto5C9418FF_ai ) {
         if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) {
             if ((gv_roles[lv_a][1] == 3)) {
+                if ((gv_roles[lv_a][0] == 26) && (gv_ylIntro[lv_a] == false)) {
+                    gf_YLIntro(lv_a);
+                }
+
                 if ((gv_roles[lv_a][0] == 15)) {
                     gf_SKN_3_yuanhun(lv_a);
                 }
@@ -33199,6 +33264,10 @@ void gf_RSNeutralSetup () {
 
                     if ((gv_roles[lv_a][0] == 25)) {
                         gf_JSNight(lv_a);
+                    }
+
+                    if ((gv_roles[lv_a][0] == 26)) {
+                        gf_SKN_3_yanluo(lv_a);
                     }
 
                     if ((gv_roles[lv_a][0] == 31)) {
@@ -36565,7 +36634,7 @@ int gf_ASGuessRole (int lp_picked, int lp_index) {
         }
     }
     else if ((lp_picked == 4)) {
-        // 中立：18=煽动家(19) … 23=狸猫(24)，24=精神病患者(25)，25=影武者(31)，26=天选者(32)
+        // 中立：18=煽动家(19) … 23=狸猫(24)，24=精神病患者(25)，25=阎罗(26)，26=影武者(31)，27=天选者(32)
         if (((lp_index >= 18) && (lp_index <= 18))) {
             lv_role = 19;
         }
@@ -36588,12 +36657,15 @@ int gf_ASGuessRole (int lp_picked, int lp_index) {
             lv_role = 25;
         }
         else if ((lp_index == 25)) {
-            lv_role = 31;
+            lv_role = 26;
         }
         else if ((lp_index == 26)) {
+            lv_role = 31;
+        }
+        else if ((lp_index == 27)) {
             lv_role = 32;
         }
-        else if ((lp_index >= 27)) {
+        else if ((lp_index >= 28)) {
             lv_role = 0;
         }
     }
@@ -36618,7 +36690,7 @@ void gf_ASE5AEA1E69FA5E98089E9A1B92 (int lp_player, int lp_picked) {
     const int autoED7EF63C_ai = 1;
     const int auto4D2826D4_ae = 17;
     const int auto4D2826D4_ai = 1;
-    const int auto8DA97E18_ae = 26;
+    const int auto8DA97E18_ae = 27;
     const int auto8DA97E18_ai = 1;
 
     // Variable Initialization
@@ -40605,6 +40677,20 @@ void gf_RTNeutralRoleText (int lp_player) {
         SoundPlay(SoundLink("Zealot_Pissed", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
     }
 
+    if ((gv_roles[lv_a][1] == 3) && (gv_roles[lv_a][0] == 26)) {
+        gv_roleBoxText[lv_a][0] = (StringExternal("Param/Value/CE62498E") + lv_t[2] + StringExternal("Param/Value/D7C97124"));
+        gv_roleBoxText[lv_a][1] = StringExternal("Param/Value/YLBOX1");
+        gv_roleBoxText[lv_a][2] = StringExternal("Param/Value/YLBOX2");
+        if ((gv_roleOptions[3][26][0] == true)) {
+            gv_roleBoxText[lv_a][2] = (gv_roleBoxText[lv_a][2] + StringExternal("Param/Value/4467A310"));
+        }
+        gv_roleBoxText[lv_a][2] = (gv_roleBoxText[lv_a][2] + StringExternal("Param/Value/XMVIST"));
+        gv_roleBoxText[lv_a][4] = StringExternal("Param/Value/YLBOX4");
+        gv_roleBoxText[lv_a][6] = StringExternal("Param/Value/YLBOX6");
+        gv_roleBoxText[lv_a][3] = StringExternal("Param/Value/YLBOX6");
+        SoundPlay(SoundLink("Zealot_Pissed", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
+    }
+
     if ((gv_roles[lv_a][1] == 3) && (gv_roles[lv_a][0] == 25)) {
         gv_roleBoxText[lv_a][0] = (StringExternal("Param/Value/JSCARD") + StringExternal("Param/Value/JSALIGN"));
         gv_roleBoxText[lv_a][1] = StringExternal("Param/Value/JSBOX1");
@@ -41688,6 +41774,10 @@ bool gf_OSCheckOptionsA (bool lp_error) {
             }
 
             if ((gv_categoriesArray[lv_a] == 3) && (gv_rolesArray[lv_a] == 22)) {
+                lv_c[3] = true;
+            }
+
+            if ((gv_categoriesArray[lv_a] == 3) && (gv_rolesArray[lv_a] == 26)) {
                 lv_c[3] = true;
             }
 
@@ -44895,7 +44985,7 @@ void gf_VOptions () {
     gv_townWeights = "0 2 2 2 1 0.5 0.5 0.5 0.5 0.5 1 2 0.25 1 1.5 1.5 0.5 0 1 1 0.5 1 1.1 0.5 1 1.5 1.5 0 0 0 1 0"; // 末词 = 人口普查官(1/32)，暂不进随机
     // 黑手D 1..17：党徒2 教父1 陪侍1.25 参谋1.5 陷害1 清理1 恐吓1 伪装0.5 绑架0.25 密探1 欺骗1 威胁0 煽动者0 门徒0.5 栽赃者0 弃子0.5 庇护者1
     gv_mafiaWeights = "2 1 1.25 1.5 1 1 1 0.5 0.25 1 1 0 0 0.5 0 0.5 1";
-    // 中立 1..32：连环2 生存1 小丑1.5 女巫0.75 纵火0.25 处刑1.5 失忆1 邪教0 爱人狂1 巫医0 审计1.5 法官1 堕落0 瘟疫0.25 冤魂1.75 系命0.5 赌鬼0.5 小金0 煽动家1 开膛手0 唐吉诃德0.25 感染者0 调停者0 狸猫1 空0×6 影武者1 天选者0
+    // 中立 1..32：连环2 生存1 小丑1.5 女巫0.75 纵火0.25 处刑1.5 失忆1 邪教0 爱人狂1 巫医0 审计1.5 法官1 堕落0 瘟疫0.25 冤魂1.75 系命0.5 赌鬼0.5 小金0 煽动家1 开膛手0 唐吉诃德0.25 感染者0 调停者0 狸猫1 精神病0 阎罗0 空0×4 影武者1 天选者0
     gv_neutralWeights = "2 1 1.5 0.75 0.25 1.5 1 0 1 0 1.5 1 0 0.25 1.75 0.5 0.5 0 1 0 0.25 0 0 1 0 0 0 0 0 0 1 0";
     // 三合会 1..16：暴徒2 龙头1 交际花1.25 管家1.5 造假1 香主1 封口1 渗透0.5 审讯0.25 先锋1 迷惑1 指使0 扰乱0 仆从0.5 诬陷0.5 死士0.5
     gv_triadWeights = "2 1 1.25 1.5 1 1 1 0.5 0.25 1 1 0 0 0.5 0.5 0.5 1";
@@ -50714,7 +50804,7 @@ int gf_BHHistFaction (int lp_pool, int lp_role) {
     }
 
     if ((lp_pool == 3)) {
-        if (((lp_role == 1) || (lp_role == 5) || (lp_role == 9) || (lp_role == 14) || (lp_role == 15) || (lp_role == 20) || (lp_role == 22) || (lp_role == 31))) {
+        if (((lp_role == 1) || (lp_role == 5) || (lp_role == 9) || (lp_role == 14) || (lp_role == 15) || (lp_role == 20) || (lp_role == 22) || (lp_role == 26) || (lp_role == 31))) {
             return 4;
         }
 
@@ -51418,6 +51508,11 @@ void gf_OSRandomizeMatrix (int lp_a, int lp_x, fixed lp_y) {
     if ((lv_y >= gv_finalWeights[3][24]) && (lv_y < gv_finalWeights[3][25]) && (gv_rolesArray[lv_x] == 20)) {
         gv_roles[lv_a][1] = 3;
         gv_roles[lv_a][0] = 25;
+    }
+
+    if ((lv_y >= gv_finalWeights[3][25]) && (lv_y < gv_finalWeights[3][26]) && (((gv_rolesArray[lv_x] == 1) && (gv_roleOptions[4][1][0] == false) && (gv_roleOptions[4][1][3] == false)) || ((gv_rolesArray[lv_x] == 12) && (gv_roleOptions[4][12][0] == false)) || ((gv_rolesArray[lv_x] == 19) && (gv_roleOptions[4][19][0] == false) && (gv_roleOptions[4][19][1] == false)))) {
+        gv_roles[lv_a][1] = 3;
+        gv_roles[lv_a][0] = 26;
     }
 
     if ((lv_y >= gv_finalWeights[3][23]) && (lv_y < gv_finalWeights[3][24]) && (((gv_rolesArray[lv_x] == 1) && (gv_roleOptions[4][1][3] == false)) || (gv_rolesArray[lv_x] == 14) || ((gv_rolesArray[lv_x] == 19) && (gv_roleOptions[4][19][2] == false)))) {
@@ -73661,7 +73756,7 @@ bool gt_NPNightCamera_Func (bool testConds, bool runActions) {
                         gf_NPParanoidCamera(lv_a);
                     }
 
-                    if ((((gv_roles[lv_a][1] == 1) && (gv_roles[lv_a][0] == 4)) || ((gv_roles[lv_a][1] == 3) && (gv_roles[lv_a][0] == 1)) || ((gv_roles[lv_a][1] == 3) && (gv_roles[lv_a][0] == 5)) || ((gv_roles[lv_a][1] == 3) && (gv_roles[lv_a][0] == 20)) || ((gv_roles[lv_a][1] == 3) && (gv_roles[lv_a][0] == 25)) || ((gv_roles[lv_a][1] == 1) && (gv_roles[lv_a][0] == 27)) || ((gv_roles[lv_a][1] == 1) && (gv_roles[lv_a][0] == 28)) || (((gv_roles[lv_a][1] == 2) || (gv_roles[lv_a][1] == 5)) && (gv_roles[lv_a][0] == 16)))) {
+                    if ((((gv_roles[lv_a][1] == 1) && (gv_roles[lv_a][0] == 4)) || ((gv_roles[lv_a][1] == 3) && (gv_roles[lv_a][0] == 1)) || ((gv_roles[lv_a][1] == 3) && (gv_roles[lv_a][0] == 5)) || ((gv_roles[lv_a][1] == 3) && (gv_roles[lv_a][0] == 20)) || ((gv_roles[lv_a][1] == 3) && (gv_roles[lv_a][0] == 25)) || ((gv_roles[lv_a][1] == 3) && (gv_roles[lv_a][0] == 26)) || ((gv_roles[lv_a][1] == 1) && (gv_roles[lv_a][0] == 27)) || ((gv_roles[lv_a][1] == 1) && (gv_roles[lv_a][0] == 28)) || (((gv_roles[lv_a][1] == 2) || (gv_roles[lv_a][1] == 5)) && (gv_roles[lv_a][0] == 16)))) {
                         gf_NPStalkerCamera(lv_a);
                     }
 
@@ -75044,6 +75139,9 @@ bool gt_ASActionButtonANeutral_Func (bool testConds, bool runActions) {
         }
         if ((gv_roles[lv_source][1] == 3) && (gv_roles[lv_source][0] == 24)) {
             gf_SKA_3_limao(lv_source, lv_target);
+        }
+        if ((gv_roles[lv_source][1] == 3) && (gv_roles[lv_source][0] == 26)) {
+            gf_SKA_3_yanluo(lv_source, lv_target);
         }
         if ((gv_roles[lv_source][1] == 3) && (gv_roles[lv_source][0] == 21) && (gv_action[lv_source][0] != lv_target) && (gv_variableOptions[lv_source][0] == 1)) {
             gf_SKA_1_yijing(lv_source, lv_target);
@@ -82214,6 +82312,10 @@ bool gt_OSRoleSelect_Func (bool testConds, bool runActions) {
                 gv_roleSelection = 25;
             }
 
+            if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 27)) {
+                gv_roleSelection = 26;
+            }
+
         }
 
     }
@@ -82625,6 +82727,7 @@ bool gt_OSMenus_Func (bool testConds, bool runActions) {
                 DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/D89BFDF1") + gv_roleNameArray[gv_roleCategory][23] + StringExternal("Param/Value/258B2E40")));
                 DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/D89BFDF1") + gv_roleNameArray[gv_roleCategory][24] + StringExternal("Param/Value/258B2E40")));
                 DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/D89BFDF1") + gv_roleNameArray[gv_roleCategory][25] + StringExternal("Param/Value/258B2E40")));
+                DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/D89BFDF1") + gv_roleNameArray[gv_roleCategory][26] + StringExternal("Param/Value/258B2E40")));
             }
 
         }
@@ -91175,7 +91278,12 @@ if ((gv_immune[gv_visitation[lv_a]][2] == false)) {
                                                     gf_CBSystemMessage(StringExternal("Param/Value/GRSHREV"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
                                                 }
                                                 else {
-                                                    gf_CBSystemMessage(StringExternal("Param/Value/D125BE9B"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                                                    if ((gv_roles[gv_visitation[lv_a]][1] == 3) && (gv_roles[gv_visitation[lv_a]][0] == 26)) {
+                                                        gf_CBSystemMessage(StringExternal("Param/Value/YLSHREV"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                                                    }
+                                                    else {
+                                                        gf_CBSystemMessage(StringExternal("Param/Value/D125BE9B"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                                                    }
                                                 }
                                             }
                                         }
@@ -91572,6 +91680,10 @@ if ((PlayerGroupHasPlayer(gv_alivePlayers, gv_visitation[lv_a]) == false)) {
 
             if ((StringSub(gv_deathMethod[gv_visitation[lv_a]], lv_b, lv_b) == "F")) {
                 gf_CBSystemMessage(StringExternal("Param/Value/GRDM"), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0,0,0));
+            }
+
+            if ((StringSub(gv_deathMethod[gv_visitation[lv_a]], lv_b, lv_b) == "Y")) {
+                gf_CBSystemMessage(StringExternal("Param/Value/YLDM"), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0,0,0));
             }
 
             if ((StringSub(gv_deathMethod[gv_visitation[lv_a]], lv_b, lv_b) == "f")) {
@@ -97925,7 +98037,7 @@ void gf_DQShareWin (int lp_end) {
     lv_a = 1;
     for ( ; ( (autoDQSW_ai >= 0 && lv_a <= autoDQSW_ae) || (autoDQSW_ai < 0 && lv_a >= autoDQSW_ae) ) ; lv_a += autoDQSW_ai ) {
         if ((gv_roles[lv_a][1] == 3) && (gv_roles[lv_a][0] == 21) && (gv_dqRevealed[lv_a] == true) && (gv_dqAlign[lv_a] != 0)) {
-            if ((((gv_dqAlign[lv_a] == 1) && (lp_end == 1)) || ((gv_dqAlign[lv_a] == 2) && ((lp_end == 2) || (lp_end == 13))) || ((gv_dqAlign[lv_a] == 3) && ((lp_end == 3) || (lp_end == 4) || (lp_end == 5) || (lp_end == 6) || (lp_end == 7) || (lp_end == 8) || (lp_end == 9) || (lp_end == 10) || (lp_end == 11) || (lp_end == 12) || (lp_end == 14) || (lp_end == 15) || (lp_end == 16) || (lp_end == 17) || (lp_end == 18) || (lp_end == 19) || (lp_end == 20) || (lp_end == 21) || (lp_end == 22))))) {
+            if ((((gv_dqAlign[lv_a] == 1) && (lp_end == 1)) || ((gv_dqAlign[lv_a] == 2) && ((lp_end == 2) || (lp_end == 13))) || ((gv_dqAlign[lv_a] == 3) && ((lp_end == 3) || (lp_end == 4) || (lp_end == 5) || (lp_end == 6) || (lp_end == 7) || (lp_end == 8) || (lp_end == 9) || (lp_end == 10) || (lp_end == 11) || (lp_end == 12) || (lp_end == 14) || (lp_end == 15) || (lp_end == 16) || (lp_end == 17) || (lp_end == 18) || (lp_end == 19) || (lp_end == 20) || (lp_end == 21) || (lp_end == 22) || (lp_end == 26))))) {
                 gv_won[lv_a] = true;
                 SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
                 gf_FlashScreen(Color(78.82, 70.20, 41.96), lv_a, 2.0, 0.0);
@@ -100664,7 +100776,7 @@ int gf_SQBucket (int lp_pool, int lp_role) {
         }
     }
     if ((lp_pool == 3)) {
-        if ((lp_role == 1) || (lp_role == 5) || (lp_role == 9) || (lp_role == 13) || (lp_role == 14) || (lp_role == 15) || (lp_role == 20) || (lp_role == 22) || (lp_role == 31) || (lp_role == 32)) {
+        if ((lp_role == 1) || (lp_role == 5) || (lp_role == 9) || (lp_role == 13) || (lp_role == 14) || (lp_role == 15) || (lp_role == 20) || (lp_role == 22) || (lp_role == 26) || (lp_role == 31) || (lp_role == 32)) {
             return 1;
         }
     }
@@ -103210,4 +103322,283 @@ bool gt_JSPick_Func (bool testConds, bool runActions) {
 void gt_JSPick_Init () {
     gt_JSPick = TriggerCreate("gt_JSPick_Func");
     TriggerAddEventDialogControl(gt_JSPick, c_playerAny, c_invalidDialogControlId, c_triggerControlEventTypeClick);
+}
+
+void gf_ETYanluoWin () {
+    // Variable Declarations
+    int lv_a;
+    bool[6] lv_b;
+
+    // Automatic Variable Declarations
+    const int autoYLET_ae = 15;
+    const int autoYLET_ai = 1;
+
+    // Variable Initialization
+
+    // Implementation
+    SoundPlay(SoundLink("GameMusicTerr223322222", -1), PlayerGroupAll(), 100.0, 0.0);
+    lv_a = 1;
+    for ( ; ( (autoYLET_ai >= 0 && lv_a <= autoYLET_ae) || (autoYLET_ai < 0 && lv_a >= autoYLET_ae) ) ; lv_a += autoYLET_ai ) {
+        if ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 26)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))) {
+            SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
+            gf_FlashScreen(Color(55.69, 10.59, 22.75), lv_a, 2.0, 0.0);
+            libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/7466C49C"), PlayerGroupSingle(lv_a));
+            gv_won[lv_a] = true;
+            if ((PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true)) {
+                gv_bankGeneralIntegers[lv_a][6] += 1;
+            }
+
+        }
+        else {
+            libNtve_gf_ShowHideUnit(gv_unit[lv_a], false);
+            ActorSend(gv_hat[lv_a][0], "Destroy Immediate");
+            TextTagShow(gv_nameTag[lv_a], PlayerGroupAll(), false);
+            SoundPlay(SoundLink("UI_MissionFailed", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
+            gf_FlashScreen(Color(0.00, 0.00, 0.00), lv_a, 4.0, 0.0);
+            libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/AC6A4C7A"), PlayerGroupSingle(lv_a));
+            libNtve_gf_SetDialogItemImage2(gv_endButtonItem, "Assets\\Textures\\ui_button_bindkeyunbound_normaloverpressedover_zerg.dds", PlayerGroupSingle(lv_a));
+            libNtve_gf_SetDialogItemImage(gv_endButtonItem, "Assets\\Textures\\ui_button_bindkeyunbound_normalpressed_zerg.dds", PlayerGroupSingle(lv_a));
+            if ((PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true)) {
+                gv_bankGeneralIntegers[lv_a][7] += 1;
+            }
+
+        }
+        gf_WinScreen("WinYanluo.dds", lv_a);
+    }
+    Wait(5.0, c_timeGame);
+}
+
+// 阎罗（中立致命 3/26）：点名记在自己身上，下一夜勾去上一个名字。
+// 新增角色（非原图抽取）
+void gf_SKP_3_yanluo_0 (int lv_a) {
+    gv_busEligible[lv_a] = false;
+    gv_witchEligible[lv_a] = false;
+}
+
+void gf_YLIntro (int lv_a) {
+    int lv_i;
+    int lv_n;
+    int lv_count;
+    int lv_roll;
+    int lv_seen;
+    bool[16] lv_used;
+    const int autoYLIN_ae = 15;
+    const int autoYLIN_ai = 1;
+
+    gv_ylIntro[lv_a] = true;
+    gf_BHCrime(lv_a, 6);
+    gf_BHNotify(StringExternal("Param/Value/YLINTRO"), lv_a, SoundLink("UI_TipSelect", -1));
+    lv_i = 1;
+    for ( ; ( (autoYLIN_ai >= 0 && lv_i <= autoYLIN_ae) || (autoYLIN_ai < 0 && lv_i >= autoYLIN_ae) ) ; lv_i += autoYLIN_ai ) {
+        lv_used[lv_i] = false;
+    }
+    lv_n = 0;
+    while ((lv_n < 2)) {
+        lv_count = 0;
+        lv_i = 1;
+        for ( ; ( (autoYLIN_ai >= 0 && lv_i <= autoYLIN_ae) || (autoYLIN_ai < 0 && lv_i >= autoYLIN_ae) ) ; lv_i += autoYLIN_ai ) {
+            if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_i) == true) && (lv_i != lv_a) && (lv_used[lv_i] == false)) {
+                lv_count += 1;
+            }
+        }
+        if ((lv_count == 0)) {
+            lv_n = 2;
+        }
+        else {
+            lv_roll = RandomInt(1, lv_count);
+            lv_seen = 0;
+            lv_i = 1;
+            for ( ; ( (autoYLIN_ai >= 0 && lv_i <= autoYLIN_ae) || (autoYLIN_ai < 0 && lv_i >= autoYLIN_ae) ) ; lv_i += autoYLIN_ai ) {
+                if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_i) == true) && (lv_i != lv_a) && (lv_used[lv_i] == false)) {
+                    lv_seen += 1;
+                    if ((lv_seen == lv_roll)) {
+                        lv_used[lv_i] = true;
+                        gf_BHNotify((StringExternal("Param/Value/YLSEE1") + TextWithColor(StringToText(gv_name[lv_i]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_i])) + StringExternal("Param/Value/YLSEE2") + gv_roleNameArray[gv_roles[lv_i][1]][gv_roles[lv_i][0]]), lv_a, SoundLink("UI_TipSelect", -1));
+                    }
+                }
+            }
+            lv_n += 1;
+        }
+    }
+}
+
+void gf_YLTellFaction (int lv_who, int lv_target) {
+    if ((gv_roles[lv_target][1] == 1)) {
+        gf_BHNotify(StringExternal("Param/Value/YLFACT1"), lv_who, SoundLink("UI_TipSelect", -1));
+    }
+    else {
+        if ((gv_roles[lv_target][1] == 2)) {
+            gf_BHNotify(StringExternal("Param/Value/YLFACT2"), lv_who, SoundLink("UI_TipSelect", -1));
+        }
+        else {
+            if ((gv_roles[lv_target][1] == 5)) {
+                gf_BHNotify(StringExternal("Param/Value/YLFACT5"), lv_who, SoundLink("UI_TipSelect", -1));
+            }
+            else {
+                gf_BHNotify((StringExternal("Param/Value/YLFACTN") + gv_roleNameArray[gv_roles[lv_target][1]][gv_roles[lv_target][0]]), lv_who, SoundLink("UI_TipSelect", -1));
+            }
+        }
+    }
+}
+
+// 新增角色（非原图抽取）
+void gf_SKN_3_yanluo (int lv_a) {
+    gf_RAYanluoActions(lv_a);
+    if ((gv_roleOptions[3][26][0] == true)) {
+        gv_immune[lv_a][0] = true;
+    }
+}
+
+// 新增角色（非原图抽取）
+void gf_SKP_3_yanluo (int lv_a) {
+    if ((gv_roleblocked[lv_a] != 0) || (gv_jailed[lv_a] != 0)) {
+        return;
+    }
+    if ((gv_action[lv_a][0] > 0) && (gv_action[lv_a][0] != lv_a)) {
+        gf_BHVisitSelf(lv_a);
+    }
+}
+
+void gf_RAYanluoActions (int lp_player) {
+    int lv_a;
+    const int autoYLRA_ae = 15;
+    const int autoYLRA_ai = 1;
+
+    lv_a = 1;
+    for ( ; ( (autoYLRA_ai >= 0 && lv_a <= autoYLRA_ae) || (autoYLRA_ai < 0 && lv_a >= autoYLRA_ae) ) ; lv_a += autoYLRA_ai ) {
+        if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (lv_a != lp_player)) {
+            libNtve_gf_SetDialogItemTooltip(gv_actionDialogItem[lv_a][5], StringExternal("Param/Value/YLBTN"), PlayerGroupSingle(lp_player));
+            DialogControlSetVisible(gv_actionDialogItem[lv_a][5], PlayerGroupSingle(lp_player), (gv_action[lp_player][0] != lv_a));
+            libNtve_gf_SetDialogItemColor(gv_actionDialogItem[lv_a][5], Color(55.69, 10.59, 22.75), PlayerGroupSingle(lp_player));
+            DialogControlSetSize(gv_actionDialogItem[lv_a][5], PlayerGroupSingle(lp_player), 120, 30);
+            libNtve_gf_SetDialogItemImage(gv_actionDialogItem[lv_a][5], "ActionNormal.dds", PlayerGroupSingle(lp_player));
+            libNtve_gf_SetDialogItemImage2(gv_actionDialogItem[lv_a][5], "ActionHighlight.dds", PlayerGroupSingle(lp_player));
+        }
+        else if ((lv_a == lp_player)) {
+            libNtve_gf_SetDialogItemTooltip(gv_actionDialogItem[lv_a][5], StringExternal("Param/Value/YLCX"), PlayerGroupSingle(lp_player));
+            libNtve_gf_SetDialogItemColor(gv_actionDialogItem[lv_a][5], Color(50.20, 50.20, 50.20), PlayerGroupSingle(lp_player));
+            DialogControlSetSize(gv_actionDialogItem[lv_a][5], PlayerGroupSingle(lp_player), 120, 30);
+            libNtve_gf_SetDialogItemImage(gv_actionDialogItem[lv_a][5], "ActionNormal.dds", PlayerGroupSingle(lp_player));
+            libNtve_gf_SetDialogItemImage2(gv_actionDialogItem[lv_a][5], "ActionHighlight.dds", PlayerGroupSingle(lp_player));
+            DialogControlSetVisible(gv_actionDialogItem[lv_a][5], PlayerGroupSingle(lp_player), (gv_action[lp_player][0] != 0));
+        }
+        else {
+            DialogControlSetVisible(gv_actionDialogItem[lv_a][5], PlayerGroupSingle(lp_player), false);
+        }
+    }
+}
+
+// 新增角色（非原图抽取）
+void gf_SKA_3_yanluo (int lv_source, int lv_target) {
+    if ((lv_target == lv_source)) {
+        if ((gv_action[lv_source][0] != 0)) {
+            DialogControlSetVisible(gv_actionDialogItem[gv_action[lv_source][0]][5], PlayerGroupSingle(lv_source), true);
+            gv_action[lv_source][0] = 0;
+            DialogControlSetVisible(gv_actionDialogItem[lv_source][5], PlayerGroupSingle(lv_source), false);
+            gf_BHNotify(StringExternal("Param/Value/YLCLEAR"), lv_source, SoundLink("UI_TipSelect", -1));
+        }
+        return;
+    }
+    if ((gv_action[lv_source][0] != 0)) {
+        DialogControlSetVisible(gv_actionDialogItem[gv_action[lv_source][0]][5], PlayerGroupSingle(lv_source), true);
+    }
+    gv_action[lv_source][0] = lv_target;
+    DialogControlSetVisible(gv_actionDialogItem[lv_source][5], PlayerGroupSingle(lv_source), true);
+    DialogControlSetVisible(gv_actionDialogItem[lv_target][5], PlayerGroupSingle(lv_source), false);
+    gf_BHNotify((StringExternal("Param/Value/YLSEL") + TextWithColor(StringToText(gv_name[lv_target]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_target]))), lv_source, SoundLink("UI_TipSelect", -1));
+}
+
+void gf_ESYanluoKill (int lp_target, int lp_killer) {
+    int lv_a;
+    bool lv_saved;
+    const int autoYLES_ae = 15;
+    const int autoYLES_ai = 1;
+
+    lv_saved = false;
+    if ((PlayerGroupHasPlayer(gv_alivePlayers, lp_target) == false) || (gv_diedAtNight[lp_target] == true) || (lp_target == lp_killer)) {
+        return;
+    }
+    if ((gv_guarded[lp_target] != 0) && (lp_target != lp_killer)) {
+        gv_damage[gv_guarded[lp_target]] += 1;
+        gv_damage[lp_killer] += 1;
+        gf_BHNotify(StringExternal("Param/Value/YLGUARDED"), lp_killer, SoundLink("UI_TipSelect", -1));
+        gf_FlashScreen(Color(55.69, 10.59, 22.75), lp_killer, 2.0, 20.0);
+        gf_FlashScreen(Color(0.00, 100.00, 0.00), lp_target, 2.0, 0.0);
+        gf_ESBodyguardKill(lp_killer, gv_guarded[lp_target]);
+        gv_guarded[lp_target] = 0;
+        return;
+    }
+    if ((gv_zuosi[lp_target] == false) && ((gv_immuneChance[lp_target] > 0) || (gv_immune[lp_target][0] == true))) {
+        if ((gv_immuneChance[lp_target] > 0)) {
+            gv_immuneChance[lp_target] = (gv_immuneChance[lp_target] - 1);
+        }
+        lv_saved = true;
+        gf_BHNotify(StringExternal("Param/Value/0BE95EEB"), lp_target, SoundLink("UI_TipSelect", -1));
+        gf_BHNotify(StringExternal("Param/Value/YLIMMUNE"), lp_killer, SoundLink("UI_TipSelect", -1));
+    }
+    else {
+        if ((gv_healing[lp_target] > 0) && (gv_zuosi[lp_target] == false)) {
+            gv_healing[lp_target] -= 1;
+            gv_deathMethod[lp_target] = (gv_deathMethod[lp_target] + "h");
+            lv_saved = true;
+            gf_BHNotify(StringExternal("Param/Value/DB5AD8F8"), lp_target, SoundLink("UI_TipSelect", -1));
+            gf_BHNotify(StringExternal("Param/Value/YLHEALED"), lp_killer, SoundLink("UI_TipSelect", -1));
+        }
+    }
+    if ((lv_saved == true)) {
+        return;
+    }
+    gv_damage[lp_target] += 1;
+    if (((gv_nightSequence == true) || (gv_deathDescriptions == true))) {
+        if ((gv_nightSequence == true)) {
+            lv_a = 1;
+            for ( ; ( (autoYLES_ai >= 0 && lv_a <= autoYLES_ae) || (autoYLES_ai < 0 && lv_a >= autoYLES_ae) ) ; lv_a += autoYLES_ai ) {
+                if ((PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true)) {
+                    gf_CBSystemMessage(StringExternal("Param/Value/YLNIGHT"), lv_a, 0, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+                }
+            }
+            gf_FlashScreen(Color(55.69, 10.59, 22.75), lp_target, 1.5, 15.0);
+            if ((gv_isAMan[lp_target] == true)) {
+                SoundPlay(SoundLink("CivilianDeath", -1), PlayerGroupAll(), 100.0, 0.0);
+            }
+            else {
+                SoundPlay(SoundLink("CivilianFemaleDeath", -1), PlayerGroupAll(), 100.0, 0.0);
+            }
+            Wait(0.6, c_timeGame);
+        }
+        lv_a = RandomInt(1, 2);
+        if ((lv_a == 1)) {
+            gv_deathText[lp_target] = (gv_deathText[lp_target] + StringExternal("Param/Value/YLDEATH0"));
+        }
+        else {
+            gv_deathText[lp_target] = (gv_deathText[lp_target] + StringExternal("Param/Value/YLDEATH1"));
+        }
+    }
+    gv_deathMethod[lp_target] = (gv_deathMethod[lp_target] + "Y");
+    gf_BHCrimeMurder(lp_killer);
+    gf_BHRecordNightKiller(lp_target, lp_killer);
+    gf_KillPlayer(lp_target, false);
+    gv_diedAtNight[lp_target] = true;
+}
+
+// 新增角色（非原图抽取）
+void gf_SKK_3_yanluo (int lv_a) {
+    int lv_pick;
+
+    if ((gv_ylMark[lv_a] != 0) && (gv_ylMark[lv_a] != lv_a) && (PlayerGroupHasPlayer(gv_alivePlayers, gv_ylMark[lv_a]) == true)) {
+        if ((gv_seqKillsZ[1] == true)) {
+            Wait(1.0, c_timeGame);
+        }
+        gv_seqKillsZ[1] = true;
+        gf_ESYanluoKill(gv_ylMark[lv_a], lv_a);
+    }
+    lv_pick = gv_action[lv_a][0];
+    if ((lv_pick > 0) && (lv_pick != lv_a) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_pick) == true)) {
+        gv_ylMark[lv_a] = lv_pick;
+        gf_YLTellFaction(lv_a, lv_pick);
+        gf_BHVisitSelf(lv_a);
+    }
+    else {
+        gv_ylMark[lv_a] = 0;
+    }
 }

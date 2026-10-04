@@ -115,6 +115,7 @@ DDS_ASSETS = [
     ('WinDemagogue.dds', 'WinDemagogue.dds'),
     ('WinRipper.dds', 'WinRipper.dds'),
     ('WinGanranzhe.dds', 'WinGanranzhe.dds'),
+    ('WinYanluo.dds', 'WinYanluo.dds'),
 ]
 # 街机封面：DocumentInfo 的 Screenshot=Preview.dds。基线缺这张图，所以战网没有缩略图。
 # 列表小图标仍用原图 Mafia Icon.dds，不要覆盖。源 PNG 用 tools/png2cover.py 出 Preview DDS。
@@ -416,6 +417,17 @@ MUST_HAVE_KEYS = [
    'Param/Value/GRDM', 'Param/Value/GRCRIME',
    'Param/Value/GRDMSELF', 'Param/Value/GRNIGHT', 'Param/Value/GRCHATMSG',
    'Param/Value/GRSHREV',
+   # 阎罗 (3/26)
+   'Param/Value/YLNAME', 'Param/Value/YLCARD', 'Param/Value/YLDESC',
+   'Param/Value/YLBOX1', 'Param/Value/YLBOX2', 'Param/Value/YLBOX4',
+   'Param/Value/YLBOX6', 'Param/Value/YLOPTIMM', 'Param/Value/YLCRIME',
+   'Param/Value/YLBTN', 'Param/Value/YLCX', 'Param/Value/YLSEL',
+   'Param/Value/YLCLEAR', 'Param/Value/YLINTRO', 'Param/Value/YLSEE1',
+   'Param/Value/YLSEE2', 'Param/Value/YLFACT1', 'Param/Value/YLFACT2',
+   'Param/Value/YLFACT5', 'Param/Value/YLFACTN', 'Param/Value/YLIMMUNE',
+   'Param/Value/YLHEALED', 'Param/Value/YLGUARDED', 'Param/Value/YLNIGHT',
+   'Param/Value/YLDEATH0', 'Param/Value/YLDEATH1', 'Param/Value/YLDM',
+   'Param/Value/YLSHREV',
    # 调停者 (3/23)
    'Param/Value/TTPOOL', 'Param/Value/TTPOOLDESC',
    'Param/Value/TTNAME', 'Param/Value/TTCARD', 'Param/Value/TTALIGN',

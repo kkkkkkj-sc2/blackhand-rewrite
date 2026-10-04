@@ -38,4 +38,4 @@ Param/Value/GRDMSELF=死者把生命交给了另一个人。
 Param/Value/GRNIGHT=<s val="ModLeftSize16Bold"><c val="FF0000">远处的夜色中掠过一声极度压抑的窒息喘息，随后陷入了死一般的寂静...</c></s>
 Param/Value/GRCHATMSG=<c val="DFFF00">[传承] </c>
 Param/Value/GRSHREV=<s val="ModLeftSize16Bold"><c val="DFFF00">你的目标是感染者。</c></s>
-Param/Value/CA7B43AE=- 这意味着他会是个法医，或是陷害者/造假，甚至是一名感染者。
+Param/Value/CA7B43AE=- 这意味着他会是个法医，或是陷害者/造假，甚至是一名感染者或阎罗。

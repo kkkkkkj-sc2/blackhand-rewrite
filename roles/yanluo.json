@@ -1,0 +1,28 @@
+{
+  "pool": 3,
+  "role": 26,
+  "pinyin": "yanluo",
+  "cn": "阎罗",
+  "name_key": "YLNAME",
+  "desc_key": "YLDESC",
+  "investigator": [
+    "E58DB1E999A9E789A9E593811",
+    "E58DB1E999A9E789A9E593812"
+  ],
+  "crime_key": "YLCRIME",
+  "options": [
+    {"i": 0, "exists": true, "important": 2, "default": true, "key": "YLOPTIMM"}
+  ],
+  "flag10": true,
+  "guessable": true,
+  "help_preview": null,
+  "interactions": {
+    "swap": {"text": "访问自己。真正的点名记在 gv_ylMark，不读被改过的访问。巴士司机、女巫、欺骗者/迷惑改不到。"},
+    "investigate": {"text": "不登门。探员属于法医类。图鉴案底为不法阴谋与谋杀；第一夜写入不法阴谋，成功勾人写入谋杀。警长直接认出阎罗。"},
+    "restrict": {"text": "被限制或入狱当夜不勾人，也不记下新的名字；上一夜点下的名字留到下一夜。"},
+    "guessage": {"text": "审查页中立列表可以猜出阎罗。", "in_guess_list": true},
+    "doctor_guard": {"text": "勾人按身份结算：先认保镖，再认夜间无敌和医生救治。"}
+  },
+  "note": "中立致命 3/26。每晚点一名玩家，上一夜点过的人在今夜死亡。首夜随机得知两名玩家的身份，并记下不法阴谋。点中城镇/黑手D/三合会只得知阵营，点中中立得知角色。默认权重 0。角色号 26 不做银行首胜。",
+  "review_status": "reviewed"
+}
