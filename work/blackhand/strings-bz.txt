@@ -43,7 +43,7 @@ Param/Value/ZSTAG= (<c val="3366FF">致命</c>，<c val="3366FF">领袖</c>)
 Param/Value/ZSBOX1=每晚杀死一人。
 Param/Value/ZSBOX2=- 当你在场时，所有三合会的初始角色都是仆从。<n/>- 你拥有夜间无敌。<n/>- 当你在场时，仆从们最多只有一个可以选择成为致命角色。<n/>- 当你在场时，仆从选完角色后可以立刻使用能力。
 Param/Value/ZSBOX4=你是三合会的领袖。
-Param/Value/173C6671=- 你怀疑他是个教父、龙头、庇护者、潜龙、族长、宗师、野兽、霸王或调停者。
+Param/Value/173C6671=- 你怀疑他是个教父、龙头、庇护者、潜龙、族长、宗师、野兽、霸王、调停者或仲裁者。
 Param/Value/FZCRIME=非法闯入，谋杀
 Param/Value/ZSCRIME=非法闯入，谋杀
 Param/Value/FZFATAL=已经有一名成员成为了致命角色。

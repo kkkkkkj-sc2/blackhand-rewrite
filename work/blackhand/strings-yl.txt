@@ -2,8 +2,8 @@
 Param/Value/YLNAME=<c val="8E1B3A">阎罗</c>
 Param/Value/YLCARD=<c val="8E1B3A">
 Param/Value/YLALIGN=<c val="8E1B3A">无（致命）</c>
-Param/Value/YLDESC=一位如阎罗般冷酷精准的顶尖杀手，在生死名册上逐一宣判全镇的死期。<n/><n/><c val="BBDDFF">每晚选择一个人。上一个被你选择的人死亡。</c>
-Param/Value/YLBOX1=每晚选择一个人。上一个被你选择的人死亡。
+Param/Value/YLDESC=一位如阎罗般冷酷精准的顶尖杀手，在生死名册上逐一宣判全镇的死期。<n/><n/><c val="BBDDFF">每晚选择一个人。你再选择下一个人时，上一个被你选择的人死亡。</c>
+Param/Value/YLBOX1=每晚选择一个人。你再选择下一个人时，上一个被你选择的人死亡。
 Param/Value/YLBOX2=<n/>- 在你的首个夜晚，你会获得两个人的身份。<n/>- 你会获知被你选择的人的阵营。<n/>- 你不会被女巫、巴士司机、欺骗者或迷惑影响。
 Param/Value/YLBOX4=一位如阎罗般冷酷精准的顶尖杀手，在生死名册上逐一宣判全镇的死期。
 Param/Value/YLBOX6=成为存活至最后的人。
@@ -23,7 +23,7 @@ Param/Value/YLFACTN=<s val="ModLeftSize16"> 是一个</s>
 Param/Value/YLIMMUNE=<s val="ModLeftSize16">这个名字今夜还没被勾掉。</s>
 Param/Value/YLHEALED=<s val="ModLeftSize16">有人把这个名字从死册上揭了下去。</s>
 Param/Value/YLGUARDED=<s val="ModLeftSize16">有人替这个名字挡下了勾决。</s>
-Param/Value/YLNIGHT=<s val="ModLeftSize16Bold"><c val="FF0000">名册上有一个名字被慢慢划去，墨迹在夜色里干成了黑。</c></s>
+Param/Value/YLNIGHT=<s val="ModLeftSize16Bold"><c val="FF0000">名册上有一个名字被慢慢划去，墨迹在夜色里干成了黑……</c></s>
 Param/Value/YLDEATH0=他的名字像是被人从一本旧册子上裁走了，创口没有血，只剩一道干透的墨痕。
 Param/Value/YLDEATH1=死者眉心有一道极细的朱砂，像是被人用指腹按上去的，人却已经没有气息。
 Param/Value/YLDM=死者的名字被阎罗勾去。

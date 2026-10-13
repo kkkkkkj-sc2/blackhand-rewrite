@@ -6,8 +6,8 @@
   "name_key": "ZCNAME",
   "desc_key": "ZCDESC",
   "investigator": [
-    "E58DB1E999A9E789A9E593811",
-    "E58DB1E999A9E789A9E593812"
+    "E5BCBAE5A4A7E6B094E59CBA1",
+    "E5BCBAE5A4A7E6B094E59CBA2"
   ],
   "crime_key": "ZCCRIME",
   "options": [
@@ -21,7 +21,7 @@
   ],
   "interactions": {
     "swap": {"text": "行动记成访问自己。女巫、巴士司机、欺骗者与迷惑改不到被选中的人。"},
-    "investigate": {"text": "探员属于法医类。图鉴案底只写谋杀。警长直接认出仲裁者。"},
+    "investigate": {"text": "探员线索与教父、龙头相同（强大的气场）。图鉴案底只写谋杀。警长直接认出仲裁者。可以把自己选进名单。"},
     "restrict": {"text": "被限制或关进牢里的那一夜不裁决。入夜时的点名已经广播过；名单留到下一次能行动的夜晚。"},
     "guessage": {"text": "审查页中立列表在阎罗之后可以猜出仲裁者。", "in_guess_list": true},
     "doctor_guard": {"text": "裁决无视医生救治和夜间无敌，也不与保镖互砍。访问自己，所以退伍军人的警戒打不中。"}
