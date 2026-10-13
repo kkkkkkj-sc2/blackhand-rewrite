@@ -40774,8 +40774,8 @@ void gf_RTNeutralRoleText (int lp_player) {
         gv_roleBoxText[lv_a][1] = StringExternal("Param/Value/ZCBOX1");
         gv_roleBoxText[lv_a][2] = StringExternal("Param/Value/ZCBOX2");
         gv_roleBoxText[lv_a][4] = StringExternal("Param/Value/ZCBOX4");
-        gv_roleBoxText[lv_a][6] = gf_RTMakeWinList(3, 1);
-        gv_roleBoxText[lv_a][3] = gf_RTMakeWinList(3, 1);
+        gv_roleBoxText[lv_a][6] = StringExternal("Param/Value/ZCBOX6");
+        gv_roleBoxText[lv_a][3] = StringExternal("Param/Value/ZCBOX6");
         SoundPlay(SoundLink("GhostFemale_GhostFemale_013", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
     }
 
