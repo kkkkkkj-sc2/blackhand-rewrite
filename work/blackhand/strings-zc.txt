@@ -8,7 +8,9 @@ Param/Value/ZCBOX2=<n/>- 在夜晚，所有人都会知道谁被你选中了。<
 Param/Value/ZCBOX4=仲裁者把生死交给被点名的人自己。
 Param/Value/ZCBOX6=成为存活至最后的人。
 Param/Value/ZCOPTIMM=在夜间无敌
-Param/Value/ZCCRIME=谋杀
+Param/Value/ZCCRIME=操纵审判，谋杀
+Param/Value/ZCCRJ0=犯下了操纵审判
+Param/Value/ZCCRJ1=，操纵审判
 Param/Value/ZCBTN=<s val="ModCenterSize20Bold">裁决</s>
 Param/Value/ZCTIP=选择最多三人。今夜由他们决定自己的生死。
 Param/Value/ZCPRE=<s val="ModLeftSize16">你向 </s>
