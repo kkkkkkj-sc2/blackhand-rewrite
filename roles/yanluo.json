@@ -6,8 +6,8 @@
   "name_key": "YLNAME",
   "desc_key": "YLDESC",
   "investigator": [
-    "E58DB1E999A9E789A9E593811",
-    "E58DB1E999A9E789A9E593812"
+    "E59684E4BA8EE8A7A3E8AFBB1",
+    "E59684E4BA8EE8A7A3E8AFBB2"
   ],
   "crime_key": "YLCRIME",
   "options": [
@@ -18,7 +18,7 @@
   "help_preview": null,
   "interactions": {
     "swap": {"text": "访问自己。真正的点名记在 gv_ylMark，不读被改过的访问。巴士司机、女巫、欺骗者/迷惑改不到。"},
-    "investigate": {"text": "不登门。探员属于法医类。图鉴案底为不法阴谋与谋杀；第一夜写入不法阴谋，成功勾人写入谋杀。警长直接认出阎罗。"},
+    "investigate": {"text": "不登门。探员线索与探员、参谋、管家相同（搜查住所）。图鉴案底为不法阴谋与谋杀；第一夜写入不法阴谋，成功勾人写入谋杀。警长直接认出阎罗。"},
     "restrict": {"text": "被限制或入狱当夜不勾人，也不记下新的名字。没点下一个人时，上一个名字不会死，一直留到下一次点中别人。"},
     "guessage": {"text": "审查页中立列表可以猜出阎罗。", "in_guess_list": true},
     "doctor_guard": {"text": "勾人按身份结算：先认保镖，再认夜间无敌和医生救治。"}

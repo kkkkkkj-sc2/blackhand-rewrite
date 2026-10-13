@@ -28,3 +28,4 @@ Param/Value/YLDEATH0=他的名字像是被人从一本旧册子上裁走了，�
 Param/Value/YLDEATH1=死者眉心有一道极细的朱砂，像是被人用指腹按上去的，人却已经没有气息。
 Param/Value/YLDM=死者的名字被阎罗勾去。
 Param/Value/YLSHREV=<s val="ModLeftSize16Bold"><c val="8E1B3A">你的目标是一个阎罗。</c></s>
+Param/Value/FE6BCB77=- 让你确信他是个探员/联邦探员、参谋/管家、伪装者/渗透、栽赃者/诬陷或者阎罗。

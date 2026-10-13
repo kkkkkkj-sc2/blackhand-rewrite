@@ -5806,8 +5806,8 @@ void gf_InitializeVariables () {
     gv_roleWeights[3][25] = 0.25;
     gv_roleNameArray[3][26] = StringExternal("Param/Value/YLNAME");
     gv_roleDescriptionArray[3][26] = StringExternal("Param/Value/YLDESC");
-    gv_roleInvestigatorArray[3][26][0] = gv_investigatorE58DB1E999A9E789A9E593811;
-    gv_roleInvestigatorArray[3][26][1] = gv_investigatorE58DB1E999A9E789A9E593812;
+    gv_roleInvestigatorArray[3][26][0] = gv_investigatorE59684E4BA8EE8A7A3E8AFBB1;
+    gv_roleInvestigatorArray[3][26][1] = gv_investigatorE59684E4BA8EE8A7A3E8AFBB2;
     gv_roleOptionExists[3][26][0] = true;
     gv_roleOptionsImportant[3][26][0] = 2;
     gv_roleOptions[3][26][0] = true;
