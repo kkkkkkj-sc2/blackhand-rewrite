@@ -100225,6 +100225,8 @@ void gf_BHSaveSlotRefresh (int lp_player) {
     // ⇒「事件 → 重建 → 事件 → …」每帧重建 6 个条目 = 游戏巨卡 + 内存一路涨（用户实测）。
     // 两道保险：①这里照作者 gt_OSMenus_Func 的做法，改列表前 TriggerEnable(自己的触发器, false)、
     // 改完 true（78150-78152 / 78389）②gt_BHSaveSlotSel_Func 里选中项没变就直接返回。
+    // 加行会把高亮留在最后一行，而且这个 SelectionChanged 要等线程让出才派发。
+    // 若先打开触发器再返回，载入/保存后高亮会被改成最后一个槽。先 Wait 把事件放掉，再选中真正的槽。
     gv_saveSlotBusy = true;
     if ((gt_BHSaveSlotSel != null)) {
         TriggerEnable(gt_BHSaveSlotSel, false);
@@ -100237,7 +100239,9 @@ void gf_BHSaveSlotRefresh (int lp_player) {
     for ( ; (lv_a <= c_bhSaveSlotCount) ; lv_a += 1 ) {
         DialogControlAddItem(gv_saveSlotItem[1], PlayerGroupAll(), gf_BHSaveSlotItemText(lp_player, lv_a));
     }
+    Wait(0.0, c_timeGame);
     DialogControlSelectItem(gv_saveSlotItem[1], PlayerGroupAll(), lv_slot);
+    Wait(0.0, c_timeGame);
     if ((gt_BHSaveSlotSel != null)) {
         TriggerEnable(gt_BHSaveSlotSel, true);
     }
@@ -100471,6 +100475,8 @@ void gf_BHSaveSlotLoad (int lp_player) {
         gf_BHSaveSlotCopyI(lp_player, lv_slot, 1);
         auto_gf_CDisassembleSaveSlotBank_lp_player = lp_player;
         auto_gf_CDisassembleSaveSlotBank_TriggerFunc(true, true);
+        // 拆档末尾会按银行里的 ActiveSlot 重写选中项。那是上次落盘时的槽，不是这次要点的槽。
+        gv_saveSlotSel[lp_player] = lv_slot;
         gf_VLoadSaveSlot(lp_player, 5);
         gf_BHApplyLobbyOptions();
         gf_CAssembleSaveSlotBank(lp_player);
