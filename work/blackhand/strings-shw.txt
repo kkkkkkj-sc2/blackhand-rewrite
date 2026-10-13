@@ -306,6 +306,11 @@ Param/Value/HLZSNAME=<s val="ModCenterSize24Bold">随机：<c val="E85D4C">混�
 Param/Value/HLZSDESC=城镇还没反应过来，混乱已经先到了。<n/>混乱席只会是调停者或精神病患者，两边一样常见。<n/><s val="ModCenterSize18Bold">12-15人可用</s>
 Param/Value/HLZSSUBA=<c val="E85D4C">混乱之始</c> A
 Param/Value/HLZSBTN=<s val="ModCenterSize24Bold"><c val="E85D4C">混乱之始</c></s>
+Param/Value/SYJXNAME=<s val="ModCenterSize24Bold">随机：<c val="C47878">实</c><c val="C49A6E">验</c><c val="C4B56E">性</c><c val="7AAA84">角</c><c val="6E94C4">色</c></s>
+Param/Value/SYJXDESC=该预设包含众多处于实验中的角色。这些角色的机制可能不稳定。<n/><s val="ModCenterSize18Bold">12-15人可用</s>
+Param/Value/SYJXSUBA=<c val="C47878">实</c><c val="C49A6E">验</c><c val="C4B56E">性</c><c val="7AAA84">角</c><c val="6E94C4">色</c> A
+Param/Value/SYJXSUBB=<c val="C47878">实</c><c val="C49A6E">验</c><c val="C4B56E">性</c><c val="7AAA84">角</c><c val="6E94C4">色</c> B
+Param/Value/SYJXBTN=<s val="ModCenterSize24Bold"><c val="C47878">实</c><c val="C49A6E">验</c><c val="C4B56E">性</c><c val="7AAA84">角</c><c val="6E94C4">色</c></s>
 Param/Value/QZACH1S=<c val="44FF88"> 赢得了成就 </c></s><s val="ModCenterSize16Bold"><c val="BB3355">穿山甲</c></s><s val="ModCenterSize16"><c val="44FF88">!</c></s>
 Param/Value/QZACH1N=<s val="ModCenterSize16Bold"><c val="BB3355">穿山甲</c></s>
 Param/Value/QZACH1D=<s val="ModCenterSize16"><c val="BB3355">我的任务...完成了！</c></s>

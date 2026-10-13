@@ -394,6 +394,9 @@ MUST_HAVE_KEYS = [
   # 随机：混乱之始
   'Param/Value/HLZSNAME', 'Param/Value/HLZSDESC', 'Param/Value/HLZSBTN',
   'Param/Value/HLZSSUBA',
+  # 随机：实验性角色
+  'Param/Value/SYJXNAME', 'Param/Value/SYJXDESC', 'Param/Value/SYJXBTN',
+  'Param/Value/SYJXSUBA', 'Param/Value/SYJXSUBB',
   # shw288 唐吉诃德 (3/21)
   'Param/Value/DQNAME', 'Param/Value/DQDESC', 'Param/Value/DQCARD',
   'Param/Value/DQBOX1', 'Param/Value/DQBOX2', 'Param/Value/DQBOX4',
