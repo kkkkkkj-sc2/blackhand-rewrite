@@ -1,11 +1,12 @@
 // 阎罗（中立致命 3/26）。点名延后一夜勾人。默认权重 0。
 Param/Value/YLNAME=<c val="8E1B3A">阎罗</c>
 Param/Value/YLCARD=<c val="8E1B3A">
-Param/Value/YLDESC=阎罗掌管死生名册。被他点过的名字，不会活过下一夜。<n/><n/><c val="BBDDFF">每晚可以选择一名玩家。此前被选择的人会在这一夜死亡。</c>
-Param/Value/YLBOX1=- 每晚可以选择一名玩家。此前被你选择的人会在这一夜死亡。
-Param/Value/YLBOX2=<n/>- 在你的首个夜晚，你会随机获知两名玩家的身份。<n/>- 被你选择的人，你会获知他的阵营。城镇是城镇，黑手党与三合会是对应的阵营；若是中立，则直接获知角色。<n/>- 你不会被女巫、巴士司机、欺骗者或迷惑影响。
-Param/Value/YLBOX4=阎罗掌管死生名册。被他点过的名字，不会活过下一夜。
-Param/Value/YLBOX6=- 当城镇已无人、其他中立致命也已不在，且黑手党与三合会合计不超过一人时，你获胜。
+Param/Value/YLALIGN=<c val="8E1B3A">无（致命）</c>
+Param/Value/YLDESC=一位如阎罗般冷酷精准的顶尖杀手，在生死名册上逐一宣判全镇的死期。<n/><n/><c val="BBDDFF">每晚选择一个人。上一个被你选择的人死亡。</c>
+Param/Value/YLBOX1=每晚选择一个人。上一个被你选择的人死亡。
+Param/Value/YLBOX2=<n/>- 在你的首个夜晚，你会获得两个人的身份。<n/>- 你会获知被你选择的人的阵营。<n/>- 你不会被女巫、巴士司机、欺骗者或迷惑影响。
+Param/Value/YLBOX4=一位如阎罗般冷酷精准的顶尖杀手，在生死名册上逐一宣判全镇的死期。
+Param/Value/YLBOX6=成为存活至最后的人。
 Param/Value/YLOPTIMM=在夜间无敌
 Param/Value/YLCRIME=不法阴谋，谋杀
 Param/Value/YLBTN=<s val="ModCenterSize20Bold">点名</s>
