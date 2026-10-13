@@ -103536,19 +103536,22 @@ void gf_YLIntro (int lv_a) {
 }
 
 void gf_YLTellFaction (int lv_who, int lv_target) {
+    text lv_line;
+
+    lv_line = (StringExternal("Param/Value/YLSEE1") + TextWithColor(StringToText((gv_number[lv_target] + "." + gv_name[lv_target])), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_target])));
     if ((gv_roles[lv_target][1] == 1)) {
-        gf_BHNotify(StringExternal("Param/Value/YLFACT1"), lv_who, SoundLink("UI_TipSelect", -1));
+        gf_BHNotify((lv_line + StringExternal("Param/Value/YLFACT1")), lv_who, SoundLink("UI_TipSelect", -1));
     }
     else {
         if ((gv_roles[lv_target][1] == 2)) {
-            gf_BHNotify(StringExternal("Param/Value/YLFACT2"), lv_who, SoundLink("UI_TipSelect", -1));
+            gf_BHNotify((lv_line + StringExternal("Param/Value/YLFACT2")), lv_who, SoundLink("UI_TipSelect", -1));
         }
         else {
             if ((gv_roles[lv_target][1] == 5)) {
-                gf_BHNotify(StringExternal("Param/Value/YLFACT5"), lv_who, SoundLink("UI_TipSelect", -1));
+                gf_BHNotify((lv_line + StringExternal("Param/Value/YLFACT5")), lv_who, SoundLink("UI_TipSelect", -1));
             }
             else {
-                gf_BHNotify((StringExternal("Param/Value/YLFACTN") + gv_roleNameArray[gv_roles[lv_target][1]][gv_roles[lv_target][0]]), lv_who, SoundLink("UI_TipSelect", -1));
+                gf_BHNotify((lv_line + StringExternal("Param/Value/YLFACTN") + gv_roleNameArray[gv_roles[lv_target][1]][gv_roles[lv_target][0]] + StringToText("。")), lv_who, SoundLink("UI_TipSelect", -1));
             }
         }
     }

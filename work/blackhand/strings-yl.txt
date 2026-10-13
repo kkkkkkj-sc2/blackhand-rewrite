@@ -16,10 +16,10 @@ Param/Value/YLCLEAR=<s val="ModLeftSize16">你取消了今晚的点名。</s>
 Param/Value/YLINTRO=<s val="ModLeftSize16">名册在你手里展开。今夜你会看见两个陌生人的身份。</s>
 Param/Value/YLSEE1=<s val="ModLeftSize16">你得知 </s>
 Param/Value/YLSEE2=<s val="ModLeftSize16"> 的身份是 </s>
-Param/Value/YLFACT1=<s val="ModLeftSize16">你点中的人属于城镇。</s>
-Param/Value/YLFACT2=<s val="ModLeftSize16">你点中的人属于黑手党。</s>
-Param/Value/YLFACT5=<s val="ModLeftSize16">你点中的人属于三合会。</s>
-Param/Value/YLFACTN=<s val="ModLeftSize16">你点中的人是</s>
+Param/Value/YLFACT1=<s val="ModLeftSize16"> 是一个城镇角色。</s>
+Param/Value/YLFACT2=<s val="ModLeftSize16"> 是一个黑手党成员。</s>
+Param/Value/YLFACT5=<s val="ModLeftSize16"> 是一个三合会成员。</s>
+Param/Value/YLFACTN=<s val="ModLeftSize16"> 是一个</s>
 Param/Value/YLIMMUNE=<s val="ModLeftSize16">这个名字今夜还没被勾掉。</s>
 Param/Value/YLHEALED=<s val="ModLeftSize16">有人把这个名字从死册上揭了下去。</s>
 Param/Value/YLGUARDED=<s val="ModLeftSize16">有人替这个名字挡下了勾决。</s>
