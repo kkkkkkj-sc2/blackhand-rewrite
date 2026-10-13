@@ -15,7 +15,7 @@ Param/Value/ZCPRE=<s val="ModLeftSize16">你向 </s>
 Param/Value/ZCSP=<s val="ModLeftSize16"> </s>
 Param/Value/ZCSUF=<s val="ModLeftSize16">下达了裁决，今晚他们的选择将决定他们的生死。</s>
 Param/Value/ZCCLR=<s val="ModLeftSize16">你收回了裁决。</s>
-Param/Value/ZCANN=<s val="ModLeftSize16"> 选择生，亦或是死。</s>
+Param/Value/ZCANN=<s val="ModLeftSize16"> 选择<c val="7A9E78">生</c>，亦或是<c val="C47A78">死</c>。</s>
 Param/Value/ZCPROMPT=<s val="ModLeftSize16">你被仲裁者选中并置于生死天平之上。你必须在此刻做出抉择。</s>
 Param/Value/ZCLIVE=<s val="ModLeftSize16">你选择了苟活。你在黑暗中祈祷另外两人中存在甘愿流血的圣人。</s>
 Param/Value/ZCDIE=<s val="ModLeftSize16">你选择了牺牲。你的鲜血将成为洗刷他人罪愆的祭品。</s>
@@ -37,8 +37,8 @@ Param/Value/ZCDEADP=<s val="ModLeftSize16">不能选择已经死去的人。</s>
 Param/Value/ZCTAKEN=<s val="ModLeftSize16">这个人已经被另一名仲裁者选中。</s>
 Param/Value/ZCMAX=<s val="ModLeftSize16">最多只能选择三人。</s>
 Param/Value/ZCDUP=<s val="ModLeftSize16">同一个人不能选两次。</s>
-Param/Value/ZCLIVEBTN=<s val="ModCenterSize20Bold">生</s>
-Param/Value/ZCDIEBTN=<s val="ModCenterSize20Bold">死</s>
+Param/Value/ZCLIVEBTN=<s val="ModCenterSize20Bold"><c val="7A9E78">生</c></s>
+Param/Value/ZCDIEBTN=<s val="ModCenterSize20Bold"><c val="C47A78">死</c></s>
 Param/Value/ZCOK=<s val="ModCenterSize20Bold">确定</s>
 Param/Value/ZCPICKLBL=<s val="ModLeftSize16">选择最多三人，再按确定。</s>
 Param/Value/ZCFATELBL=<s val="ModLeftSize16">做出你的抉择。</s>
