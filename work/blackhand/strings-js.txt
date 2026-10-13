@@ -1,10 +1,10 @@
 // 精神病患者（中立混乱 3/25）
 Param/Value/JSNAME=<c val="E85D4C">精神病患者</c>
-Param/Value/JSDESC=一位精神病患者，可能会随机地杀人。法律未必能制裁得了你。<n/><n/><c val="BBDDFF">当无人在审判台上时，你可以选择一个人。你会立刻揭示自己，他死亡。用过之后要隔一天才能再用。</c>
+Param/Value/JSDESC=一位精神病患者，可能会随机地杀人。法律未必能制裁得了你。<n/><n/><c val="BBDDFF">当无人在审判台上时，你可以选择一个人。第一天不能使用。你会立刻揭示自己，他死亡。用过之后要隔一天才能再用。扑击和猜拳时，白天计时会暂停。</c>
 Param/Value/JSCARD=<c val="E85D4C">
 Param/Value/JSALIGN=无（混乱）</c>
-Param/Value/JSBOX1=- 当无人在审判台上时，你可以选择一个人，你会立刻揭示自己，他死亡。用过之后要隔一天才能再用。
-Param/Value/JSBOX2=<n/>- 使用后有一天冷却。<n/>- 你有一次无敌机会。<n/>- 当你被判处有罪后，会和一名随机的投有罪者猜拳，只有你输了才会被处决。<n/>- 如果你在猜拳中落败，和你猜拳的人在当晚获得夜间无敌，且次日白天投下的票数相当于3人。<n/>- 当你处决免死后，当天你无法再被审判。
+Param/Value/JSBOX1=- 当无人在审判台上时，你可以选择一个人，你会立刻揭示自己，他死亡。第一天不能使用。用过之后要隔一天才能再用。
+Param/Value/JSBOX2=<n/>- 使用后有一天冷却。<n/>- 第一天不能使用能力。<n/>- 扑击和猜拳时，白天计时会暂停。<n/>- 你有一次无敌机会。<n/>- 当你被判处有罪后，会和一名随机的投有罪者猜拳，只有你输了才会被处决。<n/>- 如果你在猜拳中落败，和你猜拳的人在当晚获得夜间无敌，且次日白天投下的票数相当于3人。<n/>- 当你处决免死后，当天你无法再被审判。
 Param/Value/JSRPSTITLE=<s val="ModCenterSize20Bold">选择石头、剪刀或布</s>
 Param/Value/JSRPSROCK=石头
 Param/Value/JSRPSCISS=剪刀
@@ -43,6 +43,7 @@ Param/Value/JSWIN= 环顾着周围的残局，发出了凄厉至极的狂笑，�
 Param/Value/JSTOWN=<s val="ModLeftSize16">你已经杀死了一名城镇成员。下一个目标必须是非城镇。如果随便动手，你会面临暴毙的风险！</s>
 Param/Value/JSOTHER=<s val="ModLeftSize16">你已经撕碎了一名潜伏的恶徒。下一个目标必须是城镇成员。如果随便动手，你会面临暴毙的风险！</s>
 Param/Value/JSUSED=<s val="ModLeftSize16">你的扑击还在冷却，要隔一天才能再扑。</s>
+Param/Value/JSDAY1=<s val="ModLeftSize16">第一天不能扑出去。</s>
 Param/Value/JSWAIT=<s val="ModLeftSize16">审判台上有人，现在不能扑出去。</s>
 Param/Value/JSDM=尸体上有被撕碎的痕迹。
 Param/Value/JSDTVM=他被精神病患者撕碎了。

@@ -102681,6 +102681,8 @@ bool gf_JSRps (int lp_player) {
     int lv_foe;
     int[16] lv_cand;
     bool lv_lost;
+    bool lv_dayRun;
+    bool lv_showRun;
     text lv_end;
     playergroup autoWLKF_g;
     int autoWLKF_var;
@@ -102732,7 +102734,15 @@ bool gf_JSRps (int lp_player) {
         DialogSetVisible(gv_jsRpsBox, PlayerGroupSingle(lv_foe), true);
     }
 
+    lv_dayRun = false;
+    lv_showRun = false;
     if ((gv_jsRpsPick[lp_player] == 0) || (gv_jsRpsPick[lv_foe] == 0)) {
+        lv_dayRun = (TimerIsPaused(gv_overtimer) == false);
+        lv_showRun = (TimerIsPaused(gv_timer) == false);
+        TimerPause(gv_overtimer, true);
+        if ((lv_showRun == true)) {
+            TimerPause(gv_timer, true);
+        }
         lv_t = 0;
         while ((lv_t < 40)) {
             Wait(0.25, c_timeGame);
@@ -102744,6 +102754,13 @@ bool gf_JSRps (int lp_player) {
     }
     if ((gv_jsRpsPick[lv_foe] == 0)) {
         gv_jsRpsPick[lv_foe] = RandomInt(1, 3);
+    }
+
+    if ((lv_dayRun == true)) {
+        TimerPause(gv_overtimer, false);
+    }
+    if ((lv_showRun == true)) {
+        TimerPause(gv_timer, false);
     }
 
     gv_jsRpsOn = false;
@@ -103143,7 +103160,7 @@ void gf_JSDayButtons () {
     lv_a = 1;
     for ( ; ( (autoJSDB_ai >= 0 && lv_a <= autoJSDB_ae) || (autoJSDB_ai < 0 && lv_a >= autoJSDB_ae) ) ; lv_a += autoJSDB_ai ) {
         if ((gf_JSIs(lv_a) == true) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) {
-            if ((gv_jsWon[lv_a] == false) && (gf_JSCooling(lv_a) == false)) {
+            if ((gv_jsWon[lv_a] == false) && (gf_JSCooling(lv_a) == false) && (gv_dayNumber > 1)) {
                 DialogControlSetEnabled(gv_abilityButtonItem, PlayerGroupSingle(lv_a), true);
                 libNtve_gf_SetDialogItemTooltip(gv_abilityButtonItem, StringExternal("Param/Value/JSBTN"), PlayerGroupSingle(lv_a));
             }
@@ -103165,6 +103182,11 @@ void gf_JSArm (int lp_player) {
 
     if ((gv_jsWon[lp_player] == true) || (gf_JSCooling(lp_player) == true)) {
         gf_CBSystemMessage(StringExternal("Param/Value/JSUSED"), lp_player, lp_player, 0, SoundLink("UI_BnetError", -1), Color(0,0,0));
+        return;
+    }
+
+    if ((gv_dayNumber <= 1)) {
+        gf_CBSystemMessage(StringExternal("Param/Value/JSDAY1"), lp_player, lp_player, 0, SoundLink("UI_BnetError", -1), Color(0,0,0));
         return;
     }
 
@@ -103259,9 +103281,11 @@ void gf_JSStreak (int lp_n) {
 void gf_JSPerform (int lp_attacker, int lp_victim) {
     int lv_n;
     int lv_end;
+    bool lv_showRun;
     const int autoJSPH_ae = 15;
     const int autoJSPH_ai = 1;
 
+    lv_showRun = false;
     if ((gv_jsBusy != 0) || (gf_JSIs(lp_attacker) == false)) {
         return;
     }
@@ -103280,6 +103304,11 @@ void gf_JSPerform (int lp_attacker, int lp_victim) {
         return;
     }
 
+    if ((gv_dayNumber <= 1)) {
+        gf_CBSystemMessage(StringExternal("Param/Value/JSDAY1"), lp_attacker, lp_attacker, 0, SoundLink("UI_BnetError", -1), Color(0,0,0));
+        return;
+    }
+
     if ((lp_victim == lp_attacker) || (lp_victim < 1) || (lp_victim > 15) || (PlayerGroupHasPlayer(gv_alivePlayers, lp_victim) == false)) {
         return;
     }
@@ -103293,7 +103322,11 @@ void gf_JSPerform (int lp_attacker, int lp_victim) {
     }
 
     gf_ASStopVote();
+    lv_showRun = (TimerIsPaused(gv_timer) == false);
     TimerPause(gv_overtimer, true);
+    if ((lv_showRun == true)) {
+        TimerPause(gv_timer, true);
+    }
     gf_JSTellAll((StringExternal("Param/Value/JSSIZE") + gf_JSWho(lp_attacker) + StringExternal("Param/Value/JSLEAP") + gf_JSWho(lp_victim) + StringExternal("Param/Value/JSLEAP2") + StringExternal("Param/Value/JSCLOSE")));
     if ((gv_unit[lp_attacker] != null)) {
         libNtve_gf_PauseUnit(gv_unit[lp_attacker], false);
@@ -103354,6 +103387,10 @@ void gf_JSPerform (int lp_attacker, int lp_victim) {
     lv_end = gf_CheckEnd();
     if ((lv_end != 0) || (gv_gameOver == true)) {
         gv_jsBusy = 0;
+        if ((lv_showRun == true)) {
+            TimerPause(gv_timer, false);
+        }
+        TimerPause(gv_overtimer, false);
         if ((gv_gameOver == false)) {
             gf_EndGame(lv_end);
         }
@@ -103361,6 +103398,9 @@ void gf_JSPerform (int lp_attacker, int lp_victim) {
     }
 
     gf_JSRecount();
+    if ((lv_showRun == true)) {
+        TimerPause(gv_timer, false);
+    }
     TimerPause(gv_overtimer, false);
     gf_ASStartVote();
     UIDisplayMessage(PlayerGroupAll(), c_messageAreaDirective, (StringExternal("Param/Value/2730312E") + IntToText(gv_votesNeeded) + StringExternal("Param/Value/5D8D1ECB")));
