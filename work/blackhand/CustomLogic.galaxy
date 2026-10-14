@@ -2084,6 +2084,7 @@ void gf_BHWillClear (int lp_p);
 void gf_BHWillSwap (int lp_a, int lp_b);
 void gf_BHWillLoad (int lp_p);
 void gf_BHWillSave (int lp_p);
+void gf_BHSendWill (int lp_p);
 string gf_BHItalicize (string lp_s);
 bool gf_BHNameLatinOnly (string lp_s);
 bool gt_BHItalicTest_Init ();
@@ -77054,12 +77055,6 @@ void gt_ASSwitchButton_Init () {
 // Trigger: AS - Send Will Button（开关右侧：把当前遗嘱当作聊天发出）
 //--------------------------------------------------------------------------------------------------
 bool gt_ASSendWillButton_Func (bool testConds, bool runActions) {
-    int lv_p;
-    int lv_i;
-    string lv_line;
-    const int autoSHWWILL_ae = 4;
-    const int autoSHWWILL_ai = 1;
-
     if (testConds) {
         if (!((EventDialogControl() == gv_shwSendWillButtonItem))) {
             return false;
@@ -77074,29 +77069,7 @@ bool gt_ASSendWillButton_Func (bool testConds, bool runActions) {
         return true;
     }
 
-    lv_p = EventPlayer();
-    if ((gv_willsEnabled == false)) {
-        gf_CBSystemMessage(StringExternal("Param/Value/7258CBD2"), lv_p, lv_p, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
-        return true;
-    }
-
-    if ((DialogIsVisible(gv_lastWillBox, lv_p) == true)) {
-        gf_BHWillSave(lv_p);
-    }
-
-    if ((gf_BHWillAny(lv_p) == false)) {
-        gf_CBSystemMessage(StringExternal("Param/Value/SHWWILLEMPTY"), lv_p, lv_p, 0, SoundLink("UI_GenericError", -1), Color(0.00, 0.00, 0.00));
-        return true;
-    }
-
-    lv_i = 0;
-    for ( ; ( (autoSHWWILL_ai >= 0 && lv_i <= autoSHWWILL_ae) || (autoSHWWILL_ai < 0 && lv_i >= autoSHWWILL_ae) ) ; lv_i += autoSHWWILL_ai ) {
-        lv_line = gv_lastWill[lv_p][lv_i];
-        if ((StringLength(lv_line) >= 1) && ((StringContains(lv_line, "<", c_stringAnywhere, c_stringNoCase) == false) || (gv_oP[lv_p][1] == true))) {
-            gf_BHPlayerChat(lv_p, lv_line);
-        }
-    }
-
+    gf_BHSendWill(EventPlayer());
     return true;
 }
 
@@ -84059,6 +84032,11 @@ bool gt_ELHotkeys_Func (bool testConds, bool runActions) {
         else {
             gf_CBSystemMessage(StringExternal("Param/Value/86728307"), EventPlayer(), EventPlayer(), 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
         }
+        return true;
+    }
+
+    if ((PlayerGroupHasPlayer(gv_alivePlayers, EventPlayer()) == true) && (EventKeyPressed() == c_keyTab)) {
+        gf_BHSendWill(EventPlayer());
         return true;
     }
 
@@ -103232,6 +103210,36 @@ void gf_BHWillSave (int lp_p) {
         if ((lv_i > 4)) { break; }
         gv_lastWill[lp_p][lv_i] = libNtve_gf_DialogItemEditValue(gv_lastWillBoxItem[lv_i], lp_p);
         lv_i += 1;
+    }
+}
+
+// 发遗嘱按钮与 Tab 共用：窗口开着就先存，再按行当聊天发出。
+void gf_BHSendWill (int lp_p) {
+    int lv_i;
+    string lv_line;
+    const int autoSHWWILL_ae = 4;
+    const int autoSHWWILL_ai = 1;
+
+    if ((gv_willsEnabled == false)) {
+        gf_CBSystemMessage(StringExternal("Param/Value/7258CBD2"), lp_p, lp_p, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+        return;
+    }
+
+    if ((DialogIsVisible(gv_lastWillBox, lp_p) == true)) {
+        gf_BHWillSave(lp_p);
+    }
+
+    if ((gf_BHWillAny(lp_p) == false)) {
+        gf_CBSystemMessage(StringExternal("Param/Value/SHWWILLEMPTY"), lp_p, lp_p, 0, SoundLink("UI_GenericError", -1), Color(0.00, 0.00, 0.00));
+        return;
+    }
+
+    lv_i = 0;
+    for ( ; ( (autoSHWWILL_ai >= 0 && lv_i <= autoSHWWILL_ae) || (autoSHWWILL_ai < 0 && lv_i >= autoSHWWILL_ae) ) ; lv_i += autoSHWWILL_ai ) {
+        lv_line = gv_lastWill[lp_p][lv_i];
+        if ((StringLength(lv_line) >= 1) && ((StringContains(lv_line, "<", c_stringAnywhere, c_stringNoCase) == false) || (gv_oP[lp_p][1] == true))) {
+            gf_BHPlayerChat(lp_p, lv_line);
+        }
     }
 }
 

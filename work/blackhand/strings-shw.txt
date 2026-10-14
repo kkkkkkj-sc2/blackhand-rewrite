@@ -330,7 +330,7 @@ Param/Value/1D5532BC=不包括 监视者、观察者
 Param/Value/4E68D04F=可能是女巫、协教徒、巫医、审ji官、煽动家，或法官。
 Param/Value/736A2207=不包括 审ji官、煽动家
 Param/Value/SHWWILLBTN=<s val="ModCenterSize20Bold">发遗嘱</s>
-Param/Value/SHWWILLTIP=<c val="004080">点击把你当前的遗嘱作为聊天发出。<n/>走正常发言频道，并受刷屏限制。</c>
+Param/Value/SHWWILLTIP=<c val="004080">点击或按 Tab，把你当前的遗嘱作为聊天发出。<n/>走正常发言频道，并受刷屏限制。</c>
 Param/Value/SHWWILLEMPTY=<s val="ModLeftSize16Bold"><c val="FF4444">你的遗嘱是空的。</c></s>
 
 // 连环杀手：每累计实际击倒两人，下一晚狂袭两名目标并无视夜间无敌。
