@@ -10301,6 +10301,12 @@ bool auto_gf_TrialVoteResults_TriggerFunc (bool testConds, bool runActions) {
     int auto6A7F881D_var;
     playergroup autoC2544A41_g;
     int autoC2544A41_var;
+    int lv_sg;
+    int lv_si;
+    const int autoBZSEC_ae = 15;
+    const int autoBZSEC_ai = 1;
+    playergroup autoBZSEC_g;
+    int autoBZSEC_var;
 
     // Variable Initialization
 
@@ -10379,6 +10385,41 @@ bool auto_gf_TrialVoteResults_TriggerFunc (bool testConds, bool runActions) {
         }
 
     }
+    lv_sg = 0;
+    lv_si = 0;
+    lv_a = 1;
+    for ( ; ( (autoBZSEC_ai >= 0 && lv_a <= autoBZSEC_ae) || (autoBZSEC_ai < 0 && lv_a >= autoBZSEC_ae) ) ; lv_a += autoBZSEC_ai ) {
+        if ((gv_bhFeignRole[lv_a] != 0) && (gv_playerVote[lv_a] == 1)) {
+            lv_sg += gv_votes[lv_a];
+        }
+
+        if ((gv_bhFeignRole[lv_a] != 0) && (gv_playerVote[lv_a] == 2)) {
+            lv_si += gv_votes[lv_a];
+        }
+
+    }
+    gv_trialVotes[0] += lv_sg;
+    gv_trialVotes[1] += lv_si;
+    if ((lv_si > 0)) {
+        autoBZSEC_g = gv_currentPlayers;
+        autoBZSEC_var = -1;
+        while (true) {
+            autoBZSEC_var = PlayerGroupNextPlayer(autoBZSEC_g, autoBZSEC_var);
+            if (autoBZSEC_var < 0) { break; }
+            gf_CBSystemMessage((StringExternal("Param/Value/BZSECI") + IntToText(lv_si) + StringExternal("Param/Value/BZSECI2")), autoBZSEC_var, 0, 0, SoundLink("Silent", -1), Color(80.00, 80.00, 80.00));
+        }
+    }
+
+    if ((lv_sg > 0)) {
+        autoBZSEC_g = gv_currentPlayers;
+        autoBZSEC_var = -1;
+        while (true) {
+            autoBZSEC_var = PlayerGroupNextPlayer(autoBZSEC_g, autoBZSEC_var);
+            if (autoBZSEC_var < 0) { break; }
+            gf_CBSystemMessage((StringExternal("Param/Value/BZSECG") + IntToText(lv_sg) + StringExternal("Param/Value/BZSECG2")), autoBZSEC_var, 0, 0, SoundLink("Silent", -1), Color(80.00, 80.00, 80.00));
+        }
+    }
+
     if ((PlayerGroupCount(gv_players) > 9) && (gv_trialVotes[0] == 7) && (gv_trialVotes[1] == 7)) {
         gv_specialCasePlayer[lp_player][11] += 1;
     }
@@ -37155,7 +37196,7 @@ void gf_ASTrialVote (int lp_player) {
             if ((lv_a == lp_player)) {
                 lv_b = 1;
                 for ( ; ( (auto003CE7A7_ai >= 0 && lv_b <= auto003CE7A7_ae) || (auto003CE7A7_ai < 0 && lv_b >= auto003CE7A7_ae) ) ; lv_b += auto003CE7A7_ai ) {
-                    if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) && (lv_b != lv_a)) {
+                    if ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) || (gv_bhFeignRole[lv_b] != 0))) && (lv_b != lv_a)) {
                         DialogControlSetVisible(gv_actionDialogItem[lv_a][3], PlayerGroupSingle(lv_b), true);
                         DialogControlSetVisible(gv_actionDialogItem[lv_a][4], PlayerGroupSingle(lv_b), true);
                     }
@@ -62591,7 +62632,7 @@ void gf_BHPlayerChat (int lp_player, string lp_message) {
     else {
         if ((PlayerGroupHasPlayer(gv_alivePlayers, lp_player) == true) || (gv_bhFeignRole[lp_player] != 0)) {
             if ((gv_bhFeignRole[lp_player] != 0) && (gv_isNight == false) && (gv_gameOver == false)) {
-                gf_CBSystemMessage(StringExternal("Param/Value/BZFEIGNYOU"), lp_player, lp_player, 0, SoundLink("Silent", -1), Color(0,0,0));
+                gf_CBSystemMessage(StringExternal("Param/Value/BZFEIGNTALK"), lp_player, lp_player, 0, SoundLink("Silent", -1), Color(0,0,0));
                 return;
             }
             if ((gv_silenced[lp_player][0] == true) && ((gv_onTrial != lp_player) || (gv_silenced[lp_player][1] == false))) {
@@ -79632,7 +79673,7 @@ bool gt_ASTrialVote_Func (bool testConds, bool runActions) {
 
     // Conditions
     if (testConds) {
-        if (!((PlayerGroupHasPlayer(gv_alivePlayers, EventPlayer()) == true))) {
+        if (!(((PlayerGroupHasPlayer(gv_alivePlayers, EventPlayer()) == true) || (gv_bhFeignRole[EventPlayer()] != 0)))) {
             return false;
         }
 
@@ -79669,6 +79710,33 @@ bool gt_ASTrialVote_Func (bool testConds, bool runActions) {
 
     }
     if ((lv_votee > 0)) {
+        if ((gv_bhFeignRole[EventPlayer()] != 0)) {
+            if ((lv_lynch == true)) {
+                if ((gv_playerVote[EventPlayer()] == 1)) {
+                    libNtve_gf_SetDialogItemImage(gv_actionDialogItem[lv_votee][3], "guilty disable.dds", PlayerGroupSingle(EventPlayer()));
+                    gv_playerVote[EventPlayer()] = 0;
+                }
+                else {
+                    libNtve_gf_SetDialogItemImage(gv_actionDialogItem[lv_votee][3], "guilty enable.dds", PlayerGroupSingle(EventPlayer()));
+                    libNtve_gf_SetDialogItemImage(gv_actionDialogItem[lv_votee][4], "innocent disable.dds", PlayerGroupSingle(EventPlayer()));
+                    gv_playerVote[EventPlayer()] = 1;
+                }
+            }
+            else {
+                if ((gv_playerVote[EventPlayer()] == 2)) {
+                    libNtve_gf_SetDialogItemImage(gv_actionDialogItem[lv_votee][4], "innocent disable.dds", PlayerGroupSingle(EventPlayer()));
+                    gv_playerVote[EventPlayer()] = 0;
+                }
+                else {
+                    libNtve_gf_SetDialogItemImage(gv_actionDialogItem[lv_votee][3], "guilty disable.dds", PlayerGroupSingle(EventPlayer()));
+                    libNtve_gf_SetDialogItemImage(gv_actionDialogItem[lv_votee][4], "innocent enable.dds", PlayerGroupSingle(EventPlayer()));
+                    gv_playerVote[EventPlayer()] = 2;
+                }
+            }
+
+            return true;
+        }
+
         if ((gv_transientMessages[EventPlayer()] >= 50)) {
             gf_CBSystemMessage(StringExternal("Param/Value/E7C35D80"), EventPlayer(), 0, 0, SoundLink("EditorDefaultSound", -1), Color(50.20, 0.00, 0.00));
             return true;
@@ -101956,7 +102024,7 @@ void gf_SKM_2_bihuzhe (int lv_a) {
     gf_BHLeaderSetup(lv_a);
 }
 
-// 新增角色（非原图抽取）：潜龙
+// 新增角色（非原图抽取）：暗山主（拼音 qianlong）
 void gf_SKM_5_qianlong (int lv_a) {
     gf_BHLeaderSetup(lv_a);
 }
@@ -101966,7 +102034,7 @@ void gf_SKA_2_bihuzhe (int lv_source, int lv_target) {
     gf_BHLeaderClick(lv_source, lv_target);
 }
 
-// 新增角色（非原图抽取）：潜龙
+// 新增角色（非原图抽取）：暗山主（拼音 qianlong）
 void gf_SKA_5_qianlong (int lv_source, int lv_target) {
     gf_BHLeaderClick(lv_source, lv_target);
 }
