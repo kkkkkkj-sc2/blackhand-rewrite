@@ -1608,9 +1608,9 @@ void gf_YSFinishFaction (int lp_pool);
 void gf_YSSecondStrike (int lp_pool);
 void gf_BHFeignDayMute ();
 void gf_SKM_2_bihuzhe (int lv_a);
-void gf_SKM_5_qianlong (int lv_a);
+void gf_SKM_5_anshanzhu (int lv_a);
 void gf_SKA_2_bihuzhe (int lv_source, int lv_target);
-void gf_SKA_5_qianlong (int lv_source, int lv_target);
+void gf_SKA_5_anshanzhu (int lv_source, int lv_target);
 text gf_DQSeenName (int lp_player);
 int gf_DQClassify (int lp_player);
 void gf_DQOnExecute (int lp_player);
@@ -6436,7 +6436,7 @@ void gf_InitializeOther () {
     gv_roleNameInput[5][14] = "pucong";
     gv_roleNameInput[5][15] = "wuxian";
     gv_roleNameInput[5][16] = "sishi";
-    gv_roleNameInput[5][17] = "qianlong";
+    gv_roleNameInput[5][17] = "anshanzhu";
     gv_roleNameInput[5][18] = "zongshi";
     gv_roleNameInput[5][19] = "bawang";
     gv_houseList[0] = DoodadFromId(5);
@@ -33276,7 +33276,7 @@ void gf_RSTriadSetup () {
                     }
 
                     if ((gv_roles[lv_a][0] == 17)) {
-                        gf_SKM_5_qianlong(lv_a);
+                        gf_SKM_5_anshanzhu(lv_a);
                     }
 
                 }
@@ -75020,7 +75020,7 @@ bool gt_ASActionButtonATriad_Func (bool testConds, bool runActions) {
         }
 
         if ((gv_roles[lv_source][1] == 5) && (gv_roles[lv_source][0] == 17) && (gv_variableOptions[lv_source][0] == 1)) {
-            gf_SKA_5_qianlong(lv_source, lv_target);
+            gf_SKA_5_anshanzhu(lv_source, lv_target);
         }
 
         if ((gv_roles[lv_source][1] == 5) && (gv_roles[lv_source][0] == 3) && (gv_action[lv_source][0] != lv_target) && (gv_variableOptions[lv_source][0] == 0)) {
@@ -102024,8 +102024,8 @@ void gf_SKM_2_bihuzhe (int lv_a) {
     gf_BHLeaderSetup(lv_a);
 }
 
-// 新增角色（非原图抽取）：暗山主（拼音 qianlong）
-void gf_SKM_5_qianlong (int lv_a) {
+// 新增角色（非原图抽取）：暗山主
+void gf_SKM_5_anshanzhu (int lv_a) {
     gf_BHLeaderSetup(lv_a);
 }
 
@@ -102034,8 +102034,8 @@ void gf_SKA_2_bihuzhe (int lv_source, int lv_target) {
     gf_BHLeaderClick(lv_source, lv_target);
 }
 
-// 新增角色（非原图抽取）：暗山主（拼音 qianlong）
-void gf_SKA_5_qianlong (int lv_source, int lv_target) {
+// 新增角色（非原图抽取）：暗山主
+void gf_SKA_5_anshanzhu (int lv_source, int lv_target) {
     gf_BHLeaderClick(lv_source, lv_target);
 }
 
@@ -102169,7 +102169,7 @@ void gf_BHClanArm (int lv_a) {
             gf_SKT_5_sishi(lv_a);
         }
         else if ((lv_role == 17)) {
-            gf_SKM_5_qianlong(lv_a);
+            gf_SKM_5_anshanzhu(lv_a);
         }
     }
 }

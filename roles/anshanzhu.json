@@ -1,7 +1,7 @@
 {
   "pool": 5,
   "role": 17,
-  "pinyin": "qianlong",
+  "pinyin": "anshanzhu",
   "cn": "暗山主",
   "name_key": "QLNAME",
   "desc_key": "QLDESC",
@@ -17,6 +17,6 @@
     "restrict": {"text": "可被限制。被限制当夜不出门。"},
     "guessage": {"text": "审查页三合会下标 15 → 17。", "in_guess_list": true}
   },
-  "note": "三合会领袖变体，庇护者的镜像。显示名暗山主，拼音仍是 qianlong。与龙头互斥。随机位是池4角色22。假死的队友不能提名，但审判台上可以暗投，统计时才计入并报来源不明。",
+  "note": "三合会领袖变体，庇护者的镜像。拼音 anshanzhu。与龙头互斥。随机位是池4角色22。假死的队友不能提名，但审判台上可以暗投，统计时才计入并报来源不明。",
   "review_status": "draft"
 }
