@@ -356,3 +356,14 @@ Param/Value/GPREFERCLR2= 号的预占。
 Param/Value/BHMON3TRON=<s val="ModCenterSize20Bold"><c val="BBDDFF">【隐藏外观】2D 立牌已开启（再输入 -mon3tr 关闭）</c></s>
 Param/Value/BHMON3TROFF=<s val="ModCenterSize20Bold"><c val="BBDDFF">【隐藏外观】已换回原外观</c></s>
 Param/Value/BHMON3TRWAIT=<s val="ModCenterSize20Bold"><c val="FF8888">【隐藏外观】等你的单位出场后再输入 -mon3tr</c></s>
+Param/Value/XRBTN=额外规则
+Param/Value/XRBTNTIP=开局前选择要叠加的规则。只有主机能改。
+Param/Value/XRTITLE=<c val="FFCC66">额外规则</c>
+Param/Value/XRHINT=可以同时开。只有主机能改。
+Param/Value/XRDEADLAB=<c val="CCCCCC">亡灵小镇</c><n/>死者白天可以当众说话，名字前带「死者」。夜里仍只在死者之间说。
+Param/Value/XRGANGLAB=<c val="CC6666">团伙作案</c><n/>同一种中立致命在夜里进入各自的频道，别的人听不见。
+Param/Value/XRCLOSE=关闭
+Param/Value/XRDEAD=<c val="888888">[死者] </c>
+Param/Value/XRGANG=<c val="CC6666">[团伙·</c>
+Param/Value/XRGANG2=<c val="CC6666">] </c>
+Param/Value/XRIN=<c val="CC6666">你进入了团伙频道。只有和你同名的人听得到。</c>

@@ -762,6 +762,16 @@ int gv_repickButton;
 int gv_repickButtonItem;
 int gv_shwRepickDialog;       // shw231: 「重选主机」按钮的独立对话（顶部中央，指令条下方）
 int gv_shwRepickButtonItem;   // shw231: 该按钮的控件 id
+bool gv_xrDead;               // 额外规则：亡灵小镇
+bool gv_xrGang;               // 额外规则：团伙作案
+bool gv_xrUi;
+bool gv_xrPaint;
+int gv_xrButtonDialog;
+int gv_xrButton;
+int gv_xrPanel;
+int gv_xrDeadBox;
+int gv_xrGangBox;
+int gv_xrClose;
 int gv_chatOpButton;
 int gv_chatOpButtonItem;
 int gv_switchButton;
@@ -2075,6 +2085,14 @@ void gf_CBAllowDisallowChatting (int lp_player, int lp_allow);
 void gf_CBHighlightText (int lp_player, int lp_highlight);
 void gf_CBAddChat (int lp_player, string lp_message, text lp_title, bool lp_boolean);
 void gf_BHPlayerChat (int lp_player, string lp_message);
+bool gf_XRNeutralFatal (int lp_pool, int lp_role);
+void gf_XRGangSay (int lp_player, string lp_message);
+void gf_XRDeadSay (int lp_player, string lp_message, bool lp_public);
+void gf_XROpenNight ();
+void gf_XRSyncChecks ();
+void gf_XRBindHost ();
+void gf_XRBuild ();
+void gt_XR_Init ();
 void gf_CBWhisper (int lp_player, int lp_recipient, string lp_message, text lp_name);
 void gf_CBSystemMessage (text lp_message, int lp_player, int lp_sender, int lp_option, soundlink lp_sound, color lp_color);
 bool gf_BHWillAny (int lp_p);
@@ -2348,6 +2366,7 @@ trigger gt_OSRoleSelect;
 trigger gt_OSMenus;
 trigger gt_OSSliders;
 trigger gt_OSCheckboxes;
+trigger gt_XR;
 trigger gt_OSStartGame;
 trigger gt_OSCancelGame;
 trigger gt_OSRoleChance;
@@ -10814,6 +10833,7 @@ bool auto_gf_NightTransition_TriggerFunc (bool testConds, bool runActions) {
         gf_CBAllowDisallowChatting(auto8AC47C69_var, ge_Allow_Disallow);
         gf_CBDimChat(auto8AC47C69_var);
     }
+    gf_XROpenNight();
     if ((gv_iTSCHRISTMAS == false)) {
         GameSetBackground(c_backgroundFixed, "BraxisAlphaSkyParallax", 100.0);
     }
@@ -16593,6 +16613,9 @@ bool auto_gf_KillPlayer_TriggerFunc (bool testConds, bool runActions) {
         }
 
         PlayerGroupRemove(gv_alivePlayers, lp_player);
+        if ((gv_xrDead == true) && (gv_isNight == true) && (gv_bhFeignRole[lp_player] == 0)) {
+            gf_CBAllowDisallowChatting(lp_player, ge_Allow_Allow);
+        }
         gv_doused[lp_player] = false;
         lv_i[0] = lp_player;
         lv_i[1] = lp_player;
@@ -48396,6 +48419,9 @@ void gf_VLoadSaveSlot (int lp_player, int lp_version) {
     else {
         gv_chooseNames = false;
     }
+    gv_xrDead = (StringSub(gv_bankSaveStrings[lp_player][0][0], 11, 11) == "1");
+    gv_xrGang = (StringSub(gv_bankSaveStrings[lp_player][0][0], 12, 12) == "1");
+    gf_XRSyncChecks();
     lv_a = 1;
     for ( ; ( (auto3C2F2D82_ai >= 0 && lv_a <= auto3C2F2D82_ae) || (auto3C2F2D82_ai < 0 && lv_a >= auto3C2F2D82_ae) ) ; lv_a += auto3C2F2D82_ai ) {
         lv_x[lv_a][1] = gv_bankSaveIntegers[lp_player][1][lv_a];
@@ -48633,6 +48659,18 @@ void gf_OSSaveSlot (int lp_player) {
         lv_s[0] = (lv_s[0] + "0");
     }
     if ((gv_chooseNames == true)) {
+        lv_s[0] = (lv_s[0] + "1");
+    }
+    else {
+        lv_s[0] = (lv_s[0] + "0");
+    }
+    if ((gv_xrDead == true)) {
+        lv_s[0] = (lv_s[0] + "1");
+    }
+    else {
+        lv_s[0] = (lv_s[0] + "0");
+    }
+    if ((gv_xrGang == true)) {
         lv_s[0] = (lv_s[0] + "1");
     }
     else {
@@ -52320,6 +52358,7 @@ void gf_OSInitializeOptionsScreen () {
         libNtve_gf_SetDialogItemText(gv_variantDescriptionItem[0], StringExternal("Param/Value/133B6574"), PlayerGroupAll());
         libNtve_gf_SetDialogItemText(gv_variantDescriptionItem[1], StringExternal("Param/Value/F07037ED"), PlayerGroupAll());
     }
+    gf_XRBuild();
 
     DialogCreate(250, 130, c_anchorBottomRight, 25, 25, false);
     gv_confirmationButton = DialogLastCreated();
@@ -52707,6 +52746,7 @@ void gf_OSActivateOptions () {
 
     DialogControlSetEnabled(gv_variantDescriptionItem[0], PlayerGroupSingle(gv_host), true);
     DialogControlSetEnabled(gv_variantDescriptionItem[1], PlayerGroupSingle(gv_host), true);
+    gf_XRBindHost();
     DialogControlSetEnabled(gv_confirmationButtonItem[0], PlayerGroupSingle(gv_host), true);
     DialogControlSetEnabled(gv_confirmationButtonItem[1], PlayerGroupSingle(gv_host), true);
     if ((gv_variantSelection != 0)) {
@@ -52906,6 +52946,10 @@ void gf_OSCloseOptionsScreen () {
     }
     DialogSetVisible(gv_variantsMenu, PlayerGroupAll(), false);
     DialogSetVisible(gv_variantDescription, PlayerGroupAll(), false);
+    if ((gv_xrUi == true)) {
+        DialogSetVisible(gv_xrButtonDialog, PlayerGroupAll(), false);
+        DialogSetVisible(gv_xrPanel, PlayerGroupAll(), false);
+    }
     DialogSetVisible(gv_confirmationButton, PlayerGroupAll(), false);
     DialogSetVisible(gv_rolesMenus, PlayerGroupAll(), false);
     DialogSetVisible(gv_rolePanel, PlayerGroupAll(), false);
@@ -62599,6 +62643,10 @@ void gf_BHPlayerChat (int lp_player, string lp_message) {
         gf_CBSystemMessage(StringExternal("Param/Value/TTQUIET"), lp_player, lp_player, 0, SoundLink("UI_BnetError", -1), Color(0,0,0));
         return;
     }
+    if ((gv_gameOver == false) && (gv_isNight == true) && (gv_xrGang == true) && (PlayerGroupHasPlayer(gv_alivePlayers, lp_player) == true) && (gv_bhFeignRole[lp_player] == 0) && (gv_jailed[lp_player] == 0) && (gv_silenced[lp_player][0] == false) && (gf_XRNeutralFatal(gv_roles[lp_player][1], gv_roles[lp_player][0]) == true)) {
+        gf_XRGangSay(lp_player, lp_message);
+        return;
+    }
     if ((gv_gameOver == false) && (gv_isNight == true) && (gv_grPrivateChat[lp_player] == true)) {
         lv_partner = 0;
         if ((gv_grChild[lp_player] != 0)) {
@@ -62753,13 +62801,18 @@ void gf_BHPlayerChat (int lp_player, string lp_message) {
             }
         }
         else {
-            lv_a = 1;
-            for ( ; ( (autoCB3234B1_ai >= 0 && lv_a <= autoCB3234B1_ae) || (autoCB3234B1_ai < 0 && lv_a >= autoCB3234B1_ae) ) ; lv_a += autoCB3234B1_ai ) {
-                if ((PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == false) && (gv_bhFeignRole[lv_a] == 0) && (gv_mute[lv_a][lp_player] == false)) {
-                    lv_s = lp_message;
-                    gf_CBSystemMessage((StringExternal("Param/Value/65F8EC7D") + TextWithColor(StringToText(gv_name[lp_player]), Color(33.33, 33.33, 33.33)) + StringExternal("Param/Value/F4CB1733") + StringToText(lv_s) + StringExternal("Param/Value/26F481F8")), lv_a, 0, 0, SoundLink("Silent", -1), Color(50.20, 0.00, 5.10));
-                }
+            if ((gv_xrDead == true) && (gv_bhFeignRole[lp_player] == 0)) {
+                gf_XRDeadSay(lp_player, lp_message, (gv_isNight == false));
+            }
+            else {
+                lv_a = 1;
+                for ( ; ( (autoCB3234B1_ai >= 0 && lv_a <= autoCB3234B1_ae) || (autoCB3234B1_ai < 0 && lv_a >= autoCB3234B1_ae) ) ; lv_a += autoCB3234B1_ai ) {
+                    if ((PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == false) && (gv_bhFeignRole[lv_a] == 0) && (gv_mute[lv_a][lp_player] == false)) {
+                        lv_s = lp_message;
+                        gf_CBSystemMessage((StringExternal("Param/Value/65F8EC7D") + TextWithColor(StringToText(gv_name[lp_player]), Color(33.33, 33.33, 33.33)) + StringExternal("Param/Value/F4CB1733") + StringToText(lv_s) + StringExternal("Param/Value/26F481F8")), lv_a, 0, 0, SoundLink("Silent", -1), Color(50.20, 0.00, 5.10));
+                    }
 
+                }
             }
         }
     }
@@ -84597,6 +84650,7 @@ void SH_InitTriggers () {
     gt_OSMenus_Init();
     gt_OSSliders_Init();
     gt_OSCheckboxes_Init();
+    gt_XR_Init();
     gt_OSStartGame_Init();
     gt_OSCancelGame_Init();
     gt_OSRoleChance_Init();
@@ -104826,4 +104880,162 @@ void gf_ETZhongcaiWin () {
         gf_WinScreen("WinNeutral.dds", lv_a);
     }
     Wait(5.0, c_timeGame);
+}
+
+bool gf_XRNeutralFatal (int lp_pool, int lp_role) {
+    if ((lp_pool != 3)) {
+        return false;
+    }
+    if ((lp_role == 1) || (lp_role == 5) || (lp_role == 9) || (lp_role == 13) || (lp_role == 14) || (lp_role == 20) || (lp_role == 22) || (lp_role == 26) || (lp_role == 27) || (lp_role == 31) || (lp_role == 32)) {
+        return true;
+    }
+    return false;
+}
+
+void gf_XRGangSay (int lp_player, string lp_message) {
+    int lv_a;
+    const int autoXRG_ae = 15;
+    const int autoXRG_ai = 1;
+    text lv_line;
+
+    lv_line = (StringExternal("Param/Value/XRGANG") + gv_roleNameArray[gv_roles[lp_player][1]][gv_roles[lp_player][0]] + StringExternal("Param/Value/XRGANG2") + TextWithColor(StringToText(gv_name[lp_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_player])) + StringExternal("Param/Value/F4CB1733") + StringToText(lp_message) + StringExternal("Param/Value/26F481F8"));
+    lv_a = 1;
+    for ( ; ( (autoXRG_ai >= 0 && lv_a <= autoXRG_ae) || (autoXRG_ai < 0 && lv_a >= autoXRG_ae) ) ; lv_a += autoXRG_ai ) {
+        if ((PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gv_bhFeignRole[lv_a] == 0) && (gv_jailed[lv_a] == 0) && (gv_mute[lv_a][lp_player] == false) && (gv_roles[lv_a][1] == gv_roles[lp_player][1]) && (gv_roles[lv_a][0] == gv_roles[lp_player][0])) {
+            if ((lv_a == lp_player)) {
+                gf_CBSystemMessage(lv_line, lv_a, lp_player, 0, SoundLink("Silent", -1), Color(70.00, 25.00, 25.00));
+            }
+            else {
+                gf_CBSystemMessage(lv_line, lv_a, lp_player, 0, SoundLink("UI_ChatMessageReceived232", -1), Color(70.00, 25.00, 25.00));
+            }
+        }
+    }
+}
+
+void gf_XRDeadSay (int lp_player, string lp_message, bool lp_public) {
+    int lv_a;
+    const int autoXRD_ae = 15;
+    const int autoXRD_ai = 1;
+    text lv_line;
+
+    lv_line = (StringExternal("Param/Value/XRDEAD") + TextWithColor(StringToText(gv_name[lp_player]), Color(60.00, 60.00, 60.00)) + StringExternal("Param/Value/F4CB1733") + StringToText(lp_message) + StringExternal("Param/Value/26F481F8"));
+    lv_a = 1;
+    for ( ; ( (autoXRD_ai >= 0 && lv_a <= autoXRD_ae) || (autoXRD_ai < 0 && lv_a >= autoXRD_ae) ) ; lv_a += autoXRD_ai ) {
+        if ((PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (gv_mute[lv_a][lp_player] == false)) {
+            if ((lp_public == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == false) && (gv_bhFeignRole[lv_a] == 0))) {
+                gf_CBSystemMessage(lv_line, lv_a, lp_player, 0, SoundLink("Silent", -1), Color(45.00, 45.00, 50.00));
+            }
+        }
+    }
+}
+
+void gf_XROpenNight () {
+    int lv_a;
+    const int autoXRN_ae = 15;
+    const int autoXRN_ai = 1;
+
+    if ((gv_xrDead == false) && (gv_xrGang == false)) {
+        return;
+    }
+    lv_a = 1;
+    for ( ; ( (autoXRN_ai >= 0 && lv_a <= autoXRN_ae) || (autoXRN_ai < 0 && lv_a >= autoXRN_ae) ) ; lv_a += autoXRN_ai ) {
+        if ((PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true)) {
+            if ((gv_xrDead == true) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == false) && (gv_bhFeignRole[lv_a] == 0)) {
+                gf_CBAllowDisallowChatting(lv_a, ge_Allow_Allow);
+            }
+            if ((gv_xrGang == true) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gv_jailed[lv_a] == 0) && (gf_XRNeutralFatal(gv_roles[lv_a][1], gv_roles[lv_a][0]) == true)) {
+                gf_CBAllowDisallowChatting(lv_a, ge_Allow_Allow);
+                gf_CBSystemMessage(StringExternal("Param/Value/XRIN"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0, 0, 0));
+            }
+        }
+    }
+}
+
+void gf_XRSyncChecks () {
+    if ((gv_xrUi == false)) {
+        return;
+    }
+    gv_xrPaint = true;
+    libNtve_gf_SetDialogItemChecked(gv_xrDeadBox, gv_xrDead, PlayerGroupAll());
+    libNtve_gf_SetDialogItemChecked(gv_xrGangBox, gv_xrGang, PlayerGroupAll());
+    gv_xrPaint = false;
+}
+
+void gf_XRBindHost () {
+    if ((gv_xrUi == false)) {
+        return;
+    }
+    DialogControlSetEnabled(gv_xrDeadBox, PlayerGroupAll(), false);
+    DialogControlSetEnabled(gv_xrGangBox, PlayerGroupAll(), false);
+    if ((gv_host != 0)) {
+        DialogControlSetEnabled(gv_xrDeadBox, PlayerGroupSingle(gv_host), true);
+        DialogControlSetEnabled(gv_xrGangBox, PlayerGroupSingle(gv_host), true);
+    }
+}
+
+void gf_XRBuild () {
+    DialogCreate(180, 42, c_anchorLeft, 350, -342, false);
+    gv_xrButtonDialog = DialogLastCreated();
+    DialogSetImageVisible(gv_xrButtonDialog, false);
+    libNtve_gf_CreateDialogItemButton(gv_xrButtonDialog, 180, 42, c_anchorTopLeft, 0, 0, StringExternal("Param/Value/XRBTN"), StringExternal("Param/Value/XRBTNTIP"), "Assets\\Textures\\ui_battle_missionbutton_normaloverpressedover.dds");
+    gv_xrButton = DialogControlLastCreated();
+    libNtve_gf_SetDialogItemImage(gv_xrButton, "Assets\\Textures\\ui_battle_missionbutton_normalpressed.dds", PlayerGroupAll());
+    DialogSetVisible(gv_xrButtonDialog, PlayerGroupAll(), true);
+
+    DialogCreate(540, 300, c_anchorCenter, 0, 40, false);
+    gv_xrPanel = DialogLastCreated();
+    DialogSetImageVisible(gv_xrPanel, false);
+    libNtve_gf_CreateDialogItemImage(gv_xrPanel, 540, 300, c_anchorTopLeft, 0, 0, StringToText(""), "Assets\\Textures\\border-protoss-transportslot-filled.dds", c_triggerImageTypeBorder, true, Color(100, 100, 100), c_triggerBlendModeNormal);
+    libNtve_gf_CreateDialogItemLabel(gv_xrPanel, 500, 36, c_anchorTopLeft, 20, 16, StringExternal("Param/Value/XRTITLE"), Color(100.00, 80.00, 40.00), false, 2.0);
+    libNtve_gf_CreateDialogItemLabel(gv_xrPanel, 500, 28, c_anchorTopLeft, 20, 52, StringExternal("Param/Value/XRHINT"), Color(70.00, 70.00, 70.00), false, 2.0);
+    libNtve_gf_CreateDialogItemCheckBox(gv_xrPanel, 36, 36, c_anchorTopLeft, 24, 100, StringToText(""), false);
+    gv_xrDeadBox = DialogControlLastCreated();
+    libNtve_gf_CreateDialogItemLabel(gv_xrPanel, 440, 64, c_anchorTopLeft, 72, 92, StringExternal("Param/Value/XRDEADLAB"), Color(80.00, 80.00, 80.00), true, 2.0);
+    libNtve_gf_CreateDialogItemCheckBox(gv_xrPanel, 36, 36, c_anchorTopLeft, 24, 180, StringToText(""), false);
+    gv_xrGangBox = DialogControlLastCreated();
+    libNtve_gf_CreateDialogItemLabel(gv_xrPanel, 440, 64, c_anchorTopLeft, 72, 172, StringExternal("Param/Value/XRGANGLAB"), Color(80.00, 80.00, 80.00), true, 2.0);
+    libNtve_gf_CreateDialogItemButton(gv_xrPanel, 140, 40, c_anchorBottom, 0, 16, StringExternal("Param/Value/XRCLOSE"), StringToText(""), "Assets\\Textures\\ui_battle_missionbutton_normaloverpressedover.dds");
+    gv_xrClose = DialogControlLastCreated();
+    libNtve_gf_SetDialogItemImage(gv_xrClose, "Assets\\Textures\\ui_battle_missionbutton_normalpressed.dds", PlayerGroupAll());
+    DialogSetVisible(gv_xrPanel, PlayerGroupAll(), false);
+    gv_xrUi = true;
+    gf_XRSyncChecks();
+    gf_XRBindHost();
+}
+
+void gt_XR_Init () {
+    gt_XR = TriggerCreate("gt_XR_Func");
+    TriggerAddEventDialogControl(gt_XR, c_playerAny, c_invalidDialogControlId, c_triggerControlEventTypeClick);
+    TriggerAddEventDialogControl(gt_XR, c_playerAny, c_invalidDialogControlId, c_triggerControlEventTypeChecked);
+}
+
+bool gt_XR_Func (bool testConds, bool runActions) {
+    if (!runActions) {
+        return true;
+    }
+    if ((gv_xrUi == false) || (gv_xrPaint == true)) {
+        return true;
+    }
+    if ((EventDialogControl() == gv_xrButton)) {
+        DialogSetVisible(gv_xrPanel, PlayerGroupSingle(EventPlayer()), (DialogIsVisible(gv_xrPanel, EventPlayer()) == false));
+        return true;
+    }
+    if ((EventDialogControl() == gv_xrClose)) {
+        DialogSetVisible(gv_xrPanel, PlayerGroupSingle(EventPlayer()), false);
+        return true;
+    }
+    if ((EventDialogControl() == gv_xrDeadBox) || (EventDialogControl() == gv_xrGangBox)) {
+        if ((EventPlayer() != gv_host)) {
+            gf_XRSyncChecks();
+            return true;
+        }
+        if ((EventDialogControl() == gv_xrDeadBox)) {
+            gv_xrDead = libNtve_gf_DialogItemIsChecked(gv_xrDeadBox, gv_host);
+        }
+        else {
+            gv_xrGang = libNtve_gf_DialogItemIsChecked(gv_xrGangBox, gv_host);
+        }
+        gf_XRSyncChecks();
+    }
+    return true;
 }
