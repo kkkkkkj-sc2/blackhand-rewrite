@@ -366,4 +366,4 @@ Param/Value/XRCLOSE=关闭
 Param/Value/XRDEAD=<c val="888888">[死者] </c>
 Param/Value/XRGANG=<c val="CC6666">[团伙·</c>
 Param/Value/XRGANG2=<c val="CC6666">] </c>
-Param/Value/XRIN=<c val="CC6666">你进入了团伙频道。只有和你同名的人听得到。</c>
+Param/Value/XRIN=<s val="ModLeftSize16Bold"><c val="CC6666">你进入了团伙频道。只有和你同名的人听得到。</c></s>

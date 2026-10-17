@@ -16871,6 +16871,8 @@ void gf_RefreshRoleBox () {
     const int autoBE115661_ai = 1;
     const int autoFBC53929_ae = 15;
     const int autoFBC53929_ai = 1;
+    const int autoXRALLY_ae = 15;
+    const int autoXRALLY_ai = 1;
 
     // Variable Initialization
 
@@ -17124,6 +17126,32 @@ void gf_RefreshRoleBox () {
                     }
                 }
 
+            }
+            libNtve_gf_SetDialogItemText(gv_roleBoxItem[5], gv_roleBoxText[lv_a][5], PlayerGroupSingle(lv_a));
+            DialogControlSetVisible(gv_roleBoxItem[4], PlayerGroupSingle(lv_a), true);
+            DialogControlSetVisible(gv_roleBoxItem[6], PlayerGroupSingle(lv_a), true);
+            if ((gv_minimizedAllies[lv_a] == false)) {
+                DialogControlSetVisible(gv_roleBoxItem[5], PlayerGroupSingle(lv_a), true);
+            }
+            else {
+                DialogControlSetVisible(gv_roleBoxItem[5], PlayerGroupSingle(lv_a), false);
+            }
+        }
+
+        if ((gv_xrGang == true) && (gf_XRNeutralFatal(gv_roles[lv_a][1], gv_roles[lv_a][0]) == true)) {
+            gv_roleBoxText[lv_a][5] = StringExternal("Param/Value/0399909A");
+            lv_b = 1;
+            for ( ; ( (autoXRALLY_ai >= 0 && lv_b <= autoXRALLY_ae) || (autoXRALLY_ai < 0 && lv_b >= autoXRALLY_ae) ) ; lv_b += autoXRALLY_ai ) {
+                if ((PlayerGroupHasPlayer(gv_currentPlayers, lv_b) == true) && (gv_roles[lv_b][1] == gv_roles[lv_a][1]) && (gv_roles[lv_b][0] == gv_roles[lv_a][0])) {
+                    if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) || (gv_bhFeignRole[lv_b] != 0)) {
+                        gv_roleBoxText[lv_a][5] = ((gv_roleBoxText[lv_a][5] + StringExternal("Param/Value/87096889")) + TextWithColor(StringToText(gv_name[lv_b]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_b])));
+                        gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/EBA9636D") + (gv_roleNameArray[gv_roles[lv_b][1]][gv_roles[lv_b][0]] + StringExternal("Param/Value/032D8BB8"))));
+                    }
+                    else {
+                        gv_roleBoxText[lv_a][5] = ((gv_roleBoxText[lv_a][5] + StringExternal("Param/Value/E98F2C17")) + StringToText(gv_name[lv_b]));
+                        gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/84A9F44E") + (StringExternal("Param/Value/E6E9FC15") + StringExternal("Param/Value/03A54635"))));
+                    }
+                }
             }
             libNtve_gf_SetDialogItemText(gv_roleBoxItem[5], gv_roleBoxText[lv_a][5], PlayerGroupSingle(lv_a));
             DialogControlSetVisible(gv_roleBoxItem[4], PlayerGroupSingle(lv_a), true);
@@ -104898,7 +104926,7 @@ void gf_XRGangSay (int lp_player, string lp_message) {
     const int autoXRG_ai = 1;
     text lv_line;
 
-    lv_line = (StringExternal("Param/Value/XRGANG") + gv_roleNameArray[gv_roles[lp_player][1]][gv_roles[lp_player][0]] + StringExternal("Param/Value/XRGANG2") + TextWithColor(StringToText(gv_name[lp_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_player])) + StringExternal("Param/Value/F4CB1733") + StringToText(lp_message) + StringExternal("Param/Value/26F481F8"));
+    lv_line = (StringExternal("Param/Value/AAB7A26C") + StringExternal("Param/Value/XRGANG") + gv_roleNameArray[gv_roles[lp_player][1]][gv_roles[lp_player][0]] + StringExternal("Param/Value/XRGANG2") + TextWithColor(StringToText(gv_name[lp_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_player])) + StringExternal("Param/Value/F4CB1733") + StringToText(lp_message) + StringExternal("Param/Value/26F481F8"));
     lv_a = 1;
     for ( ; ( (autoXRG_ai >= 0 && lv_a <= autoXRG_ae) || (autoXRG_ai < 0 && lv_a >= autoXRG_ae) ) ; lv_a += autoXRG_ai ) {
         if ((PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gv_bhFeignRole[lv_a] == 0) && (gv_jailed[lv_a] == 0) && (gv_mute[lv_a][lp_player] == false) && (gv_roles[lv_a][1] == gv_roles[lp_player][1]) && (gv_roles[lv_a][0] == gv_roles[lp_player][0])) {
@@ -104918,7 +104946,7 @@ void gf_XRDeadSay (int lp_player, string lp_message, bool lp_public) {
     const int autoXRD_ai = 1;
     text lv_line;
 
-    lv_line = (StringExternal("Param/Value/XRDEAD") + TextWithColor(StringToText(gv_name[lp_player]), Color(60.00, 60.00, 60.00)) + StringExternal("Param/Value/F4CB1733") + StringToText(lp_message) + StringExternal("Param/Value/26F481F8"));
+    lv_line = (StringExternal("Param/Value/AAB7A26C") + StringExternal("Param/Value/XRDEAD") + TextWithColor(StringToText(gv_name[lp_player]), Color(60.00, 60.00, 60.00)) + StringExternal("Param/Value/F4CB1733") + StringToText(lp_message) + StringExternal("Param/Value/26F481F8"));
     lv_a = 1;
     for ( ; ( (autoXRD_ai >= 0 && lv_a <= autoXRD_ae) || (autoXRD_ai < 0 && lv_a >= autoXRD_ae) ) ; lv_a += autoXRD_ai ) {
         if ((PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (gv_mute[lv_a][lp_player] == false)) {
