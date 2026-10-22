@@ -18,4 +18,3 @@ Param/Value/HLGUARD=<s val="ModLeftSize16Bold"><c val="CCCC44">保镖挡下了�
 Param/Value/HLBOUNCE=<s val="ModLeftSize16Bold"><c val="CCCC44">有人触发了你的陷阱，但夜间无敌挡住了它。</c></s>
 Param/Value/HLDEATHM=他踩中了埋在地板下的捕兽夹。<n/>
 Param/Value/HLDEATHF=她踩中了埋在地板下的捕兽夹。<n/>
-Param/Value/D9495B72=- 那暗示他会是个巴士司机、保镖、护林人、欺骗者/迷惑，或者传闻中的冤魂。
