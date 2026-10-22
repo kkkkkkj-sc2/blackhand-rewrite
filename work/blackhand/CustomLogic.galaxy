@@ -328,7 +328,6 @@ bool[16] gv_ttStopUsed;
 int gv_ttHush;
 
 bool gv_soloTest;
-int gv_bhSpriteProbeN;         // shw2D: 贴图槽探针重发计数（0.25 秒一次）
 fixed gv_bhSpriteFace;         // shw2D: 立牌朝向（UnitGetFacing，度）
 bool[16] gv_bhSpriteLeft;      // shw2D: 每个玩家当前用的是不是镜像（朝左）模型
 int gv_bhSpriteP;              // shw2D: 朝向轮询的玩家游标（不能函数末尾声明局部，故用全局）
@@ -54536,13 +54535,6 @@ bool gt_Init2_Func (bool testConds, bool runActions) {
         return true;
     }
 
-    // 【临时探针，验证完删除】单人测试构建在 t=0 立刻加载 60 号外观的模型（模型数据有问题会立刻崩，
-    // 不必等 gt_CreatePlayers_Func），用来快速二分定位 m3 的哪一处改写让引擎报
-    // 「Erroneous custom model data」。
-    if ((c_bhSoloBuild == true)) {
-        libNtve_gf_CreateModelAtPoint("BHSpriteA", RegionGetCenter(RegionEntireMap()));
-    }
-
     libNtve_gf_SetUpgradeLevelForPlayer(0, "SOAOrbitalStrike", 1);
     TimerStart(gv_gameTimer, 50000.0, false, c_timeGame);
     GameSetSpeedValue(c_gameSpeedNormal);
@@ -62894,36 +62886,10 @@ bool gt_DetectLeave_Func (bool testConds, bool runActions) {
         }
 
     }
-    // shw2D 探针：MakeMsgTextureSelectBySlot 的槽名（仅单人测试构建）
-    // 每 0.25 秒给 2~6 号各发一个候选槽名，连发 60 次（15 秒）。
-    // 上界 0 = 停用（免得它真生效时把 2~6 号盖成纯色，干扰走路/攻击验证）；改 60 可重开。
-    if ((c_bhSoloBuild == true) && (gv_bhSpriteProbeN < 0)) {
-        gv_bhSpriteProbeN = (gv_bhSpriteProbeN + 1);
-        if ((gv_unit[2] != null)) {
-            libNtve_gf_SendActorMessageToUnit(gv_unit[2], MakeMsgTextureSelectBySlot("diffuse", 0, "Assets\\Textures\\BHProbe_R.dds"));
-        }
-
-        if ((gv_unit[3] != null)) {
-            libNtve_gf_SendActorMessageToUnit(gv_unit[3], MakeMsgTextureSelectBySlot("Diffuse", 0, "Assets\\Textures\\BHProbe_G.dds"));
-        }
-
-        if ((gv_unit[4] != null)) {
-            libNtve_gf_SendActorMessageToUnit(gv_unit[4], MakeMsgTextureSelectBySlot("alpha1", 0, "Assets\\Textures\\BHProbe_B.dds"));
-        }
-
-        if ((gv_unit[5] != null)) {
-            libNtve_gf_SendActorMessageToUnit(gv_unit[5], MakeMsgTextureSelectBySlot("decal", 0, "Assets\\Textures\\BHProbe_W.dds"));
-        }
-
-        if ((gv_unit[6] != null)) {
-            libNtve_gf_SendActorMessageToUnit(gv_unit[6], MakeMsgTextureSelectBySlot("diffuse", 1, "Assets\\Textures\\BHProbe_Y.dds"));
-        }
-
-    }
     // shw2D 方向 + 隐藏外观（发布构建也生效）：选了隐藏外观的玩家用对应的 2D 立牌，默认朝右；
     // 向左走时换镜像模型（免得走太空步）。判据 = UnitGetFacing 落在 (90°, 270°) ⇒ 朝 -x。
     // 若实机发现左右反了，把下面两个常数对调即可。
-    for (gv_bhSpriteP = 1; gv_bhSpriteP <= 16; gv_bhSpriteP += 1) {
+    for (gv_bhSpriteP = 1; gv_bhSpriteP <= 15; gv_bhSpriteP += 1) {
         if (((gv_bhHidden[gv_bhSpriteP] != 0) && (gv_unit[gv_bhSpriteP] != null))) {
             if ((gv_bhHiddenUnit[gv_bhSpriteP] != gv_unit[gv_bhSpriteP])) {
                 gv_bhHiddenUnit[gv_bhSpriteP] = gv_unit[gv_bhSpriteP];
