@@ -42334,11 +42334,12 @@ bool gf_OSCheckOptionsA (bool lp_error) {
                 lv_c[1] = true;
             }
 
-            if ((gv_categoriesArray[lv_a] == 4) && ((gv_rolesArray[lv_a] == 3) || (gv_rolesArray[lv_a] == 9) || (gv_rolesArray[lv_a] == 10) || (gv_rolesArray[lv_a] == 11))) {
+            // 领袖随机槽也代表所属犯罪阵营，不能只登记旧的随机分类。
+            if ((gv_categoriesArray[lv_a] == 4) && ((gv_rolesArray[lv_a] == 3) || (gv_rolesArray[lv_a] == 9) || (gv_rolesArray[lv_a] == 10) || (gv_rolesArray[lv_a] == 11) || (gv_rolesArray[lv_a] == 21))) {
                 lv_c[2] = true;
             }
 
-            if ((gv_categoriesArray[lv_a] == 4) && ((gv_rolesArray[lv_a] == 15) || (gv_rolesArray[lv_a] == 16) || (gv_rolesArray[lv_a] == 17) || (gv_rolesArray[lv_a] == 18))) {
+            if ((gv_categoriesArray[lv_a] == 4) && ((gv_rolesArray[lv_a] == 15) || (gv_rolesArray[lv_a] == 16) || (gv_rolesArray[lv_a] == 17) || (gv_rolesArray[lv_a] == 18) || (gv_rolesArray[lv_a] == 22))) {
                 lv_c[8] = true;
             }
 
