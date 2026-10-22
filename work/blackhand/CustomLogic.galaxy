@@ -104796,44 +104796,14 @@ void gf_SKA_3_yanluo (int lv_source, int lv_target) {
 
 void gf_ESYanluoKill (int lp_target, int lp_killer) {
     int lv_a;
-    bool lv_saved;
     const int autoYLES_ae = 15;
     const int autoYLES_ai = 1;
 
-    lv_saved = false;
     if ((PlayerGroupHasPlayer(gv_alivePlayers, lp_target) == false) || (gv_diedAtNight[lp_target] == true) || (lp_target == lp_killer)) {
         return;
     }
-    if ((gv_guarded[lp_target] != 0) && (lp_target != lp_killer)) {
-        gv_damage[gv_guarded[lp_target]] += 1;
-        gv_damage[lp_killer] += 1;
-        gf_BHNotify(StringExternal("Param/Value/YLGUARDED"), lp_killer, SoundLink("UI_TipSelect", -1));
-        gf_FlashScreen(Color(55.69, 10.59, 22.75), lp_killer, 2.0, 20.0);
-        gf_FlashScreen(Color(0.00, 100.00, 0.00), lp_target, 2.0, 0.0);
-        gf_ESBodyguardKill(lp_killer, gv_guarded[lp_target]);
-        gv_guarded[lp_target] = 0;
-        return;
-    }
-    if ((gv_zuosi[lp_target] == false) && ((gv_immuneChance[lp_target] > 0) || (gv_immune[lp_target][0] == true))) {
-        if ((gv_immuneChance[lp_target] > 0)) {
-            gv_immuneChance[lp_target] = (gv_immuneChance[lp_target] - 1);
-        }
-        lv_saved = true;
-        gf_BHNotify(StringExternal("Param/Value/0BE95EEB"), lp_target, SoundLink("UI_TipSelect", -1));
-        gf_BHNotify(StringExternal("Param/Value/YLIMMUNE"), lp_killer, SoundLink("UI_TipSelect", -1));
-    }
-    else {
-        if ((gv_healing[lp_target] > 0) && (gv_zuosi[lp_target] == false)) {
-            gv_healing[lp_target] -= 1;
-            gv_deathMethod[lp_target] = (gv_deathMethod[lp_target] + "h");
-            lv_saved = true;
-            gf_BHNotify(StringExternal("Param/Value/DB5AD8F8"), lp_target, SoundLink("UI_TipSelect", -1));
-            gf_BHNotify(StringExternal("Param/Value/YLHEALED"), lp_killer, SoundLink("UI_TipSelect", -1));
-        }
-    }
-    if ((lv_saved == true)) {
-        return;
-    }
+
+    // 勾决无视无敌、次数盾和救治，不触发保镖拦截或互砍，也不消耗这些防护资源。
     gv_damage[lp_target] += 1;
     if (((gv_nightSequence == true) || (gv_deathDescriptions == true))) {
         if ((gv_nightSequence == true)) {

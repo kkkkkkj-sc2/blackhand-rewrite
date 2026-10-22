@@ -4,7 +4,7 @@ Param/Value/YLCARD=<c val="8E1B3A">
 Param/Value/YLALIGN=<c val="8E1B3A">无（致命）</c>
 Param/Value/YLDESC=一位如阎罗般冷酷精准的顶尖杀手，在生死名册上逐一宣判全镇的死期。<n/><n/><c val="BBDDFF">每晚选择一个人。你再选择下一个人时，上一个被你选择的人死亡。</c>
 Param/Value/YLBOX1=每晚选择一个人。你再选择下一个人时，上一个被你选择的人死亡。
-Param/Value/YLBOX2=<n/>- 在你的首个夜晚，你会获得两个人的身份。<n/>- 你会获知被你选择的人的阵营。<n/>- 你不会被女巫、巴士司机、欺骗者或迷惑影响。
+Param/Value/YLBOX2=<n/>- 在你的首个夜晚，你会获得两个人的身份。<n/>- 你会获知被你选择的人的阵营。<n/>- 你不会被女巫、巴士司机、欺骗者或迷惑影响。<n/>- 你的能力无视无敌和救治。
 Param/Value/YLBOX4=一位如阎罗般冷酷精准的顶尖杀手，在生死名册上逐一宣判全镇的死期。
 Param/Value/YLBOX6=成为存活至最后的人。
 Param/Value/YLOPTIMM=在夜间无敌
