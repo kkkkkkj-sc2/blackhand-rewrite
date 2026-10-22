@@ -1,0 +1,22 @@
+{
+  "pool": 5,
+  "role": 21,
+  "pinyin": "dazhuang",
+  "cn": "大状",
+  "name_key": "DZNAME",
+  "desc_key": "DZDESC",
+  "investigator": ["E588A4E696ADE58A9B1", "E588A4E696ADE58A9B2"],
+  "crime_key": "LSCRIME",
+  "options": [],
+  "flag10": false,
+  "guessable": true,
+  "help_preview": null,
+  "interactions": {
+    "swap": {"text": "一般登门保护，可被女巫、巴士司机等改换实际目标。"},
+    "investigate": {"text": "判断力组；记录实际访问；警长依三合会阵营查出。"},
+    "restrict": {"text": "可被限制、关押；当夜保护被阻止不扣次数。"},
+    "guessage": {"text": "审查页第19项映射角色21。", "in_guess_list": true}
+  },
+  "note": "三合会支援，蓝色系。与律师相同：每晚保护一人，使其次日白天无法被处死；最多一次成功阻止处死，未遭处死不消耗。有罪判决被挡下时广播律师辩护并入夜，直接处决被挡下时继续白天。默认权重0。21号不访问银行角色成就数组。",
+  "review_status": "draft"
+}

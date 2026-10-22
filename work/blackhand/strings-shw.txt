@@ -126,17 +126,17 @@ Param/Value/SHWSLOTC=<s val="ModLeftSize16Bold"><c val="00FF00">已保存到槽�
 Param/Value/SHWSLOTD=<s val="ModLeftSize16Bold"><c val="00FF00">已载入槽位的设置。</c></s>
 Param/Value/SHWSLOTE=<s val="ModLeftSize16Bold"><c val="FF8800">已清空该槽位。</c></s>
 Param/Value/SHWSLOTF=<s val="ModLeftSize16Bold"><c val="FF0000">这个槽位还没有保存内容。</c></s>
-// shw262 共济会长老：访问目标当晚免疫协教徒转化（与医生开关同一标记）
-Param/Value/SHWMLCULT=<n/>- 你的目标免疫于协教徒的转化
+// shw262 共济会长老：访问目标当晚免疫邪教徒转化（与医生开关同一标记）
+Param/Value/SHWMLCULT=<n/>- 你的目标免疫于邪教徒的转化
 // shw263 煽动家 (3/19)
 Param/Value/CWNAME=<c val="C9A44A">煽动家</c>
 Param/Value/CWCARD=<c val="C9A44A">
-Param/Value/CWDESC=盘踞在市政厅阴影中的野心家，以恐惧为薪柴，企图将整个法庭据为己有。<n/><n/><c val="BBDDFF">每晚选择一人进行陷害：在警长眼中看起来像黑手D/三合会角色；在探员眼中看起来像不活跃的市民。白天可使用恐慌值。</c>
+Param/Value/CWDESC=盘踞在市政厅阴影中的野心家，以恐惧为薪柴，企图将整个法庭据为己有。<n/><n/><c val="BBDDFF">每晚选择一人进行陷害：在警长眼中看起来像黑手党/三合会角色；在探员眼中看起来像不活跃的市民。白天可使用恐慌值。</c>
 Param/Value/CWINV1=你的目标常出入公共场所
-Param/Value/CWINV2=- 他可能是g告员、法官、牧师、系命人、煽动家，也有可能只是个赌鬼。
-Param/Value/4F1EBF4B=- 他可能是g告员、法官、牧师、系命人、煽动家，也有可能只是个赌鬼。
+Param/Value/CWINV2=- 他可能是公告员、法官、牧师、系命人、煽动家，也有可能只是个赌鬼。
+Param/Value/4F1EBF4B=- 他可能是公告员、法官、牧师、系命人、煽动家，也有可能只是个赌鬼。
 Param/Value/CWCRIME=腐败
-Param/Value/CWBOX1=- 每晚选择一人进行陷害：在警长眼中看起来像黑手D/三合会角色；在探员眼中看起来像不活跃的市民。<n/>- 在白天可以使用恐慌值。
+Param/Value/CWBOX1=- 每晚选择一人进行陷害：在警长眼中看起来像黑手党/三合会角色；在探员眼中看起来像不活跃的市民。<n/>- 在白天可以使用恐慌值。
 Param/Value/CWBOX2=<n/>- 你初始拥有 0 点恐慌值。<n/>- 你可以拥有最多 4 点恐慌值。<n/>- 每个夜晚结束时，获得 1 点恐慌值。
 Param/Value/CWBOX3=<n/>- 当你昨晚的陷害目标被公开处死，或你的暗票改变了审判结果时，再获得 1 点。
 Param/Value/CWBOX4=<n/>- 在审判的投票阶段使用 -dg 投下有罪暗票，-di 投下无罪暗票（再使用一次可消除对应的暗票）。暗票只会在投票结果被公布时计入，届时扣除 2 点恐慌。
@@ -163,7 +163,7 @@ Param/Value/CWNATG=<s val="ModLeftSize16Bold"><c val="C9A44A">恐慌正在城镇
 Param/Value/CWFRGAIN=<s val="ModLeftSize16Bold"><c val="C9A44A">被你陷害的替罪羊被公开处死了，城镇陷入了极大的恐慌和猜忌。</c></s>
 Param/Value/CWFLIP=<s val="ModLeftSize16Bold"><c val="C9A44A">你的暗票成功扭转了法庭的判决，市政厅威信扫地，恐惧在人群中蔓延。</c></s>
 Param/Value/CWFULL=<s val="ModLeftSize16Bold"><c val="C9A44A">时机已到，市政厅的腐败统治已经摇摇欲坠，只差点上最后一把火。你现在可以使用技能按钮揭示你的身份。</c></s>
-Param/Value/CWSHREV=<s val="ModLeftSize16Bold"><c val="FFFF88">你的目标是一个</c><c val="FF0000">黑手D</c><c val="FFFF88">/</c><c val="3366FF">三合会</c><c val="FFFF88">角色!</c></s>
+Param/Value/CWSHREV=<s val="ModLeftSize16Bold"><c val="FFFF88">你的目标是一个</c><c val="FF0000">黑手党</c><c val="FFFF88">/</c><c val="3366FF">三合会</c><c val="FFFF88">角色!</c></s>
 Param/Value/CWGAIN=<s val="ModLeftSize16Bold"><c val="C9A44A">你获得了 1 点恐慌值。</c></s>
 Param/Value/CWFRAME=<s val="ModLeftSize16Bold"><c val="C9A44A">你今晚陷害了目标。</c></s>
 Param/Value/CWACHP=<s val="ModCenterSize16">
@@ -230,7 +230,7 @@ Param/Value/KCACH2S=<c val="44FF88"> 赢得了成就 </c></s><s val="ModCenterSi
 Param/Value/KCACH2N=<s val="ModCenterSize16Bold"><c val="C14D63">双重事件</c></s>
 Param/Value/KCACH3S=<c val="44FF88"> 赢得了成就 </c></s><s val="ModCenterSize16Bold"><c val="C14D63">"来自地狱"</c></s><s val="ModCenterSize16"><c val="44FF88">!</c></s>
 Param/Value/KCACH3N=<s val="ModCenterSize16Bold"><c val="C14D63">"来自地狱"</c></s>
-Param/Value/BE08890E=- 由此，他会是个D徒/暴徒、连环杀手、开膛手，但也可能只是个义警。
+Param/Value/BE08890E=- 由此，他会是个党徒/暴徒、连环杀手、开膛手，但也可能只是个义警。
 
 // shw288 唐吉诃德 (3/21)
 Param/Value/DQNAME=<c val="C9B36B">唐吉诃德</c>
@@ -238,7 +238,7 @@ Param/Value/DQDESC=没落骑士，满心以为自己肩负着清扫罪恶的使�
 Param/Value/DQCARD=<c val="C9B36B">
 Param/Value/DQALIGN=无</c>（<c val="AAAAAA">温和</c>）
 Param/Value/DQBOX1=无。
-Param/Value/DQBOX2=- 你以为你是个义警，并且所有人都认为你是义警，其实你是个唐吉诃德。死后会显示你的真实身份。<n/>- 你拥有和义警完全一样的能力，但是你的攻击实际上不会造成效果。<n/>- 你会认为自己的攻击攻击到了有夜间无敌的目标，并且会有对应的夜间播报。<n/>- 在一个被你攻击过的目标被处死后，你会知道自己是唐吉诃德。若他是城镇，则你会与城镇共同胜利；若他是黑手D或者三合会，则你会与这两者共同胜利；若他是中立，则你会与任意中立角色共同胜利。<n/>- 在你觉醒后，你拥有一次夜间无敌。
+Param/Value/DQBOX2=- 你以为你是个义警，并且所有人都认为你是义警，其实你是个唐吉诃德。死后会显示你的真实身份。<n/>- 你拥有和义警完全一样的能力，但是你的攻击实际上不会造成效果。<n/>- 你会认为自己的攻击攻击到了有夜间无敌的目标，并且会有对应的夜间播报。<n/>- 在一个被你攻击过的目标被处死后，你会知道自己是唐吉诃德。若他是城镇，则你会与城镇共同胜利；若他是黑手党或者三合会，则你会与这两者共同胜利；若他是中立，则你会与任意中立角色共同胜利。<n/>- 在你觉醒后，你拥有一次夜间无敌。
 Param/Value/DQBOX4=你是追逐巨人幻影的没落骑士。
 Param/Value/DQBOX6=处决被你击中的人后，与其阵营一同胜利。
 Param/Value/DQINV1=你的目标挥舞着破旧的骑枪，枪尖上只残留着风车的木屑与尘土——他终于从幻梦中惊醒，他是唐吉诃德。
@@ -264,7 +264,7 @@ Param/Value/QZBOX2=- 你的攻击无视救治和有限次的夜间无敌。<n/>-
 Param/Value/SSBOX2=- 你的攻击无视救治和有限次的夜间无敌。<n/>- 你只有在能至少攻击到一人时才会自爆。<n/>- 你的自爆不会攻击到三合会成员。<n/>- 当你因自爆而死时，你无法被救治。<n/>- 在你的任务完成后，你将会死去。<n/>- 你在第一夜无法行动。
 Param/Value/QZBOX4=你是听命教父、毫无退路的黑手党党徒。
 Param/Value/SSBOX4=你是效忠龙头、视死如归的三合会门客。
-Param/Value/QZBOX6=为家族玉石俱焚，与黑手D一同胜利。
+Param/Value/QZBOX6=为家族玉石俱焚，与黑手党一同胜利。
 Param/Value/SSBOX6=为帮会舍身取义，与三合会一同胜利。
 Param/Value/QZCRIME=非法闯入，谋杀，破坏治安
 Param/Value/QZN1=<s val="ModLeftSize16Bold"><c val="FF88FF">为了完成你最后的任务，你必须要准备一整天...</c></s>
@@ -322,13 +322,13 @@ Param/Value/MYXACHN=<s val="ModCenterSize16Bold"><c val="BB3355">莫须有</c></
 Param/Value/MYXACHD=<s val="ModCenterSize16"><c val="BB3355">何必在乎他是谁，反正审查已经通过了。</c></s>
 Param/Value/BWZYN=<s val="ModCenterSize16Bold"><c val="00FFFF">百万之一</c></s>
 Param/Value/558F60F0=可能是陪侍、参谋、恐吓者、绑架者、弃子、或密探。
-Param/Value/416F7C6A=可能是D徒、教父、伪装者、绑架者、弃子。
+Param/Value/416F7C6A=可能是党徒、教父、伪装者、绑架者、弃子。
 Param/Value/C238D4D3=可能是交际花、管家、封口、审讯、死士、先锋。
 Param/Value/3830A1D5=可能是暴徒、龙头、渗透、审讯、死士。
 Param/Value/D962C0BA=可能是警长、探员、法医、侦探、监视者、观察者或副手。
 Param/Value/1D5532BC=不包括 监视者、观察者
-Param/Value/4E68D04F=可能是女巫、协教徒、巫医、审ji官、煽动家，或法官。
-Param/Value/736A2207=不包括 审ji官、煽动家
+Param/Value/4E68D04F=可能是女巫、邪教徒、巫医、审计官、煽动家，或法官。
+Param/Value/736A2207=不包括 审计官、煽动家
 Param/Value/SHWWILLBTN=<s val="ModCenterSize20Bold">发遗嘱</s>
 Param/Value/SHWWILLTIP=<c val="004080">点击或按 Tab，把你当前的遗嘱作为聊天发出。<n/>走正常发言频道，并受刷屏限制。</c>
 Param/Value/SHWWILLEMPTY=<s val="ModLeftSize16Bold"><c val="FF4444">你的遗嘱是空的。</c></s>
@@ -360,10 +360,15 @@ Param/Value/XRBTN=额外规则
 Param/Value/XRBTNTIP=开局前选择要叠加的规则。只有主机能改。
 Param/Value/XRTITLE=<c val="FFCC66">额外规则</c>
 Param/Value/XRHINT=可以同时开。只有主机能改。
-Param/Value/XRDEADLAB=<c val="CCCCCC">亡灵小镇</c><n/>死者白天可以当众说话，名字前带「死者」。夜里仍只在死者之间说。
-Param/Value/XRGANGLAB=<c val="CC6666">团伙作案</c><n/>同一种中立致命在夜里进入各自的频道，别的人听不见。
+Param/Value/XRDEADLAB=<c val="CCCCCC">亡灵小镇</c><n/>死者在死后依然可以发言。
+Param/Value/XRGANGLAB=<c val="CC6666">团伙作案</c><n/>同名中立致命会加入各自的频道，且胜利条件不再要求存活到最后。
+Param/Value/XRLIFELAB=<c val="88CCAA">转世重生</c><n/>最先死亡的四名玩家会一同以生存者的身份复活，每人初始有 1 份食物。
+Param/Value/XRFOODBOX=- 你如果没有行动则会消耗一份食物<n/>- 如果你访问的人出门行动了，则你会在其家中安全度过夜晚（非法闯入）<n/>- 如果你访问的人没有出门，则你会被赶出，消耗一份食物<n/>- 你初始有 1 份食物<n/>- 你有食物时拥有无敌<n/>- 你失去最后的食物后会饿死<n/>- 正常情况下，你不能重复去同一个人的家中
+Param/Value/XRLIFEDOT=. 
+Param/Value/XRLIFEON= <c val="FFFF00">复活
 Param/Value/XRCLOSE=关闭
 Param/Value/XRDEAD=<c val="888888">[死者] </c>
 Param/Value/XRGANG=<c val="CC6666">[团伙·</c>
 Param/Value/XRGANG2=<c val="CC6666">] </c>
 Param/Value/XRIN=<s val="ModLeftSize16Bold"><c val="CC6666">你进入了团伙频道。只有和你同名的人听得到。</c></s>
+Param/Value/XRGANGWIN=<n/><c val="CC6666">同名有一人胜利，其余同名一起胜利，不必活到最后。</c>

@@ -195,25 +195,31 @@ NAILONG_MODEL = """    <CModel id="Nailong" parent="Unit">
         <Occlusion value="Show"/>
     </CModel>
 """
-# 隐藏外观「2D 立牌」：Mon3tr〈斗争血脉/XI〉烘帧表（战斗小人 + 基建小人的走路帧）。
-# 默认外观仍是奶龙；游戏里聊天输入 `-mon3tr` 切换（见 CustomLogic 的 gt_BHMon3tr）。
-# 镜像那张 = 朝左走时用（脚本按 UnitGetFacing 换模型）。素材仅本地自用。
-MON3TR_MODEL = """    <CModel id="BHMon3tr" parent="Unit">
-         <Model value="Assets\\Units\\BHSprite2D\\BHSprite2D.m3"/>
-         <Occlusion value="Show"/>
-    </CModel>
-"""
-MON3TR_L_MODEL = """    <CModel id="BHMon3trL" parent="Unit">
-         <Model value="Assets\\Units\\BHSpriteL\\BHSpriteL.m3"/>
-         <Occlusion value="Show"/>
-    </CModel>
-"""
-# (模型 id, m3 源, m3 成员, 贴图源, 贴图成员, CModel 片段)
-MON3TR_MODELS = [
+# 隐藏外观「2D 立牌」（默认外观仍是奶龙，脚本聊天输入 mon3tr / reed 切换，见 CustomLogic
+# 的 gt_BHMon3tr / gt_BHReed；走路段的帧来自同一立绘的基建小人）。每套两张：正常 + 镜像
+# （镜像那张 = 朝左走时用，脚本按 UnitGetFacing 换模型）。素材仅本地自用。
+def _hidden_model_block(cid: str, member: str) -> str:
+    """CModel 片段（m3 成员路径里的反斜杠要写成 XML 的 \\ 转义）。"""
+    return ('    <CModel id="' + cid + '" parent="Unit">\n'
+            '         <Model value="' + member.replace('\\', '\\\\') + '"/>\n'
+            '         <Occlusion value="Show"/>\n'
+            '    </CModel>\n')
+
+
+HIDDEN_SPRITES = [
+    # (模型 id, m3 源, 包内 m3 成员, 贴图源, 包内贴图成员)
     ('BHMon3tr', DDS_DIR / 'BHSprite.m3', r'Assets\Units\BHSprite2D\BHSprite2D.m3',
-     DDS_DIR / 'BHMonstrBoc.dds', r'Assets\Textures\BHMonstrBoc.dds', MON3TR_MODEL),
+     DDS_DIR / 'BHMonstrBoc.dds', r'Assets\Textures\BHMonstrBoc.dds'),
     ('BHMon3trL', DDS_DIR / 'BHSpriteL.m3', r'Assets\Units\BHSpriteL\BHSpriteL.m3',
-     DDS_DIR / 'BHMonstrBocL.dds', r'Assets\Textures\BHMonstrBocL.dds', MON3TR_L_MODEL),
+     DDS_DIR / 'BHMonstrBocL.dds', r'Assets\Textures\BHMonstrBocL.dds'),
+    ('BHReed', DDS_DIR / 'BHSpriteReed.m3', r'Assets\Units\BHSpriteReed2D\BHSpriteReed2D.m3',
+     DDS_DIR / 'BHReed.dds', r'Assets\Textures\BHReed.dds'),
+    ('BHReedL', DDS_DIR / 'BHSpriteReedL.m3', r'Assets\Units\BHSpriteReed2D_L\BHSpriteReed2D_L.m3',
+     DDS_DIR / 'BHReedL.dds', r'Assets\Textures\BHReedL.dds'),
+]
+HIDDEN_MODELS = [
+    (cid, m3, member, tex, texm, _hidden_model_block(cid, member))
+    for cid, m3, member, tex, texm in HIDDEN_SPRITES
 ]
 # 奶龙已从源工程按 -Y 前向、+Z 向上整份重导出；GAME 只施加贴地平移，不加 Z 旋转。
 # Stand 为 4 秒循环，Walk 保留。不要再叠加历史 Origin -90° 补丁或旋转 IREF；见 docs/NAILONG-MODEL.md。
@@ -221,7 +227,7 @@ NAILONG_MODELS = [
     ('Nailong', DDS_DIR / 'Nailong.m3', r'Assets\Units\Nailong\Nailong.m3',
      DDS_DIR / 'Nailong_Diffuse.dds', r'Assets\Textures\Nailong_Diffuse.dds', NAILONG_MODEL),
 ]
-CUSTOM_MODELS = NAILONG_MODELS + MON3TR_MODELS  # 奶龙（默认外观）+ 隐藏的 2D 立牌
+CUSTOM_MODELS = NAILONG_MODELS + HIDDEN_MODELS  # 奶龙（默认外观）+ 隐藏的 2D 立牌
 
 
 
@@ -294,6 +300,27 @@ def write_cover(archive: Path, stem: str) -> list[str]:
 
 # 必须在包内 zhCN 表里能查到的自加键（缺任一 → 界面会显示原始键名）
 MUST_HAVE_KEYS = [
+    # 律师 / 大状
+    'Param/Value/LSNAME',
+    'Param/Value/DZNAME',
+    'Param/Value/LSDESC',
+    'Param/Value/DZDESC',
+    'Param/Value/LSTAG',
+    'Param/Value/DZTAG',
+    'Param/Value/LSCARD',
+    'Param/Value/DZCARD',
+    'Param/Value/LSBOX4',
+    'Param/Value/DZBOX4',
+    'Param/Value/LSABILITY',
+    'Param/Value/LSBOX2',
+    'Param/Value/LSCRIME',
+    'Param/Value/LSSELECT',
+    'Param/Value/LSWILL',
+    'Param/Value/LSCANCEL',
+    'Param/Value/LSGONE',
+    'Param/Value/LSDEFENSE',
+    'Param/Value/LSBLOCK',
+
     # 陷阱师 / 天工
     'Param/Value/XJSNAME',
     'Param/Value/TGNAME',
@@ -309,6 +336,13 @@ MUST_HAVE_KEYS = [
     'Param/Value/XJSCRIME',
 
     'Param/Value/BHADMINNAME',
+    # 征募官首夜机制选择、老版反馈与单发义警
+    'Param/Value/ZMBOXBASE', 'Param/Value/ZMBOXNEW', 'Param/Value/ZMBOXOLD',
+    'Param/Value/ZMSTATE0', 'Param/Value/ZMSTATE1', 'Param/Value/ZMSTATE2',
+    'Param/Value/ZMCHOICE', 'Param/Value/ZMCHOICETIP', 'Param/Value/ZMNEWBTN', 'Param/Value/ZMOLDBTN',
+    'Param/Value/ZMNEWTIP', 'Param/Value/ZMOLDTIP', 'Param/Value/ZMCHOSENEW', 'Param/Value/ZMCHOSEOLD',
+    'Param/Value/ZMDEFAULT', 'Param/Value/ZMNOREVEAL', 'Param/Value/ZMOK', 'Param/Value/ZMOKEND', 'Param/Value/ZMFAIL',
+    'Param/Value/ZMBY', 'Param/Value/ZMTOOK', 'Param/Value/ZMTOFAIL', 'Param/Value/ZMVIGBOX', 'Param/Value/ZMNEWTO',
     # shw254 保存格位（4 槽位 + 命名）
     'Param/Value/SHWSLOT1',
     'Param/Value/SHWSLOT6',
@@ -335,8 +369,16 @@ MUST_HAVE_KEYS = [
     'Param/Value/SHWSLOTF',
     'Param/Value/SHWNAME',
     'Param/Value/XRBTN', 'Param/Value/XRBTNTIP', 'Param/Value/XRTITLE', 'Param/Value/XRHINT',
-    'Param/Value/XRDEADLAB', 'Param/Value/XRGANGLAB', 'Param/Value/XRCLOSE',
-    'Param/Value/XRDEAD', 'Param/Value/XRGANG', 'Param/Value/XRGANG2', 'Param/Value/XRIN',
+    'Param/Value/XRDEADLAB', 'Param/Value/XRGANGLAB', 'Param/Value/XRLIFELAB', 'Param/Value/XRLIFEDOT', 'Param/Value/XRLIFEON', 'Param/Value/XRCLOSE',
+    'Param/Value/XRDEAD', 'Param/Value/XRGANG', 'Param/Value/XRGANG2', 'Param/Value/XRIN', 'Param/Value/XRGANGWIN',
+    'Param/Value/XRFOODBOX',
+    'Param/Value/JJNAME', 'Param/Value/JJDESC', 'Param/Value/JJTAG',
+    'Param/Value/JJBOX1', 'Param/Value/JJBOX2', 'Param/Value/JJBOX4',
+    'Param/Value/JJCRIME', 'Param/Value/JJINV1', 'Param/Value/JJINV2',
+    'Param/Value/JJBTN', 'Param/Value/JJCANCEL', 'Param/Value/JJPICK',
+    'Param/Value/JJRE', 'Param/Value/JJOFF', 'Param/Value/JJDOT',
+    'Param/Value/JJGONE', 'Param/Value/JJLIVE',
+    'Param/Value/JJSIZE', 'Param/Value/JJCLOSE', 'Param/Value/JJREVIVED',
     'Param/Value/SHWDESC',
     'Param/Value/GCZNAME',
     'Param/Value/GCZBNAME',
@@ -646,6 +688,8 @@ def main() -> int:
     ap.add_argument('--base', default=str(DEFAULT_BASE))
     ap.add_argument('--galaxy', default=str(DEFAULT_GALAXY))
     ap.add_argument('--strings', nargs='*', default=None, help='自加文案文件（默认 work/blackhand/strings-*.txt）')
+    ap.add_argument('--skip-role-gate', action='store_true',
+                    help='跳过 0e) 角色登记表检查（仓库里有半成品角色时用来出验证包；**不要出发布包**）')
     ap.add_argument('--skip-strings', action='store_true', help='不合并文案（仅当基线已含全部累积键时）')
     ap.add_argument('--skip-notes', action='store_true', help='不写补丁说明/加载页面（仅供验证包）')
     ap.add_argument('--name', default=None,
@@ -658,8 +702,8 @@ def main() -> int:
                     help='把 CA 三件改成 file:Mods\\… 纯本地路径（--solo 默认打开；发布包不要加）')
     ap.add_argument('--sprite-variants', default=None,
                     help='逗号分隔：把 data/probe_<标签>.m3 登记成 BHSprite<大写>（探针批量对比用）')
-    ap.add_argument('--no-mon3tr', action='store_true',
-                    help='不打包隐藏的 2D 立牌模型（省 13 MB；要规避第三方素材时用）')
+    ap.add_argument('--no-hidden', action='store_true',
+                    help='不打包隐藏的 2D 立牌模型（省几十 MB；要规避第三方素材时用）')
     ap.add_argument('--sprite-poc', action='store_true',
                     help='2D 立牌 PoC：把「60 号外观」的模型换成 data/BHSprite.m3（奶龙留到发布构建）')
     ap.add_argument('--extra-member', action='append', default=None,
@@ -718,15 +762,20 @@ def main() -> int:
     # 0e) 角色登记表（shw248）：spec 里的角色必须逐项登记（定义块 / 拼音 / 开关四件套 /
     #     图鉴犯罪 / 四项交互声明），且各路「上界」必须 ≥ 脚本里实际存在的最大角色号。
     #     加角色忘了放宽上界 = 角色静默发不到（shw115/149 的事故类型）。
-    rg = subprocess.run([sys.executable, str(ROOT / 'tools' / 'role_gen.py')],
-                        capture_output=True, text=True)
-    rg_tail = [x for x in rg.stdout.strip().splitlines() if x.startswith(('✓', '✗'))]
+    if args.skip_role_gate:
+        # 仅供验证包：仓库里有「已写 spec、还没登记进脚本」的半成品角色时，正常出门是失败的。
+        # 用它跳过会让那些角色保持「发不到」的状态 —— **永远不要用它出发布包**。
+        print('⚠ 跳过 0e) 角色登记表（--skip-role-gate，仅供验证）')
+    else:
+        rg = subprocess.run([sys.executable, str(ROOT / 'tools' / 'role_gen.py')],
+                            capture_output=True, text=True)
+        rg_tail = [x for x in rg.stdout.strip().splitlines() if x.startswith(('✓', '✗'))]
 
-    print(rg_tail[-1] if rg_tail else '(role_gen 无输出)')
+        print(rg_tail[-1] if rg_tail else '(role_gen 无输出)')
 
-    if rg.returncode != 0:
-        print('✗ role_gen 未通过（角色登记与 spec 不一致，看 roles/*.json），停止打包')
-        return 1
+        if rg.returncode != 0:
+            print('✗ role_gen 未通过（角色登记与 spec 不一致，看 roles/*.json），停止打包')
+            return 1
 
     # 0f) Wait 调用图（shw250）：含 Wait 的函数，调用链必须全部源自触发器。
     wg = subprocess.run([sys.executable, str(ROOT / 'tools' / 'wait_graph_check.py')],
@@ -795,10 +844,10 @@ def main() -> int:
     if args.sprite_variants:
         model_defs = sprite_variants([x.strip() for x in args.sprite_variants.split(',') if x.strip()])
     else:
-        model_defs = NAILONG_MODELS if args.no_mon3tr else CUSTOM_MODELS
+        model_defs = NAILONG_MODELS if args.no_hidden else CUSTOM_MODELS
     models = write_models(out, model_defs)
     print(f"5d) 自加模型 {len(models)} 个 ← {DDS_DIR.name}/: {[Path(m).name for m in models]}"
-          f"{'  [只用奶龙（--no-mon3tr）]' if args.no_mon3tr else '  [奶龙 + 隐藏立牌 -mon3tr]'}"
+          f"{'  [只用奶龙（--no-hidden）]' if args.no_hidden else '  [奶龙 + 隐藏立牌 mon3tr/reed]'}"
           f"{'  [探针变体 ' + args.sprite_variants + ']' if args.sprite_variants else ''}")
     cover = write_cover(out, args.cover)
     print(f"5b) 街机封面 {args.cover} → {cover}")
@@ -850,7 +899,7 @@ def main() -> int:
         cur = sc2map.read(out, ZH_STRINGS)
         merged, hz = bh_meta.harmonize_text(sc2map.merge_strings(cur, entries).decode('utf-8'))
         put(out, ZH_STRINGS, merged.encode('utf-8'))
-        print(f"7b) 国服和谐修正 {'、'.join(f'{k}×{v}' for k, v in hz.items()) or '无命中'}")
+        print(f"7b) 游戏内文案还原（详情页/加载页仍和谐）{'、'.join(f'{k}×{v}' for k, v in hz.items()) or '无命中'}")
 
         # 7b2) 其余中文语种成员同样过一遍和谐词表：客户端只读 zhCN，但发布包会被平台审核
         #      逐成员扫描，实测 zhCH 里还留着原图自带的「杀」×6、「邪」×1。
@@ -863,7 +912,7 @@ def main() -> int:
             merged2, hz2 = bh_meta.harmonize_text(cur2.decode('utf-8'))
             if hz2:
                 put(out, member, merged2.encode('utf-8'))
-                print(f"7b2) {member.split(chr(92))[0]} 和谐修正 {'、'.join(f'{k}×{v}' for k, v in hz2.items())}")
+                print(f"7b2) {member.split(chr(92))[0]} 文案还原 {'、'.join(f'{k}×{v}' for k, v in hz2.items())}")
 
         # 7c) 结构自检：DocumentHeader 的条目是「键 + NChz + 声明字符数 + 正文」的长度前缀结构，
         #     **绝不能在外面按字节改写**（改了长度却不动前缀 → 读方解析错位 → 加载页/详情页空白）。

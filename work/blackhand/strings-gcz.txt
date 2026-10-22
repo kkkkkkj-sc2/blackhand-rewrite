@@ -22,7 +22,7 @@ Param/Value/F2239D82=- 你推断出他可能是侦探、监视者、密探/先�
 Param/Value/BHYIN01=<s val="ModCenterSize24Bold"><c val="FF3232">烙印</c></s>
 Param/Value/GCZBBTN=<s val="ModCenterSize24Bold"><c val="8822CC">捕风捉影</c></s>
 // 烙印（菜单第31项）说明文本
-Param/Value/BHYINDESC=狱警坐镇的防守反击阵容<n/>3名城镇随机、2保护、2调查与zf护航<n/>教父与2名黑手随机潜伏暗处<n/>双纵火者与中立温和搅局其间<n/><n/><n/><n/><n/><n/><s val="ModCenterSize18Bold">12-15人可用</s>
+Param/Value/BHYINDESC=狱警坐镇的防守反击阵容<n/>3名城镇随机、2保护、2调查与政府护航<n/>教父与2名黑手随机潜伏暗处<n/>双纵火者与中立温和搅局其间<n/><n/><n/><n/><n/><n/><s val="ModCenterSize18Bold">12-15人可用</s>
 Param/Value/GCZBLANK=无
 
 Param/Value/GCZBNAME=<s val="ModCenterSize24Bold">随机：<c val="C0C0C0">捕风捉影</c></s>

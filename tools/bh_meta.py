@@ -278,15 +278,45 @@ def loading_units(text):
     return len(text.encode('utf-8')) - 4 * text.count('<n/>')
 
 
-# 国服和谐词修正（与 boot2_build 第 7b 步共用同一份词表；只替换值，键名不动）。
-# 必须在这里做：DocumentHeader 的条目带长度前缀，只有本模块知道怎么把前缀算对。
-# 「杀」已能过审，不再把杀改成爱；见 KILL_RESTORE，打包时把旧替身改回。
+# 国服和谐词。只还作用于地图详情（DocInfo）和加载页面（LoadingScreen）。
+# 游戏内文案走 GAME_RESTORE，把替身改回。DocumentHeader 带长度前缀，只能在本模块改正文。
+# 「杀」已能过审，不再把杀改成爱；见 KILL_RESTORE。
 HARMONIZE_PAIRS = [
     ('黑手党', '黑手D'),
     ('间谍', 'jian谍'),
     ('政府', 'zf'),
     ('邪', '协'),
 ]
+
+# 这两类键保持现状，不把替身改回。
+CENSOR_KEEP_PREFIXES = (
+    'DocInfo/',
+    'LoadingScreen/',
+)
+
+# 游戏内文案的替身 → 原词。长词在前。
+# D徒是党徒，不是门徒。ism 只列这三词，避免打进英文 Altruism。
+# 协神 / 中了协 与协教、协恶同属「邪→协」，不整字替换，免得伤到「协助」。
+GAME_RESTORE = (
+    ('jian谍', '间谍'),
+    ('审ji', '审计'),
+    ('黑手D', '黑手党'),
+    ('飞车D', '飞车党'),
+    ('污点jc', '污点警察'),
+    ('D徒', '党徒'),
+    ('协教', '邪教'),
+    ('协神', '邪神'),
+    ('协恶', '邪恶'),
+    ('中了协', '中了邪'),
+    ('s亡', '死亡'),
+    ('g告', '公告'),
+    ('ji会', '集会'),
+    ('神秘ism', '神秘主义'),
+    ('世界ism', '世界主义'),
+    ('利他ism', '利他主义'),
+)
+
+_ZF_CENSOR = re.compile(r'(?<![A-Za-z])zf(?![A-Za-z])')
 
 # 这些是本来的「爱」，不是「杀」的替身，还原时先挪走。
 KILL_PROTECT = (
@@ -354,8 +384,34 @@ def restore_kills(text: str):
     return text, n
 
 
+def _keep_censored(key: str) -> bool:
+    k = key.lstrip('\ufeff').strip()
+    return k.startswith(CENSOR_KEEP_PREFIXES)
+
+
+def restore_game_censor(text: str):
+    """游戏内文案：替身改回原词。返回 (新文本, {原词: 次数})。"""
+    stats = {}
+
+    for old, new in GAME_RESTORE:
+        c = text.count(old)
+        if c:
+            stats[new] = stats.get(new, 0) + c
+            text = text.replace(old, new)
+
+    zf = _ZF_CENSOR.findall(text)
+    if zf:
+        stats['政府'] = stats.get('政府', 0) + len(zf)
+        text = _ZF_CENSOR.sub('政府', text)
+
+    return text, stats
+
+
 def harmonize_text(text: str):
-    """替换文本里的国服敏感词，并把「杀」的旧替身改回。返回 (新文本, 命中统计)。"""
+    """杀的旧替身一律改回。游戏内文案再把其余替身改回；详情页和加载页仍走和谐词表。
+
+    返回 (新文本, 命中统计)。
+    """
     stats, out = {}, []
 
     for line in text.splitlines(keepends=True):
@@ -368,10 +424,15 @@ def harmonize_text(text: str):
         if n:
             stats['杀还原'] = stats.get('杀还原', 0) + n
 
-        for old, rep in HARMONIZE_PAIRS:
-            if old in new:
-                stats[old] = stats.get(old, 0) + new.count(old)
-                new = new.replace(old, rep)
+        if _keep_censored(key):
+            for old, rep in HARMONIZE_PAIRS:
+                if old in new:
+                    stats[old] = stats.get(old, 0) + new.count(old)
+                    new = new.replace(old, rep)
+        else:
+            new, extra = restore_game_censor(new)
+            for word, c in extra.items():
+                stats[word + '还原'] = stats.get(word + '还原', 0) + c
 
         out.append(key + '=' + new)
 

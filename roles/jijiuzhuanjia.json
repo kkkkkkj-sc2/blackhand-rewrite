@@ -1,0 +1,25 @@
+{
+  "pool": 1,
+  "role": 34,
+  "pinyin": "jijiuzhuanjia",
+  "cn": "急救专家",
+  "name_key": "JJNAME",
+  "desc_key": "JJDESC",
+  "investigator": ["JJINV1"],
+  "crime_key": "JJCRIME",
+  "options": [],
+  "flag10": false,
+  "guessable": true,
+  "help_preview": null,
+  "extra_def_lines": [
+    "gv_roleWeights[1][34] = 0.0;"
+  ],
+  "interactions": {
+    "swap": {"text": "点名的是那具尸体。不受巴士司机、女巫、退伍军人影响，复活对象不会被换走。访问记在尸体上，身体留在自己家里（同法医）。"},
+    "investigate": {"text": "访问所选死者。探员只给一句：你的目标与死亡如影随形。他可能是一位急救专家。案底无。"},
+    "restrict": {"text": "被限制或关进牢则这次不算，不复活，也不扣次数。"},
+    "guessage": {"text": "审查页城镇下标 31 → 34。", "in_guess_list": true}
+  },
+  "note": "城镇权力。每晚点一名还在局里的城镇死者，白天死讯播完后若自己还活着就复活对方。成功一次。只能复活城镇角色，按复活时的实际角色池判定；目标非城镇或已离开则不复活不扣次数。成功复活会恢复本人的能力次数、冷却及发动标志，不重跑全场设置、不撤销已生效的能力；本人先见绿屏，再收到黄色提示「由于不知名的原因，你被复活了。」。急救专家的聊天提示均使用支持原聊天框缩放的样式。",
+  "review_status": "draft"
+}

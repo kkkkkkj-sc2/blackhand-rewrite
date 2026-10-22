@@ -1,0 +1,20 @@
+// 律师 (2/21) / 大状 (5/21)：只在实际挡下白天处死时消耗一次保护。
+Param/Value/LSNAME=<c val="B05A78">律师</c>
+Param/Value/DZNAME=<c val="6696C6">大状</c>
+Param/Value/LSDESC=游走于法律边缘，为黑手党排解危机的律师。<n/><n/><c val="BBDDFF">每晚保护一个人，其在第二天白天无法被处死。</c>
+Param/Value/DZDESC=精通诉讼技巧，为三合会周旋于法庭的大状。<n/><n/><c val="BBDDFF">每晚保护一个人，其在第二天白天无法被处死。</c>
+Param/Value/LSTAG= (<c val="B05A78">支援</c>)
+Param/Value/DZTAG= (<c val="6696C6">支援</c>)
+Param/Value/LSCARD=<c val="B05A78">
+Param/Value/DZCARD=<c val="6696C6">
+Param/Value/LSBOX4=你是为黑手党提供辩护的律师。
+Param/Value/DZBOX4=你是为三合会提供辩护的大状。
+Param/Value/LSABILITY=每晚保护一个人，其在第二天白天无法被处死。
+Param/Value/LSBOX2=- 你最多只能成功保护一次。<n/>- 只有实际阻止处死才消耗次数。<n/>- 保护覆盖白天的所有处死。<n/>- 目标被投有罪时，你会为其辩护，使其获释并直接进入夜晚。
+Param/Value/LSCRIME=非法闯入
+Param/Value/LSSELECT=保护
+Param/Value/LSWILL=你决定在次日为下列玩家提供保护：
+Param/Value/LSCANCEL=你取消了今晚的保护。
+Param/Value/LSGONE=<c val="CCCC44">你已成功提供过一次保护，无法再次保护。</c>
+Param/Value/LSDEFENSE=一位律师对被审判者提供了辩护，审判庭释放了他。
+Param/Value/LSBLOCK=一位律师提供了辩护，处决被取消了。

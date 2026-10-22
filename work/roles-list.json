@@ -197,6 +197,11 @@
      "role": 33,
      "prefix": "E49D49F4",
      "suffix": "F63CDC9A"
+    },
+    {
+     "role": 34,
+     "prefix": "E49D49F4",
+     "suffix": "F63CDC9A"
     }
    ]
   },
@@ -336,6 +341,11 @@
     },
     {
      "role": 20,
+     "prefix": "EE826AA7",
+     "suffix": "4454DB34"
+    },
+    {
+     "role": 21,
      "prefix": "EE826AA7",
      "suffix": "4454DB34"
     }
@@ -514,6 +524,11 @@
     },
     {
      "role": 20,
+     "prefix": "296C38E2",
+     "suffix": "42808A5D"
+    },
+    {
+     "role": 21,
      "prefix": "296C38E2",
      "suffix": "42808A5D"
     }

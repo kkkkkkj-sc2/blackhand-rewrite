@@ -1,0 +1,24 @@
+Param/Value/ZMBOXBASE=- 你在第一个夜晚不能行动。<n/>- 首夜可用按钮选择征募机制；未选择则默认新版。
+Param/Value/ZMBOXNEW=<n/>- 若你使用新版机制：<n/>　　- 你可以征募3次。<n/>　　- 你不会得知成功与否，目标不会知道你是谁。<n/>　　- 转化出的义警沿用本局义警的射击次数设置。<n/>　　- 白天输入-reveal或点击技能按钮，可公开揭示身份。
+Param/Value/ZMBOXOLD=<n/>- 若你使用老版机制：<n/>　　- 你可以征募2次，无论成功与否都会消耗一次。<n/>　　- 你会得知成功或失败，目标会知道你是谁。<n/>　　- 转化出的义警只有1次射击机会。<n/>　　- 你无法揭示自己的身份。
+Param/Value/ZMSTATE0=<n/>- 当前尚未选择机制，不能揭示身份。
+Param/Value/ZMSTATE1=<n/>- 当前已选择：<c val="66CC33">新版机制</c>。
+Param/Value/ZMSTATE2=<n/>- 当前已选择：<c val="66CC33">老版机制</c>。
+Param/Value/ZMCHOICE=征募官：请选择你的征募机制
+Param/Value/ZMCHOICETIP=新版：3次征募，不得知结果，义警次数沿用本局设置，可以揭示身份。<n/>老版：2次征募，得知结果，目标得知你的身份，义警只有1次射击，不能揭示。<n/>选择后不可更改；首夜未选择则默认新版。
+Param/Value/ZMNEWBTN=选择新版机制
+Param/Value/ZMOLDBTN=选择老版机制
+Param/Value/ZMNEWTIP=3次征募；不反馈结果；义警次数沿用本局设置；白天可以揭示身份。选择后不可更改。
+Param/Value/ZMOLDTIP=2次征募；成功失败都反馈并扣次；目标知道你是谁；义警只有1次射击；不能揭示；只可征募非无敌的普通城镇角色。
+Param/Value/ZMCHOSENEW=<c val="FFFF00">你已选择新版征募机制：可征募3次，白天可以揭示身份。</c>
+Param/Value/ZMCHOSEOLD=<c val="FFFF00">你已选择老版征募机制：可征募2次，得知征募结果，转化出的义警只有1次射击；你不能揭示身份。</c>
+Param/Value/ZMDEFAULT=<c val="FFFF00">首夜未选择征募机制，已默认使用新版。</c>
+Param/Value/ZMNOREVEAL=<c val="FFFF00">只有选择新版征募机制后，你才可以在白天揭示身份。</c>
+Param/Value/ZMOK=<c val="FFFF00">你成功征募了</c>
+Param/Value/ZMOKEND=<c val="FFFF00">为一名义警。</c>
+Param/Value/ZMFAIL=<c val="FFFF00">你的征募失败了。</c>
+Param/Value/ZMBY=<c val="00FFFF">征募官</c>
+Param/Value/ZMTOOK=<c val="00FFFF"> 已成功将你征募为义警，你只有1次射击机会。</c>
+Param/Value/ZMTOFAIL=<c val="FFFF00">尝试将你征募为义警，他暴露了。</c>
+Param/Value/ZMVIGBOX=- 你由老版征募官征募而来，只有1次射击机会。
+Param/Value/ZMNEWTO=<c val="00FFFF">你成功被征募为义警。射击次数以你的角色卡为准。</c>
