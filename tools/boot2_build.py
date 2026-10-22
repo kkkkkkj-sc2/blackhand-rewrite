@@ -199,9 +199,14 @@ NAILONG_MODEL = """    <CModel id="Nailong" parent="Unit">
 # 的 gt_BHMon3tr / gt_BHReed；走路段的帧来自同一立绘的基建小人）。每套两张：正常 + 镜像
 # （镜像那张 = 朝左走时用，脚本按 UnitGetFacing 换模型）。素材仅本地自用。
 def _hidden_model_block(cid: str, member: str) -> str:
-    """CModel 片段（m3 成员路径里的反斜杠要写成 XML 的 \\ 转义）。"""
+    """CModel 片段。
+
+    **成员路径原样写**（单反斜杠）：SC2 的 ModelData `value` 不认双反斜杠转义，
+    写成 Assets\\Units\\... 会让引擎找不到模型 ⇒ 单位显示棋盘格 fallback 占位
+    （2026-10-22 事故：给苇草加模型时顺手加了转义，结果 mon3tr 也跟着坏）。
+    """
     return ('    <CModel id="' + cid + '" parent="Unit">\n'
-            '         <Model value="' + member.replace('\\', '\\\\') + '"/>\n'
+            '         <Model value="' + member + '"/>\n'
             '         <Occlusion value="Show"/>\n'
             '    </CModel>\n')
 
@@ -284,7 +289,7 @@ def write_models(archive: Path, models: list | None = None) -> list[str]:
 
     for mid, _, m3member, _, texmember, _ in models:
         assert f'id="{mid}"' in xml, f'ModelData 没有 {mid}'
-        assert m3member.replace('\\', '\\\\') in xml or m3member in xml, f'{mid} 的模型路径没写进 ModelData'
+        assert m3member in xml, f'{mid} 的模型路径没写进 ModelData（或写成了双反斜杠转义）'
 
     return members
 
