@@ -128,7 +128,7 @@ def harness(source: str, core: str, integrated: bool) -> str:
         assert not re.search(r'\b(?:Wait|TriggerExecute)\s*\(', function(core, name)), (name, 'yield inside claim')
 
     assert re.search(r'gf_LSTrySpare\s*\(int \w+,\s*int \w+\)', bodies[-1]), 'gf_LSTrySpare requires int mode'
-    bodies += [function(source, name) for name in ('gf_RANoActions', 'gf_TXResumeDay')]
+    bodies += [function(source, name) for name in ('gf_RANoActions', 'gf_TXResumeDay', 'gf_BHCrime')]
     hooks, hook_cases = integration(source) if integrated else ([], [])
     bodies += hooks
     if integrated:
@@ -186,6 +186,7 @@ def harness(source: str, core: str, integrated: bool) -> str:
         bool guilty=votes.first>votes.second;
         assert(guiltyHook(15) == guilty);
         assert(gv_lsUsed[1] == guilty);
+        assert(gv_e78AAFE7BDAAE4BA8BE5AE9E[1][10]==guilty);
         if (!guilty) assert(messages.empty() && pending.empty() && calls["fallback"] == 1);
     }
     for (int pool: {2, 5}) {
@@ -249,7 +250,7 @@ void TriggerExecute(int id, bool, bool) { assert(id); ++calls["TriggerExecute"];
 void TriggerStop(int) { ++calls["TriggerStop"]; }
 int gf_CheckEnd() { ++calls["gf_CheckEnd"]; return endResult; }
 void gf_EndGame(int result) { assert(result==endResult); ++calls["gf_EndGame"]; }
-void gf_NightTransition() { ++calls["gf_NightTransition"]; }
+void gf_NightTransition() { assert(calls["protectionDelay5"]==1); ++calls["gf_NightTransition"]; }
 void gf_CBAllowDisallowChatting(int p, int mode) { chatting[p]=mode; }
 template<class T> void clearValue(T &v) { v=T{}; }
 template<class T, size_t N> void clearValue(T (&v)[N]) { for(auto &x:v) clearValue(x); }
@@ -257,6 +258,12 @@ template<class T, size_t N> void clearValue(T (&v)[N]) { for(auto &x:v) clearVal
 void gf_ASStartVote() { ++calls["gf_ASStartVote"]; gv_voteOn=true; }
 void Wait(fixed duration, int) {
     ++calls["Wait"];
+    if (duration==5.0) {
+        assert(gv_dayOver && !gv_dayActions && !gv_voteOn);
+        assert(!calls["gf_NightTransition"] && !calls["protectionDelay5"]);
+        ++calls["protectionDelay5"];
+    }
+
     if (duration==0.4) {
         ++releaseWaits;
         assert(gv_trialOn && !gv_voteOn);
@@ -280,11 +287,21 @@ void reset(int pool=2) {
 void arm(int pool=2) {
     reset(pool); gv_visitation[1]=15; gf_LSNight(1);
     assert(gv_lsDay[1]==3 && gv_lsTarget[1]==15 && !gv_lsUsed[1]);
+    for(int p=1;p<=15;++p) for(int i=0;i<=10;++i) assert(!gv_e78AAFE7BDAAE4BA8BE5AE9E[p][i]);
     gv_dayNumber=3; gv_isNight=false; calls.clear(); messages.clear();
 }
 void trial(int target=15) { gv_trialOn=true; gv_onTrial=target; gv_voteOn=false; }
-int usedCount() { return std::count(gv_lsUsed+1,gv_lsUsed+16,true); }
+int usedCount() {
+    // Success records only the provider, never the target or unused co-provider.
+    for(int p=1;p<=15;++p) {
+        assert(gv_e78AAFE7BDAAE4BA8BE5AE9E[p][10]==gv_lsUsed[p]);
+        for(int i=0;i<10;++i) assert(!gv_e78AAFE7BDAAE4BA8BE5AE9E[p][i]);
+    }
+
+    return std::count(gv_lsUsed+1,gv_lsUsed+16,true);
+}
 void expectMessage(string key) {
+    assert(usedCount()==1);
     assert(messages.size()==15);
     for(int p=1;p<=15;++p) assert(messages[p-1]==std::make_pair("Param/Value/"+key,p));
 }
@@ -438,7 +455,7 @@ int main() {
         }
     }
 ''' + hook_tests + r'''
-    std::cout << "PASS: actual lawyer bodies, bounds, picks/UI, visit/expiry, blockers, lifetime, duplicates, modes, async transition, release-wait expiry" << std::endl;
+    std::cout << "PASS: actual lawyer bodies, bounds, picks/UI, visit/expiry, blockers, lifetime, duplicates, success-only provider crime, modes, five-second transition, release-wait expiry" << std::endl;
 }
 '''
 

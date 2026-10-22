@@ -88368,7 +88368,7 @@ bool gt_BHItalicTest_Init () {
 // 案底索引（gv_e78AAFE7BDAAE4BA8BE5AE9E[玩家][罪名]，bool[16][11]，下标 0..10）：
 //   [0] 非法闯入        [1] 谋杀（和谐「谋爱」）   [4] 限制类标记（限制者自己留下）
 //   [2] [3] [5] [6] [8] [9] 语义未逐条命名（[8]=越狱相关为实证推测）；[7]=腐败（市长/执法长/审计官/煽动家揭示）
-//   [10] 操纵审判（仲裁者裁决落下时写入）
+//   [10] 操纵审判（仲裁者裁决落下、律师/大状成功阻止白天处死时写入）
 //   新角色要加新罪名前必须先扩容数组维度 + 调查端逐条判定 + 文案表，见记忆 745。
 
 // 访问：全脚本唯一的 gv_visitation 写入口
@@ -106822,6 +106822,7 @@ bool gf_LSConsume (int lp_player) {
     for ( ; ( (autoLSCO_ai >= 0 && lv_a <= autoLSCO_ae) || (autoLSCO_ai < 0 && lv_a >= autoLSCO_ae) ) ; lv_a += autoLSCO_ai ) {
         if ((gv_lsUsed[lv_a] == false) && (gv_lsDay[lv_a] == gv_dayNumber) && (gv_lsTarget[lv_a] == lp_player)) {
             gv_lsUsed[lv_a] = true;
+            gf_BHCrime(lv_a, 10); // 只有成功挡下处死的保护者留下「操纵审判」。
             gv_lsSparedDay[lp_player] = gv_dayNumber;
             return true;
         }
@@ -106922,7 +106923,7 @@ bool gf_LSEndDayThread (bool testConds, bool runActions) {
     }
 
     CinematicFade(false, 1.0, c_fadeStyleNormal, Color(0.00, 0.00, 0.00), 0.0, false);
-    Wait(1.0, c_timeGame);
+    Wait(5.0, c_timeGame); // 保留辩护反馈五秒；投票/白天行为已关闭，旧审判线程已停止。
     gf_NightTransition();
     return true;
 }
