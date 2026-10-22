@@ -294,6 +294,20 @@ def write_cover(archive: Path, stem: str) -> list[str]:
 
 # 必须在包内 zhCN 表里能查到的自加键（缺任一 → 界面会显示原始键名）
 MUST_HAVE_KEYS = [
+    # 陷阱师 / 天工
+    'Param/Value/XJSNAME',
+    'Param/Value/TGNAME',
+    'Param/Value/XJSDESC',
+    'Param/Value/TGDESC',
+    'Param/Value/XJSTAG',
+    'Param/Value/TGTAG',
+    'Param/Value/XJSBOX4',
+    'Param/Value/TGBOX4',
+    'Param/Value/XJSBOX2',
+    'Param/Value/TGBOX2',
+    'Param/Value/XJSREST',
+    'Param/Value/XJSCRIME',
+
     'Param/Value/BHADMINNAME',
     # shw254 保存格位（4 槽位 + 命名）
     'Param/Value/SHWSLOT1',

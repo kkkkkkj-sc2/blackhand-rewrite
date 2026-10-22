@@ -333,6 +333,11 @@
      "role": 19,
      "prefix": "351B78DC",
      "suffix": "953CBFCE"
+    },
+    {
+     "role": 20,
+     "prefix": "EE826AA7",
+     "suffix": "4454DB34"
     }
    ]
   },
@@ -506,6 +511,11 @@
      "role": 19,
      "prefix": "D2FB1014",
      "suffix": "603CFA9F"
+    },
+    {
+     "role": 20,
+     "prefix": "296C38E2",
+     "suffix": "42808A5D"
     }
    ]
   },

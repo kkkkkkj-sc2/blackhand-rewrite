@@ -1,0 +1,34 @@
+{
+  "pool": 5,
+  "role": 20,
+  "pinyin": "tiangong",
+  "cn": "天工",
+  "name_key": "TGNAME",
+  "desc_key": "TGDESC",
+  "investigator": [
+    "E4B88DE696ADE7A7BBE58AA81",
+    "E4B88DE696ADE7A7BBE58AA82"
+  ],
+  "crime_key": "XJSCRIME",
+  "options": [],
+  "flag10": false,
+  "guessable": true,
+  "help_preview": null,
+  "interactions": {
+    "swap": {
+      "text": "同护林人：免疫巴士司机，女巫仍可改变实际访问目标。"
+    },
+    "investigate": {
+      "text": "同护林人不动组；记录实际访问，警长依阵营查出，成功攻击记谋杀。"
+    },
+    "restrict": {
+      "text": "可被限制或关押；阻止新布置，不扣次数、不产生间隔；既有陷阱照常结算。"
+    },
+    "guessage": {
+      "text": "审查页下标18映射至角色20。",
+      "in_guess_list": true
+    }
+  },
+  "note": "支援、致命。最多两次陷阱布置，无自动制作/补充。首夜禁用；成功布置后下一晚冷却，第N+2晚可再布置；陷阱含布置当夜最多两晚。沿用护林人的访问、治疗、保镖、免疫和死因T。默认随机权重0，手动自设可用，可调权重进入全体/本阵营/支援/致命随机。",
+  "review_status": "draft"
+}
