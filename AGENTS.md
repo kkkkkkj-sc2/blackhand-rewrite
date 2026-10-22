@@ -107,7 +107,7 @@ git add -A && git -c user.name="mon3stera" -c user.email="mon3stera@users.norepl
 | 背景介绍 | **白色正文**，一段 | `影武者是一名隐于市井的杀手……` |
 | 能力介绍 | 空两行后接 **天蓝色** `<c val="BBDDFF">…</c>` | `<n/><n/><c val="BBDDFF">每晚选择两名玩家……</c>` |
 
-角色名颜色按阵营：城镇青绿 / 黑手党红 / 三合会黄 / 中立按主题（影武者 = 银灰 `C0C0C0`）/ 随机组灰。
+角色名颜色按阵营：城镇青绿 / 黑手党红、橙红、玫红 / 三合会蓝、蓝紫（不是黄）/ 中立按主题（影武者 = 银灰 `C0C0C0`）/ 随机组灰；新角色以现行 GameStrings 配色为准。
 
 **渐变色名称（shw131/132，用户要求）**：`<c val="上色-下色">` 支持上下渐变，但**每段必须是 8 位 ARGB**（如天选者 `FFFFFF99-FFFF8800`）——**6 位色值（`FFFF99-FF8800`）是非法标签，会让整张地图「无法运行游戏」**（shw131 事故：GameStrings 里一条非法文本标签 = 地图加载失败，且无 ScriptError）。名称色等用户验收；若 8 位仍不渲染渐变再回退单色。
 
@@ -117,7 +117,7 @@ git add -A && git -c user.name="mon3stera" -c user.email="mon3stera@users.norepl
 
 留下不改的「爱」：可爱了、亲爱的、挚爱、你的爱吧、相爱。不要把这些再改成杀。
 
-仍被打包替换的是另外四个词（`HARMONIZE_PAIRS`，只动 `=` 右侧）：`黑手党→黑手D` / `间谍→jian谍` / `政府→zf` / `邪→协`。覆盖整张 zhCN 与 `DocumentHeader` 里的加载页面文本。要调词表只改 `tools/bh_meta.py`。
+**游戏内和谐文本已经还原；今后新文案直接写「黑手党」**（用户 2026-10-22 明确），不要再写「黑手D」。现行 `bh_meta.harmonize_text` 对游戏内键使用 `GAME_RESTORE`，将黑手D、jian谍、zf、协教等替身还原为黑手党、间谍、政府、邪教等原词。**地图详情 `DocInfo/*` 与加载页 `LoadingScreen/*` 仍保留现有独立策略**，只有这两类继续使用 `HARMONIZE_PAIRS`（黑手党→黑手D / 间谍→jian谍 / 政府→zf / 邪→协）；不要把这套替换重新施加到整张 zhCN。词表唯一实现仍在 `tools/bh_meta.py`。
 
 - **自加文案不要再写爱死、爱手、谋爱、击爱**；写成杀死、杀手、谋杀、击杀。案底写法 = `非法闯入，谋杀`。
 

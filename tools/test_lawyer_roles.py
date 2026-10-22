@@ -67,9 +67,6 @@ def integration(source: str) -> tuple[list[str], list[tuple[str, int]]]:
             assert chosen > pos and js > pos, (name, 'lawyer must precede chosen/JS')
             assert 'gf_TXProtected' not in guard, (name, 'do not skip chosen targets')
             expected_mode = 0 if name == 'gt_Exeq_Func' else 2 if 'TrialVoteResults' in name else 3 if name == 'gt_DaySequence_Func' else 1
-            # CheckVoteWin has a day-expired plurality branch, distinct from normal direct executions.
-            if name == 'auto_gf_CheckVoteWin_TriggerFunc' and index == 3:
-                expected_mode = 3
             assert mode == expected_mode, (name, index, mode, expected_mode)
             label = f'hook_{len(cases)}'
             fragments.append(f'bool {label}(int {target}) {{\n{guard}\n++calls["fallback"]; return false;\n}}')
@@ -90,13 +87,19 @@ def integration(source: str) -> tuple[list[str], list[tuple[str, int]]]:
             assert body.index(guilty) < body.index('gf_TXProtected('), 'chosen redirection ran before lawyer'
             fragments.append('bool guiltyHook(int lp_player) {\n' + guilty + '\n++calls["fallback"]; return false;\n}')
 
+    dispatcher = function(source, 'gf_EExecution')
+    guard_pos, guard = blocks(dispatcher, 'gf_LSTrySpare(')[0]
+    assert 'gf_LSTrySpare(lp_player, 0)' in guard and re.search(r'return\s*;', guard)
+    assert guard_pos < dispatcher.index('auto_gf_EExecution_lp_player ='), 'dispatcher must guard before publishing argument'
+    fragments.append('void dispatcherHook(int lp_player) {\n' + guard + '\n++calls["fallback"];\n}')
+
     assert total == 9
     all_calls = len(re.findall(r'^\s+gf_EExecution\(', source, re.M))
     assert all_calls == total, ('new execution site needs lawyer coverage', all_calls)
     for setup in ('gf_RSMafiaSetup2', 'gf_RSTriadSetup'):
         assert 'gf_RALawyerActions(lv_a)' in function(source, setup), setup
 
-    for click in ('gt_ASActionButtonAMafia_Func', 'gt_ASActionButtonATriad_Func'):
+    for click in ('gt_ASActionButtonAMafia2_Func', 'gt_ASActionButtonATriad2_Func'):
         assert 'gf_LSPick(lv_source, lv_target)' in function(source, click), click
 
     night = function(source, 'gf_SequenceKills')
@@ -108,25 +111,30 @@ def integration(source: str) -> tuple[list[str], list[tuple[str, int]]]:
         assert f'gf_BHRoleFitsKind(gv_rolesArray[lv_x], {pool}, 21)' in function(source, 'gf_OSRandomizeMatrix')
 
     assert not re.search(r'gv_bankRoleAchievements\[[^;\n]+\]\[21\]', source), 'role21 bank array out of bounds'
+    for card in ('gf_RTMafiaRoleText', 'gf_RTTriadRoleText'):
+        role_blocks = blocks(function(source, card), 'gv_roles[lv_a][0] == 21')
+        assert len(role_blocks) == 1, (card, 'missing/duplicate lawyer card')
+        assert 'gv_bankRoleAchievements' not in role_blocks[0][1], (card, 'role21 bank access')
+
     print('PASS: nine execution guards, marshal pre-count, guilty-before-chosen, setup/click/night/random wiring', flush=True)
     return fragments, cases
 
 
 def harness(source: str, core: str, integrated: bool) -> str:
     bodies = [function(core, name) for name in CORE]
+    # Galaxy callbacks interleave only at yielding calls. The claim/cache write
+    # must stay atomic; OS threads would model a different execution engine.
+    for name in ('gf_LSProtected', 'gf_LSConsume'):
+        assert not re.search(r'\b(?:Wait|TriggerExecute)\s*\(', function(core, name)), (name, 'yield inside claim')
+
     assert re.search(r'gf_LSTrySpare\s*\(int \w+,\s*int \w+\)', bodies[-1]), 'gf_LSTrySpare requires int mode'
     bodies += [function(source, name) for name in ('gf_RANoActions', 'gf_TXResumeDay')]
     hooks, hook_cases = integration(source) if integrated else ([], [])
     bodies += hooks
     if integrated:
-        fit = function(source, 'gf_BHRoleFitsKind')
-        clauses = []
-        for pool in (2, 5):
-            found = blocks(fit, f'lp_pool == {pool}')
-            clause = next((block for _, block in found if 'lp_role == 21' in block.split('{', 1)[0]), None)
-            assert clause, ('support random classification', pool)
-            clauses.append(clause)
-        bodies += ['bool lawyerFits(int lp_kind, int lp_pool, int lp_role) {\n' + '\n'.join(clauses) + '\nreturn false;\n}']
+        # Keep the complete function: extracting role clauses would hide an early
+        # return false accidentally inserted before the newly registered roles.
+        bodies.append(function(source, 'gf_BHRoleFitsKind'))
 
     code = '\n\n'.join(bodies)
     code = re.sub(r'\b(int|bool|text|string)((?:\[\d+\])+)( +)(\w+)', r'\1\3\4\2', code)
@@ -164,25 +172,32 @@ def harness(source: str, core: str, integrated: bool) -> str:
         'TextWithColor', 'PlayerGroupSingle', 'PlayerGroupAll', 'PlayerGroupHasPlayer',
         'PlayerGroupNextPlayer', 'DialogControlSetVisible', 'gf_CBSystemMessage',
         'TriggerCreate', 'TriggerExecute', 'TriggerStop', 'gf_CheckEnd', 'gf_EndGame',
-        'gf_NightTransition', 'gf_ASStartVote', 'gf_CBAllowDisallowChatting',
+        'gf_NightTransition', 'gf_ASStartVote', 'gf_CBAllowDisallowChatting', 'Wait',
     }
     stubs = '\n'.join(f'template<class... A> int {n}(A...) {{ ++calls["{n}"]; return 0; }}' for n in sorted(called - defined - special))
     constants = '\n'.join(f'constexpr int {n} = {i};' for i, n in enumerate(sorted(set(re.findall(r'\b(?:c|ge)_\w+', code)) | {'ge_Allow_Allow', 'ge_Allow_Disallow'}), 1))
     hook_tests = '\n'.join(f'    checkHook({label}, {mode});' for label, mode in hook_cases)
     if integrated:
         hook_tests += r'''
-    for (int guilty: {0, 1, 2}) {
-        arm(); gv_trialVotes[0] = guilty; gv_trialVotes[1] = 1;
-        assert(guiltyHook(15) == (guilty > 1));
-        assert(gv_lsUsed[1] == (guilty > 1));
-        if (guilty <= 1) assert(messages.empty() && pending.empty() && calls["fallback"] == 1);
+    arm(); dispatcherHook(15); assert(usedCount()==1 && !calls["fallback"]);
+    reset(); gv_isNight=false; dispatcherHook(15); assert(calls["fallback"]==1 && messages.empty());
+    for (auto votes: {std::pair<int,int>{0,0}, {0,1}, {1,1}, {2,1}}) {
+        arm(); gv_trialVotes[0] = votes.first; gv_trialVotes[1] = votes.second;
+        bool guilty=votes.first>votes.second;
+        assert(guiltyHook(15) == guilty);
+        assert(gv_lsUsed[1] == guilty);
+        if (!guilty) assert(messages.empty() && pending.empty() && calls["fallback"] == 1);
     }
     for (int pool: {2, 5}) {
         reset(pool);
-        assert(lawyerFits(1,pool,21));
-        // Global nonlethal/support seat; never deadly seat. Faction support = 11/15.
-        assert(lawyerFits(6,pool,21));
-        assert(!lawyerFits(8,pool,21));
+        assert(gf_BHRoleFitsKind(1,pool,21));
+        assert(gf_BHRoleFitsKind(pool==2?3:15,pool,21));
+        assert(gf_BHRoleFitsKind(pool==2?10:17,pool,21));
+        assert(!gf_BHRoleFitsKind(pool==2?9:16,pool,21));
+        assert(!gf_BHRoleFitsKind(pool==2?11:18,pool,21));
+        // Excluding killers must not exclude this nonlethal supporting role.
+        gv_roleOptions[4][1][0]=true;
+        assert(gf_BHRoleFitsKind(1,pool,21));
     }
 '''
 
@@ -212,7 +227,8 @@ std::map<std::pair<int,int>,bool> visible;
 std::map<int,int> chatting;
 std::vector<std::pair<string,int>> messages;
 std::vector<int> pending;
-int nextTrigger = 100, endResult = 0;
+int nextTrigger = 100, endResult = 0, releaseWaits = 0;
+bool expireOnWait = false;
 string StringExternal(string s) { return s; }
 string StringToText(string s) { return s; }
 string IntToText(int i) { return std::to_string(i); }
@@ -239,10 +255,20 @@ template<class T> void clearValue(T &v) { v=T{}; }
 template<class T, size_t N> void clearValue(T (&v)[N]) { for(auto &x:v) clearValue(x); }
 ''' + globals_text + '\n' + constants + r'''
 void gf_ASStartVote() { ++calls["gf_ASStartVote"]; gv_voteOn=true; }
+void Wait(fixed duration, int) {
+    ++calls["Wait"];
+    if (duration==0.4) {
+        ++releaseWaits;
+        assert(gv_trialOn && !gv_voteOn);
+        assert(!calls["gf_ASStartVote"]);
+        if (expireOnWait) { gv_dayOver=true; expireOnWait=false; }
+    }
+}
 ''' + stubs + '\n' + headers + '\n' + code + r'''
 void reset(int pool=2) {
 ''' + resets + r'''
     calls.clear(); visible.clear(); messages.clear(); chatting.clear(); pending.clear(); endResult=0; nextTrigger=100;
+    expireOnWait=false; releaseWaits=0;
     gv_alivePlayers=PlayerGroupAll(); gv_currentPlayers=PlayerGroupAll();
     gv_dayNumber=2; gv_isNight=true; gv_dayActions=true; gv_voteOn=true; gt_DaySequence=77;
     for(int p=1;p<=15;++p) {
@@ -284,7 +310,9 @@ int main() {
         for(int other: {1,3,4}) { gv_roles[1][1]=other; assert(!gf_LSIs(1)); }
         reset(pool); gv_roles[1][0]=20; assert(!gf_LSIs(1));
         // UI includes self, friends and enemies; selection is toggle, never a spend.
-        reset(pool); gv_alivePlayers &= ~PlayerGroupSingle(14); gf_RALawyerActions(1);
+        reset(pool); gv_alivePlayers &= ~PlayerGroupSingle(14);
+        gv_roles[2][1]=pool; gv_roles[15][1]=pool==2?5:2;
+        gf_RALawyerActions(1);
         for(int p=1;p<=15;++p) assert(visible[std::make_pair(p*10+5,1)]==(p!=14));
         assert(gv_variableOptions[1][0]==1);
         for(int target: {1,2,15}) {
@@ -307,8 +335,10 @@ int main() {
         // Cast follows actual visitation (bus/witch), stamps next day, not clicked target.
         reset(pool); gf_LSPick(1,14); gv_visitation[1]=15; gf_LSNight(1);
         assert(gv_lsTarget[1]==15 && gv_lsDay[1]==3 && !gv_lsUsed[1]);
-        assert(!gf_LSProtected(15)); gv_dayNumber=3; assert(!gf_LSProtected(15));
+        assert(!gf_LSProtected(15)); gv_dayNumber=3;
+        assert(!gf_LSProtected(15) && !gf_LSConsume(15) && !gv_lsUsed[1]);
         gv_isNight=false; assert(gf_LSProtected(15) && !gv_lsUsed[1]);
+        gv_dayNumber=0; assert(!gf_LSProtected(15)); gv_dayNumber=3;
         gv_gameOver=true; assert(!gf_LSProtected(15)); gv_gameOver=false;
         gv_dayNumber=4; assert(!gf_LSProtected(15) && !gv_lsUsed[1]);
         // Failed actors/targets clear stale casts without spending their lifetime use.
@@ -329,6 +359,12 @@ int main() {
         }
         arm(pool); gv_dayNumber=4; gv_isNight=true; gv_visitation[1]=0; gf_LSNight(1);
         gv_dayNumber=5; gv_isNight=false; assert(!gf_LSProtected(15) && !gv_lsUsed[1]);
+        // A no-execution day spends nothing; a fresh next-night choice protects only its new target.
+        arm(pool); gv_dayNumber=3; gv_isNight=true; gv_visitation[1]=14; gf_LSNight(1);
+        gv_dayNumber=4; gv_isNight=false;
+        assert(!gf_LSProtected(15) && gf_LSProtected(14) && !gv_lsUsed[1]);
+        reset(pool); gv_visitation[1]=1; gf_LSNight(1); gv_dayNumber=3; gv_isNight=false;
+        assert(gf_LSConsume(1) && gv_lsUsed[1]);
         // Protection survives owner death/conversion and target faction is unrestricted.
         for(int owner=0;owner<3;++owner) for(int faction: {1,2,3,5}) {
             arm(pool); gv_roles[15][1]=faction;
@@ -342,7 +378,10 @@ int main() {
         arm(pool); gv_lsTarget[2]=15; gv_lsDay[2]=3;
         for(int i=0;i<100;++i) assert(gf_LSConsume(15));
         assert(usedCount()==1 && gv_lsSparedDay[15]==3);
-        gv_dayNumber=4; assert(!gf_LSConsume(15) && usedCount()==1);
+        int remaining=gv_lsUsed[1]?2:1;
+        gv_lsTarget[remaining]=14;
+        assert(gf_LSConsume(14) && usedCount()==2 && gv_lsSparedDay[14]==3);
+        gv_dayNumber=4; assert(!gf_LSConsume(15) && usedCount()==2);
         gv_isNight=true; gv_dayNumber=4; gv_visitation[1]=14; gf_LSNight(1);
         assert(!gv_lsTarget[1]); gv_dayNumber=5; gv_isNight=false; assert(!gf_LSProtected(14));
         // Every mode is inert without protection, including invalid targets and night.
@@ -363,12 +402,34 @@ int main() {
             assert(calls["gf_ASStartVote"]==1 && !calls["gf_NightTransition"] && pending.empty());
             for(int p=1;p<=15;++p) assert(chatting[p]==ge_Allow_Allow);
         }
+        // Mode1 cannot resume voting if the day expired before it was called,
+        // or expires while the defendant is lowered from either burrow pose.
+        for(int pose: {0,1}) for(bool duringWait: {false,true}) {
+            arm(pool); trial(); gv_e59F8BE59CB0[15][pose]=true;
+            gv_dayOver=!duringWait; expireOnWait=duringWait;
+            assert(gf_LSTrySpare(15,1)); expectMessage("LSBLOCK");
+            assert(usedCount()==1 && !gv_voteOn && !gv_dayActions && gv_dayOver);
+            assert(!calls["gf_ASStartVote"] && !calls["gf_NightTransition"] && pending.size()==1);
+            assert(releaseWaits==(duringWait?1:0));
+            drain();
+            assert(!gv_trialOn && !gv_voteOn && !calls["gf_ASStartVote"]);
+            assert(calls["gf_NightTransition"]==1 && usedCount()==1 && pending.empty());
+            gf_LSEndDay(15);
+            assert(pending.empty() && calls["gf_NightTransition"]==1);
+        }
         for(int mode: {2,3}) {
             arm(pool); trial(); gv_executionCount=2;
             assert(gf_LSTrySpare(15,mode)); expectMessage(mode==2?"LSDEFENSE":"LSBLOCK");
             assert(usedCount()==1 && gv_executionCount==2);
             assert(!calls["gf_NightTransition"] && pending.size()==1);
             assert(!gv_voteOn && gv_dayOver && !gv_dayActions);
+            // Another callback arriving before the dedicated trigger runs must
+            // abort without charging another provider or reopening the day.
+            gv_lsTarget[2]=14; gv_lsDay[2]=gv_dayNumber;
+            assert(gf_LSTrySpare(14,1) && usedCount()==1 && pending.size()==1);
+            assert(messages.size()==15 && !gv_voteOn && !gv_dayActions);
+            auto beforeNoActions=calls;
+            assert(gf_LSEndDayThread(false,false) && calls==beforeNoActions && pending.size()==1);
             drain(); assert(!gv_trialOn && calls["gf_NightTransition"]==1 && !calls["gf_EndGame"]);
             gf_LSEndDay(15); assert(pending.empty() && calls["gf_NightTransition"]==1);
             arm(pool); trial(); endResult=7;
@@ -377,7 +438,7 @@ int main() {
         }
     }
 ''' + hook_tests + r'''
-    std::cout << "PASS: actual lawyer bodies, bounds, picks/UI, visit/expiry, blockers, lifetime, duplicates, modes, async transition" << std::endl;
+    std::cout << "PASS: actual lawyer bodies, bounds, picks/UI, visit/expiry, blockers, lifetime, duplicates, modes, async transition, release-wait expiry" << std::endl;
 }
 '''
 
