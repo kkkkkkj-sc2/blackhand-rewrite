@@ -337,6 +337,8 @@ MUST_HAVE_KEYS = [
     'Param/Value/DZBOX4',
     'Param/Value/LSABILITY',
     'Param/Value/LSBOX2',
+    'Param/Value/LSCONVERT',
+    'Param/Value/DZCONVERT',
     'Param/Value/LSCRIME',
     'Param/Value/LSSELECT',
     'Param/Value/LSWILL',
