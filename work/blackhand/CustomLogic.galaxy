@@ -106998,19 +106998,18 @@ bool gf_LSEndDayThread (bool testConds, bool runActions) {
 
     gv_trialOn = false;
     gv_tieTicker = 0;
-    if ((gv_trialPausesDay == true) || (gv_marshalled == true)) {
-        TimerPause(gv_overtimer, false);
-        GameTimeOfDaySetLength(gv_tempLength);
-    }
-
+    // 像休庭一样停住白天：先让所有人看清辩护，再交给正常夜晚转场。
+    // 不覆盖 gv_tempLength；夜晚入口会重新设置昼夜时长。
+    TimerPause(gv_overtimer, true);
+    GameTimeOfDaySetLength(90001.0);
     UIClearMessages(PlayerGroupAll(), c_messageAreaDirective);
     gf_LSRelease(lp_player);
     gf_ASEndActions();
     lv_a = 1;
     for ( ; ( (autoLSED_ai >= 0 && lv_a <= autoLSED_ae) || (autoLSED_ai < 0 && lv_a >= autoLSED_ae) ) ; lv_a += autoLSED_ai ) {
         if ((PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true)) {
+            // 只关闭输入，不压暗刚播出的辩护提示。
             gf_CBAllowDisallowChatting(lv_a, ge_Allow_Disallow);
-            gf_CBDimChat(lv_a);
         }
     }
 
@@ -107019,8 +107018,13 @@ bool gf_LSEndDayThread (bool testConds, bool runActions) {
         return true;
     }
 
-    CinematicFade(false, 1.0, c_fadeStyleNormal, Color(0.00, 0.00, 0.00), 0.0, false);
-    Wait(5.0, c_timeGame); // 保留辩护反馈五秒；投票/白天行为已关闭，旧审判线程已停止。
+    // 五秒停顿期间保持白天画面与聊天亮色；变暗/黑屏由夜晚入口统一处理。
+    Wait(5.0, c_timeGame);
+    if ((gv_gameOver == true) || (gv_isNight == true)) {
+        return true;
+    }
+
+    TimerPause(gv_overtimer, false);
     gf_NightTransition();
     return true;
 }

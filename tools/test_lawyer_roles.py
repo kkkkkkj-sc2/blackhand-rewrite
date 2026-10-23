@@ -120,7 +120,40 @@ def integration(source: str) -> tuple[list[str], list[tuple[str, int]]]:
     return fragments, cases
 
 
+def transition_contract(core: str) -> None:
+    """The dedicated thread freezes daylight; only NightTransition may darken it."""
+    body = function(core, 'gf_LSEndDayThread')
+    live = re.sub(r'//[^\n]*', '', body)
+    assert not re.search(r'\b(?:CinematicFade|gf_CBDimChat)\s*\(', live), 'defense feedback must remain bright'
+    assert not re.search(r'\bgv_tempLength\s*=(?!=)', live), 'do not overwrite saved daylight length'
+    assert 'gv_trialPausesDay' not in live and 'gv_marshalled' not in live, 'freeze daylight unconditionally'
+    ordered = (
+        r'TriggerStop\(gt_DaySequence\)',
+        r'TimerPause\(gv_overtimer,\s*true\)',
+        r'GameTimeOfDaySetLength\(90001\.0\)',
+        r'gf_LSRelease\(lp_player\)',
+        r'gf_ASEndActions\(\)',
+        r'gf_CBAllowDisallowChatting\(lv_a,\s*ge_Allow_Disallow\)',
+        r'gf_CheckEnd\(\)',
+        r'Wait\(5\.0,\s*c_timeGame\)',
+        r'TimerPause\(gv_overtimer,\s*false\)',
+        r'gf_NightTransition\(\)',
+    )
+    cursor = 0
+    for pattern in ordered:
+        match = re.search(pattern, live[cursor:])
+        assert match, ('missing/out-of-order transition boundary', pattern)
+        cursor += match.end()
+
+    after_wait = live[live.index('Wait(5.0,'):live.index('gf_NightTransition()')]
+    guards = blocks(after_wait, 'gv_gameOver')
+    assert any('gv_isNight' in guard and re.search(r'return\s+true\s*;', guard)
+               for _, guard in guards), 'recheck game-over/night after yielding'
+    assert len(re.findall(r'\bWait\s*\(', live)) == 1, 'exactly one five-second feedback delay'
+
+
 def harness(source: str, core: str, integrated: bool) -> str:
+    transition_contract(core)
     bodies = [function(core, name) for name in CORE]
     # Galaxy callbacks interleave only at yielding calls. The claim/cache write
     # must stay atomic; OS threads would model a different execution engine.
@@ -128,7 +161,7 @@ def harness(source: str, core: str, integrated: bool) -> str:
         assert not re.search(r'\b(?:Wait|TriggerExecute)\s*\(', function(core, name)), (name, 'yield inside claim')
 
     assert re.search(r'gf_LSTrySpare\s*\(int \w+,\s*int \w+\)', bodies[-1]), 'gf_LSTrySpare requires int mode'
-    bodies += [function(source, name) for name in ('gf_RANoActions', 'gf_TXResumeDay', 'gf_BHCrime')]
+    bodies += [function(source, name) for name in ('gf_RANoActions', 'gf_TXResumeDay', 'gf_BHCrime', 'gf_TBEndTimer')]
     hooks, hook_cases = integration(source) if integrated else ([], [])
     bodies += hooks
     if integrated:
@@ -145,6 +178,7 @@ def harness(source: str, core: str, integrated: bool) -> str:
         'gv_trialVotes', 'gv_executionCount', 'gv_unit', 'gv_playerLocation',
         'gv_lsUsed', 'gv_lsTarget', 'gv_lsDay', 'gv_lsSparedDay',
         'gv_lsEndDay', 'gv_lsEndPlayer', 'gv_lsEndTrigger', 'gt_DaySequence',
+        'gv_timer', 'gv_overtimer', 'gv_tempLength', 'gv_trialPausesDay', 'gv_marshalled',
     }
     declarations = {}
     for match in re.finditer(r'^(\w+)((?:\[\d+\])*) +((?:gv|gt)_\w+|auto_gf_\w+_Trigger)\s*(?:=[^;]*)?;', source + '\n' + core, re.M):
@@ -173,6 +207,7 @@ def harness(source: str, core: str, integrated: bool) -> str:
         'PlayerGroupNextPlayer', 'DialogControlSetVisible', 'gf_CBSystemMessage',
         'TriggerCreate', 'TriggerExecute', 'TriggerStop', 'gf_CheckEnd', 'gf_EndGame',
         'gf_NightTransition', 'gf_ASStartVote', 'gf_CBAllowDisallowChatting', 'Wait',
+        'TimerPause', 'GameTimeOfDaySetLength', 'CinematicFade', 'gf_CBDimChat',
     }
     stubs = '\n'.join(f'template<class... A> int {n}(A...) {{ ++calls["{n}"]; return 0; }}' for n in sorted(called - defined - special))
     constants = '\n'.join(f'constexpr int {n} = {i};' for i, n in enumerate(sorted(set(re.findall(r'\b(?:c|ge)_\w+', code)) | {'ge_Allow_Allow', 'ge_Allow_Disallow'}), 1))
@@ -228,8 +263,13 @@ std::map<std::pair<int,int>,bool> visible;
 std::map<int,int> chatting;
 std::vector<std::pair<string,int>> messages;
 std::vector<int> pending;
+std::vector<string> events;
+std::map<int,bool> timerPaused, dimmed;
+std::vector<int> stopped;
 int nextTrigger = 100, endResult = 0, releaseWaits = 0;
-bool expireOnWait = false;
+bool expireOnWait = false, gameOverOnWait = false, nightOnWait = false;
+bool inEndDayThread = false, feedbackWaitCompleted = false, fadedOut = false;
+fixed daylightLength = 0.0, savedTempLength = 0.0, feedbackElapsed = 0.0;
 string StringExternal(string s) { return s; }
 string StringToText(string s) { return s; }
 string IntToText(int i) { return std::to_string(i); }
@@ -244,40 +284,120 @@ int PlayerGroupNextPlayer(int group, int p) {
 void DialogControlSetVisible(int control, int group, bool value) {
     for(int p=1; p<=15; ++p) if(PlayerGroupHasPlayer(group,p)) visible[{control,p}] = value;
 }
-template<class... A> void gf_CBSystemMessage(string value, int p, A...) { messages.emplace_back(value,p); }
+template<class... A> void gf_CBSystemMessage(string value, int p, A...) {
+    assert(!dimmed[p] && !fadedOut);
+    messages.emplace_back(value,p);
+    events.push_back("message:"+std::to_string(p));
+}
 int TriggerCreate(string name) { assert(name=="gf_LSEndDayThread"); ++calls["TriggerCreate"]; return ++nextTrigger; }
 void TriggerExecute(int id, bool, bool) { assert(id); ++calls["TriggerExecute"]; pending.push_back(id); }
-void TriggerStop(int) { ++calls["TriggerStop"]; }
-int gf_CheckEnd() { ++calls["gf_CheckEnd"]; return endResult; }
-void gf_EndGame(int result) { assert(result==endResult); ++calls["gf_EndGame"]; }
-void gf_NightTransition() { assert(calls["protectionDelay5"]==1); ++calls["gf_NightTransition"]; }
-void gf_CBAllowDisallowChatting(int p, int mode) { chatting[p]=mode; }
+void TriggerStop(int id) {
+    ++calls["TriggerStop"]; stopped.push_back(id);
+    events.push_back("stop:"+std::to_string(id));
+}
+int gf_CheckEnd() { ++calls["gf_CheckEnd"]; events.push_back("checkEnd"); return endResult; }
+void gf_EndGame(int result) { assert(result==endResult); ++calls["gf_EndGame"]; events.push_back("endGame"); }
+void gf_CBAllowDisallowChatting(int p, int mode) {
+    chatting[p]=mode;
+    events.push_back("chat:"+std::to_string(p));
+}
+void TimerPause(int id, bool value);
+void GameTimeOfDaySetLength(fixed length);
+template<class... A> void CinematicFade(bool fadeIn, A...) {
+    ++calls["CinematicFade"]; fadedOut=!fadeIn;
+    events.push_back(fadeIn?"fadeIn":"fadeOut");
+}
+void gf_CBDimChat(int p) {
+    ++calls["gf_CBDimChat"]; dimmed[p]=true;
+    events.push_back("dim:"+std::to_string(p));
+}
 template<class T> void clearValue(T &v) { v=T{}; }
 template<class T, size_t N> void clearValue(T (&v)[N]) { for(auto &x:v) clearValue(x); }
 ''' + globals_text + '\n' + constants + r'''
 void gf_ASStartVote() { ++calls["gf_ASStartVote"]; gv_voteOn=true; }
-void Wait(fixed duration, int) {
-    ++calls["Wait"];
-    if (duration==5.0) {
-        assert(gv_dayOver && !gv_dayActions && !gv_voteOn);
-        assert(!calls["gf_NightTransition"] && !calls["protectionDelay5"]);
-        ++calls["protectionDelay5"];
+void TimerPause(int id, bool value) {
+    if(inEndDayThread && id==gv_overtimer) {
+        assert(stopped==std::vector<int>({gt_DaySequence,auto_gf_Trial_Trigger,auto_gf_TrialVoteResults_Trigger}));
+        if(!value) {
+            assert(feedbackWaitCompleted && feedbackElapsed==5.0 && !gv_gameOver && !gv_isNight);
+            assert(events.back()=="wait5:end");
+        }
     }
 
-    if (duration==0.4) {
-        ++releaseWaits;
-        assert(gv_trialOn && !gv_voteOn);
-        assert(!calls["gf_ASStartVote"]);
-        if (expireOnWait) { gv_dayOver=true; expireOnWait=false; }
+    if(inEndDayThread && id==gv_timer) assert(timerPaused[gv_overtimer] && daylightLength==90001.0);
+    ++calls["TimerPause"]; timerPaused[id]=value;
+    events.push_back("timer:"+std::to_string(id)+(value?":pause":":resume"));
+}
+void GameTimeOfDaySetLength(fixed length) {
+    if(inEndDayThread) assert(length==90001.0 && timerPaused[gv_overtimer]);
+    ++calls["GameTimeOfDaySetLength"]; daylightLength=length;
+    events.push_back("daylight:"+std::to_string(length));
+}
+void assertBrightFeedback() {
+    assert(!fadedOut && !calls["CinematicFade"] && !calls["gf_CBDimChat"]);
+    assert(messages.size()==15);
+    for(int p=1; p<=15; ++p) {
+        assert(messages[p-1].second==p && !dimmed[p]);
+        assert(messages[p-1].first=="Param/Value/LSDEFENSE" || messages[p-1].first=="Param/Value/LSBLOCK");
     }
+}
+void assertFrozenDaylight() {
+    assert(timerPaused[gv_overtimer] && timerPaused[gv_timer]);
+    assert(daylightLength==90001.0 && gv_tempLength==savedTempLength);
+    assert(stopped==std::vector<int>({gt_DaySequence,auto_gf_Trial_Trigger,auto_gf_TrialVoteResults_Trigger}));
+    assertBrightFeedback();
+}
+void gf_NightTransition() {
+    assert(calls["protectionDelay5"]==1 && feedbackWaitCompleted && feedbackElapsed==5.0);
+    assert(!gv_gameOver && !gv_isNight && !timerPaused[gv_overtimer]);
+    assert(timerPaused[gv_timer] && daylightLength==90001.0 && gv_tempLength==savedTempLength);
+    assert(events.back()=="timer:"+std::to_string(gv_overtimer)+":resume");
+    assertBrightFeedback();
+    ++calls["gf_NightTransition"]; events.push_back("nightTransition");
+}
+void Wait(fixed duration, int clock) {
+    assert(clock==c_timeGame);
+    ++calls["Wait"];
+    if (duration==5.0) {
+        assert(inEndDayThread && gv_dayOver && !gv_dayActions && !gv_voteOn && !gv_trialOn);
+        assert(!calls["gf_NightTransition"] && !calls["protectionDelay5"]);
+        assert(calls["gf_ASEndActions"]==1 && calls["gf_CheckEnd"]==1);
+        assertFrozenDaylight();
+        for(int p=1; p<=15; ++p) assert(chatting[p]==ge_Allow_Disallow);
+        events.push_back("wait5:begin");
+        ++calls["protectionDelay5"]; feedbackElapsed+=duration;
+        if(gameOverOnWait) gv_gameOver=true;
+        if(nightOnWait) gv_isNight=true;
+        assertFrozenDaylight();
+        feedbackWaitCompleted=true;
+        events.push_back("wait5:end");
+        return;
+    }
+
+    assert(duration==0.4);
+    ++releaseWaits;
+    assert(gv_trialOn && !gv_voteOn && !calls["gf_ASStartVote"]);
+    assert(timerPaused[gv_timer]);
+    if(inEndDayThread) {
+        assertFrozenDaylight();
+        assert(!calls["protectionDelay5"] && !feedbackWaitCompleted);
+    }
+
+    events.push_back("wait0.4");
+    if(expireOnWait) { gv_dayOver=true; expireOnWait=false; }
 }
 ''' + stubs + '\n' + headers + '\n' + code + r'''
 void reset(int pool=2) {
 ''' + resets + r'''
     calls.clear(); visible.clear(); messages.clear(); chatting.clear(); pending.clear(); endResult=0; nextTrigger=100;
-    expireOnWait=false; releaseWaits=0;
+    events.clear(); timerPaused.clear(); dimmed.clear(); stopped.clear();
+    expireOnWait=false; gameOverOnWait=false; nightOnWait=false; releaseWaits=0;
+    inEndDayThread=false; feedbackWaitCompleted=false; fadedOut=false; feedbackElapsed=0.0;
+    gv_timer=91; gv_overtimer=92; gv_tempLength=123.0;
+    savedTempLength=gv_tempLength; daylightLength=gv_tempLength;
     gv_alivePlayers=PlayerGroupAll(); gv_currentPlayers=PlayerGroupAll();
     gv_dayNumber=2; gv_isNight=true; gv_dayActions=true; gv_voteOn=true; gt_DaySequence=77;
+    auto_gf_Trial_Trigger=78; auto_gf_TrialVoteResults_Trigger=79;
     for(int p=1;p<=15;++p) {
         gv_roles[p][0]=1; gv_roles[p][1]=1; gv_unit[p]=p; gv_playerLocation[p]=p;
         for(int i=0;i<7;++i) gv_actionDialogItem[p][i]=p*10+i;
@@ -307,7 +427,9 @@ void expectMessage(string key) {
 }
 void drain() {
     assert(pending.size()==1); pending.clear();
+    inEndDayThread=true;
     assert(gf_LSEndDayThread(false,true));
+    inEndDayThread=false;
 }
 using Hook = bool(*)(int);
 void checkHook(Hook hook, int mode) {
@@ -453,9 +575,50 @@ int main() {
             assert(gf_LSTrySpare(15,mode)); drain();
             assert(calls["gf_EndGame"]==1 && !calls["gf_NightTransition"]);
         }
+        // Exercise the actual end-day body for every entry mode, both timer
+        // policies, both marshal states, both burrow poses (also simultaneously),
+        // and each termination phase. Muting never dims the feedback messages.
+        for(int mode=0; mode<=3; ++mode) for(bool pauses: {false,true})
+        for(bool marshal: {false,true}) for(int pose=0; pose<4; ++pose)
+        for(int phase=0; phase<5; ++phase) {
+            arm(pool); trial();
+            gv_trialPausesDay=pauses; gv_marshalled=marshal;
+            timerPaused[gv_overtimer]=pauses || marshal;
+            daylightLength=(pauses || marshal)?90001.0:gv_tempLength;
+            gv_e59F8BE59CB0[15][0]=(pose & 1)!=0;
+            gv_e59F8BE59CB0[15][1]=(pose & 2)!=0;
+            if(mode<2) gv_dayOver=true;
+            assert(gf_LSTrySpare(15,mode));
+            expectMessage(mode==2?"LSDEFENSE":"LSBLOCK");
+            assert(!calls["gf_NightTransition"] && !calls["Wait"]);
+            if(phase==1) endResult=7;
+            if(phase==2) gv_gameOver=true; // Already ended before feedback wait.
+            gameOverOnWait=phase==3; nightOnWait=phase==4;
+            drain();
+            assert(usedCount()==1 && pending.empty() && !gv_trialOn && !gv_voteOn && !gv_dayActions);
+            assert(releaseWaits==((pose & 1)!=0)+((pose & 2)!=0));
+            assert(timerPaused[gv_timer] && gv_tempLength==savedTempLength);
+            assertBrightFeedback();
+            for(int p=1; p<=15; ++p) assert(chatting[p]==ge_Allow_Disallow);
+            if(phase==1) {
+                assert(calls["gf_EndGame"]==1 && !calls["protectionDelay5"]);
+                assert(!feedbackWaitCompleted && feedbackElapsed==0.0 && !calls["gf_NightTransition"]);
+                assertFrozenDaylight();
+            }
+            else {
+                assert(calls["protectionDelay5"]==1 && feedbackWaitCompleted && feedbackElapsed==5.0);
+                assert(!calls["gf_EndGame"] && calls["gf_NightTransition"]==(phase==0));
+                assert(calls["Wait"]==releaseWaits+1);
+                if(phase!=0) {
+                    assertFrozenDaylight();
+                    assert(events.back()=="wait5:end");
+                }
+            }
+        }
     }
 ''' + hook_tests + r'''
     std::cout << "PASS: actual lawyer bodies, bounds, picks/UI, visit/expiry, blockers, lifetime, duplicates, success-only provider crime, modes, five-second transition, release-wait expiry" << std::endl;
+    std::cout << "PASS: 640 bright-feedback cases (both pools, all modes, trial-pause/marshal, four burrow poses, five termination phases); real UI timer pause, frozen daylight, no fade/dim, no duplicate night" << std::endl;
 }
 '''
 
