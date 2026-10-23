@@ -2224,6 +2224,7 @@ void gf_BHSendWill (int lp_p);
 void gf_BHHiddenToggle (int lp_p, int lp_which);
 void gf_BHHiddenApply (int lp_p);
 void gf_ZJMorningDefer ();
+void gt_ZJMorning_Init ();
 string gf_BHItalicize (string lp_s);
 bool gf_BHNameLatinOnly (string lp_s);
 bool gt_BHItalicTest_Init ();

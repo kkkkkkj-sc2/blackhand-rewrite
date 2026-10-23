@@ -342,6 +342,49 @@ def lint(path: Path) -> int:
     else:
         print("✓ 无重复函数定义")
 
+    # ── 第 7 项：先调用后定义、且没有前向声明（2026-10-23 事故）──────────────
+    # Galaxy 单遍顺序解析：函数必须在**调用点之前**出现过（定义或 `void f ();` 前向声明），
+    # 否则引擎报「解析函数行出错，可能有无效的变量名/函数调用，或是函数结尾缺失」并
+    # **整个脚本读取失败**（地图进不去）。前六项都查不出这类问题 —— 每处单独看都合法。
+    TYPES = (r"(?:void|bool|int|fixed|string|text|unit|point|timer|trigger|region|"
+             r"playergroup|actor|soundlink|color|gamelink|wave|unitgroup|doodad|doodadgroup)")
+    defs: dict[str, int] = {}
+    decls: dict[str, int] = {}
+    code_lines: list[str] = []
+    for i, line in enumerate(lines):
+        code = strip_comment(line)
+        code_lines.append(code)
+        m = re.match(rf"^{TYPES}\s+(\w+)\s*\(", code)
+        if not m:
+            continue
+        name = m.group(1)
+        if code.rstrip().endswith(";"):
+            decls.setdefault(name, i + 1)
+        else:
+            defs.setdefault(name, i + 1)
+
+    CALL_KEYWORDS = {"if", "for", "while", "return", "else", "switch", "do", "break", "continue"}
+    early: list[tuple[int, str, int, int | None]] = []
+    for i, code in enumerate(code_lines):
+        if re.match(rf"^{TYPES}\s+\w+\s*\(", code):
+            continue
+        for m in re.finditer(r"\b(\w+)\s*\(", code):
+            name = m.group(1)
+            if name in CALL_KEYWORDS or name not in defs or defs[name] < i + 1:
+                continue
+            decl = decls.get(name)
+            if decl is not None and decl < i + 1:
+                continue
+            early.append((i + 1, name, defs[name], decl))
+
+    if early:
+        for line_no, name, d, decl in early[:10]:
+            print(f"✗ 行 {line_no} 调用了后定义的 {name}()（定义在 {d}，前向声明 "
+                  f"{'无' if decl is None else decl}）")
+        problems += len(early)
+    else:
+        print("✓ 无「先调用后定义且无前向声明」")
+
     print(f"{'✓' if not problems else '✗'} 扫描函数 {checked} 个，问题 {problems} 处")
     return 1 if problems else 0
 
