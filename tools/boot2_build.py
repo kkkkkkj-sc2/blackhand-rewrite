@@ -324,7 +324,7 @@ MUST_HAVE_KEYS = [
     'Param/Value/A51EA15F', 'Param/Value/B7F2DBC2', 'Param/Value/C84927BC',
     'Param/Value/C8AB6DDE', 'Param/Value/CF0DFBAB', 'Param/Value/CWINV2',
 
-    # 律师 / 大状
+    # 律师 / 状师
     'Param/Value/LSNAME',
     'Param/Value/DZNAME',
     'Param/Value/LSDESC',

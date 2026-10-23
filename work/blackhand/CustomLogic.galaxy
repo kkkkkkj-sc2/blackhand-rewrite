@@ -582,7 +582,7 @@ int[16][2] gv_hlLeft; // 该陷阱还剩几晚（含布置当夜）
 int[16][2] gv_hlFaction; // 布置时的阵营；转化或死亡不改变已布置陷阱的敌我
 int[16] gv_hlNextNight; // 陷阱师/天工下次可布置的夜晚编号
 bool[16] gv_hlGangInitialized;
-bool[16] gv_lsUsed; // 律师/大状整局成功辩护次数已耗尽
+bool[16] gv_lsUsed; // 律师/状师整局成功辩护次数已耗尽
 int[16] gv_lsTarget;
 int[16] gv_lsDay;
 int[16] gv_lsSparedDay; // 已成功辩护的目标当天仍不可被处死
@@ -6625,7 +6625,7 @@ void gf_InitializeOther () {
     gv_roleNameInput[5][18] = "zongshi";
     gv_roleNameInput[5][19] = "bawang";
     gv_roleNameInput[5][20] = "tiangong";
-    gv_roleNameInput[5][21] = "dazhuang";
+    gv_roleNameInput[5][21] = "zhuangshi";
     gv_houseList[0] = DoodadFromId(5);
     gv_houseList[1] = DoodadFromId(4);
     gv_houseList[2] = DoodadFromId(29);
@@ -13309,7 +13309,7 @@ void gf_SequenceKills () {
         }
 
     }
-    // 律师/大状先写入次日保护；已生效的保护不因稍后夜间死亡而失效。
+    // 律师/状师先写入次日保护；已生效的保护不因稍后夜间死亡而失效。
     lv_a = 1;
     for ( ; ( (auto458659E3_ai >= 0 && lv_a <= auto458659E3_ae) || (auto458659E3_ai < 0 && lv_a >= auto458659E3_ae) ) ; lv_a += auto458659E3_ai ) {
         if ((gf_LSIs(lv_a) == true)) {
@@ -88444,7 +88444,7 @@ bool gt_BHItalicTest_Init () {
 // 案底索引（gv_e78AAFE7BDAAE4BA8BE5AE9E[玩家][罪名]，bool[16][11]，下标 0..10）：
 //   [0] 非法闯入        [1] 谋杀（和谐「谋爱」）   [4] 限制类标记（限制者自己留下）
 //   [2] [3] [5] [6] [8] [9] 语义未逐条命名（[8]=越狱相关为实证推测）；[7]=腐败（市长/执法长/审计官/煽动家揭示）
-//   [10] 操纵审判（仲裁者裁决落下、律师/大状成功阻止白天处死时写入）
+//   [10] 操纵审判（仲裁者裁决落下、律师/状师成功阻止白天处死时写入）
 //   新角色要加新罪名前必须先扩容数组维度 + 调查端逐条判定 + 文案表，见记忆 745。
 
 // 访问：全脚本唯一的 gv_visitation 写入口
@@ -106728,7 +106728,7 @@ void gf_ZMLegacyRecruit (int lv_a) {
     gv_seqAfter2Wait[3] = true;
 }
 
-// 律师/大状：一次成功辩护；夜间选人不扣次数。
+// 律师/状师：一次成功辩护；夜间选人不扣次数。
 bool gf_LSIs (int lp_player) {
     if ((lp_player < 1) || (lp_player > 15)) {
         return false;

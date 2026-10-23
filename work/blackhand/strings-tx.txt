@@ -43,7 +43,7 @@ Param/Value/TXSW=可查出天选者
 Param/Value/TXREVSH=<s val="ModLeftSize16Bold"><c val="FFFF88">你的目标是一个 </c><c val="FFFFFF99-FFFF8800">天选者</c><c val="FFFF88">!</c></s>
 Param/Value/TXBOXS=<n/>- 你能查出天选者。
 Param/Value/TXBOXS0=- 你能查出天选者。
-Param/Value/4881041F=- 他像是个警长、副手、恐吓者/封口、审计官、处刑者、堕落审判者、律师/大状，或天选者。
+Param/Value/4881041F=- 他像是个警长、副手、恐吓者/封口、审计官、处刑者、堕落审判者、律师/状师，或天选者。
 Param/Value/TXACH1=<s val="ModCenterSize16">
 Param/Value/TXACH2=<c val="44FF88"> 赢得了成就 </c></s><s val="ModCenterSize16Bold"><c val="FFB41E">见微知著</c></s><s val="ModCenterSize16"><c val="44FF88">!</c></s>
 Param/Value/TXACH3=<s val="ModCenterSize16Bold"><c val="FFB41E">见微知著</c></s>
