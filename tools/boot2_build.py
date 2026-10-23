@@ -305,6 +305,15 @@ def write_cover(archive: Path, stem: str) -> list[str]:
 
 # 必须在包内 zhCN 表里能查到的自加键（缺任一 → 界面会显示原始键名）
 MUST_HAVE_KEYS = [
+    # 主教 (1/35)：卡面、互斥票数选项、晨报、行动提示与魅力组候选
+    'Param/Value/ZJNAME', 'Param/Value/ZJALIGN', 'Param/Value/ZJDESC',
+    'Param/Value/ZJBOX1', 'Param/Value/ZJBOX2A', 'Param/Value/ZJBOX2B',
+    'Param/Value/ZJBOX2C', 'Param/Value/ZJBOX2D', 'Param/Value/ZJBOX2E',
+    'Param/Value/ZJBOX4', 'Param/Value/ZJOPT2', 'Param/Value/ZJOPT3', 'Param/Value/ZJCRIME',
+    'Param/Value/ZJNEWS1', 'Param/Value/ZJNEWS2', 'Param/Value/ZJSELECT', 'Param/Value/ZJCANCEL',
+    'Param/Value/ZJPICK', 'Param/Value/ZJPICKEND', 'Param/Value/ZJOFF', 'Param/Value/ZJCOOLDOWN',
+    'Param/Value/C0685A17', 'Param/Value/6E101407', 'Param/Value/77A27769', 'Param/Value/BAFE0763',
+
     # 律师 / 大状
     'Param/Value/LSNAME',
     'Param/Value/DZNAME',
