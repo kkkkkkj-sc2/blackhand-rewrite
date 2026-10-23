@@ -7660,7 +7660,6 @@ void gf_MakeHelpMenu () {
                 if ((lv_category == 2)) {
                     gf_RTRoleCard(0);
                 }
-
                 if ((lv_category == 5)) {
                     gf_RTRoleCard(0);
                 }
@@ -7884,39 +7883,33 @@ void gf_MakeHelpMenu () {
                         libNtve_gf_SetDialogItemStyle(gv_roleHelpPanelItem[lv_x][1], "ModCenterSize20Bold", PlayerGroupAll());
                     }
 
-                    // 新增城镇角色：名称、帮助色块和拼音首字母保持各自配色。
+                    // 新增角色：帮助色块一律用阵营统一色（城镇绿 / 黑手党红 / 三合会蓝紫），
+                    // 只有拼音首字母保留各自的配色。
                     if ((lv_category == 1) && (lv_role == 31)) {
-                        libNtve_gf_SetDialogItemColor(gv_roleHelpPanelItem[lv_x][0], Color(50.20, 74.90, 63.92), PlayerGroupAll());
                         libNtve_gf_SetDialogItemText(gv_roleHelpPanelItem[lv_x][1], (StringExternal("Param/Value/GCZCARD") + StringToText(StringCase(StringSub(gv_roleNameInput[lv_category][lv_role], 1, 1), true)) + StringExternal("Param/Value/01EDEAB5")), PlayerGroupAll());
                     }
 
                     if ((lv_category == 1) && (lv_role == 32)) {
-                        libNtve_gf_SetDialogItemColor(gv_roleHelpPanelItem[lv_x][0], Color(70.59, 83.92, 36.08), PlayerGroupAll());
                         libNtve_gf_SetDialogItemText(gv_roleHelpPanelItem[lv_x][1], (StringExternal("Param/Value/SQCARD") + StringToText(StringCase(StringSub(gv_roleNameInput[lv_category][lv_role], 1, 1), true)) + StringExternal("Param/Value/01EDEAB5")), PlayerGroupAll());
                     }
 
                     if ((lv_category == 1) && (lv_role == 33)) {
-                        libNtve_gf_SetDialogItemColor(gv_roleHelpPanelItem[lv_x][0], Color(30.20, 100.00, 16.08), PlayerGroupAll());
                         libNtve_gf_SetDialogItemText(gv_roleHelpPanelItem[lv_x][1], (StringExternal("Param/Value/FENGCARD") + StringToText(StringCase(StringSub(gv_roleNameInput[lv_category][lv_role], 1, 1), true)) + StringExternal("Param/Value/01EDEAB5")), PlayerGroupAll());
                     }
 
                     if ((lv_category == 1) && (lv_role == 34)) {
-                        libNtve_gf_SetDialogItemColor(gv_roleHelpPanelItem[lv_x][0], Color(36.08, 87.84, 74.12), PlayerGroupAll());
                         libNtve_gf_SetDialogItemText(gv_roleHelpPanelItem[lv_x][1], (StringExternal("Param/Value/JJCARD") + StringToText(StringCase(StringSub(gv_roleNameInput[lv_category][lv_role], 1, 1), true)) + StringExternal("Param/Value/01EDEAB5")), PlayerGroupAll());
                     }
 
                     if ((lv_category == 1) && (lv_role == 35)) {
-                        libNtve_gf_SetDialogItemColor(gv_roleHelpPanelItem[lv_x][0], Color(21.57, 65.88, 40.00), PlayerGroupAll());
                         libNtve_gf_SetDialogItemText(gv_roleHelpPanelItem[lv_x][1], (StringExternal("Param/Value/ZJCARD") + StringToText(StringCase(StringSub(gv_roleNameInput[lv_category][lv_role], 1, 1), true)) + StringExternal("Param/Value/01EDEAB5")), PlayerGroupAll());
                     }
 
                     if ((lv_category == 2) && (lv_role == 21)) {
-                        libNtve_gf_SetDialogItemColor(gv_roleHelpPanelItem[lv_x][0], Color(69.02, 35.29, 47.06), PlayerGroupAll());
                         libNtve_gf_SetDialogItemText(gv_roleHelpPanelItem[lv_x][1], (StringExternal("Param/Value/LSCARD") + StringToText(StringCase(StringSub(gv_roleNameInput[lv_category][lv_role], 1, 1), true)) + StringExternal("Param/Value/01EDEAB5")), PlayerGroupAll());
                     }
 
                     if ((lv_category == 5) && (lv_role == 21)) {
-                        libNtve_gf_SetDialogItemColor(gv_roleHelpPanelItem[lv_x][0], Color(40.00, 58.82, 77.65), PlayerGroupAll());
                         libNtve_gf_SetDialogItemText(gv_roleHelpPanelItem[lv_x][1], (StringExternal("Param/Value/DZCARD") + StringToText(StringCase(StringSub(gv_roleNameInput[lv_category][lv_role], 1, 1), true)) + StringExternal("Param/Value/01EDEAB5")), PlayerGroupAll());
                     }
 
