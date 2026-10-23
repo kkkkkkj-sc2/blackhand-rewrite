@@ -70,6 +70,15 @@ class TownRoleColorsTest(unittest.TestCase):
                     if suffix == 'CARD':
                         self.assertEqual(value, f'<c val="{expected}">')
 
+    def test_observer_investigative_category(self):
+        self.assertEqual(self.value('GCZTAG'), ' (<c val="80BFA3">调查</c>)')
+        cards = function(self.source, 'gf_RTTownRoleText')
+        match = re.search(r'if\s*\(\(gv_roles\[lv_a\]\[0\]\s*==\s*31\)\)\s*\{', cards)
+        self.assertIsNotNone(match, 'observer must have a town role card')
+        start = cards.index('{', match.start())
+        body = cards[start:balanced_end(cards, start)]
+        self.assertIn('StringExternal("Param/Value/GCZTAG")', body)
+
     def test_distinct_readable_greens(self):
         colors = []
         for role, prefix, _, _, _ in ROLES:
