@@ -1,7 +1,7 @@
 // 人口普查官 (城镇 1/32)
-Param/Value/SQNAME=<c val="00FF00">人口普查官</c>
+Param/Value/SQNAME=<c val="B4D65C">人口普查官</c>
 Param/Value/SQDESC=一名负责登记全镇身份的人口普查官。<n/><n/><c val="BBDDFF">在你的首个夜晚，你会得知每个类型各有多少名角色。</c>
-Param/Value/SQTAG= (<c val="00FF00">政府</c>)
+Param/Value/SQTAG= (<c val="B4D65C">政府</c>)
 Param/Value/SQABIL=- 在你的首个夜晚，你会得知每个类型各有多少名角色。
 Param/Value/SQTRAITS=- 类型有致命、调查、保护、政府、权利、支援和欺诈。<n/>- 若某个角色同时属于致命和其他类型，他总是会被看作其他类型。<n/>- 若某个角色属于权利类型，他总是会被认为是权利类型。<n/>- 你的信息无视调查免疫。<n/>- 你的信息会把自己计算在内。<n/>- 中立邪恶、中立温和、中立混乱和学徒不会被你计算。<n/>- 你总会得到你的信息，即使你被限制。<n/>- 白天可以揭示自己，并把首夜清点公报到全场。
 Param/Value/SQIDENT=负责清点全镇角色的人口普查官。
@@ -16,5 +16,6 @@ Param/Value/SQN6=<c val="BBDDFF">支援：
 Param/Value/SQN7=<c val="BBDDFF">欺诈：
 Param/Value/SQTAIL=名</c>
 Param/Value/SQREV1=<s val="ModLeftSize16Bold">
-Param/Value/SQREV2=</s><s val="ModLeftSize16"><c val="00FF00">，人口普查官，公布了首夜清点。</s>
+Param/Value/SQREV2=</s><s val="ModLeftSize16"><c val="B4D65C">，人口普查官，公布了首夜清点。</s>
 Param/Value/C0685A17=- 你认为他会是个市长、执法长、征募官或人口普查官。
+Param/Value/SQCARD=<c val="B4D65C">

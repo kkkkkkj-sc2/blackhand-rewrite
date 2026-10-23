@@ -305,14 +305,20 @@ def write_cover(archive: Path, stem: str) -> list[str]:
 
 # 必须在包内 zhCN 表里能查到的自加键（缺任一 → 界面会显示原始键名）
 MUST_HAVE_KEYS = [
-    # 主教 (1/35)：卡面、互斥票数选项、晨报、行动提示与魅力组候选
+    # 新增城镇角色的独立帮助栏首字母配色
+    'Param/Value/GCZCARD', 'Param/Value/SQCARD', 'Param/Value/FENGCARD',
+    'Param/Value/JJCARD', 'Param/Value/ZJCARD',
+
+    # 主教 (1/35)：卡面、互斥票数选项、晨报、行动提示与公共场所组候选
     'Param/Value/ZJNAME', 'Param/Value/ZJALIGN', 'Param/Value/ZJDESC',
     'Param/Value/ZJBOX1', 'Param/Value/ZJBOX2A', 'Param/Value/ZJBOX2B',
     'Param/Value/ZJBOX2C', 'Param/Value/ZJBOX2D', 'Param/Value/ZJBOX2E',
     'Param/Value/ZJBOX4', 'Param/Value/ZJOPT2', 'Param/Value/ZJOPT3', 'Param/Value/ZJCRIME',
     'Param/Value/ZJNEWS1', 'Param/Value/ZJNEWS2', 'Param/Value/ZJSELECT', 'Param/Value/ZJCANCEL',
     'Param/Value/ZJPICK', 'Param/Value/ZJPICKEND', 'Param/Value/ZJOFF', 'Param/Value/ZJCOOLDOWN',
-    'Param/Value/C0685A17', 'Param/Value/6E101407', 'Param/Value/77A27769', 'Param/Value/BAFE0763',
+    'Param/Value/3051C3D7', 'Param/Value/4F1EBF4B', 'Param/Value/72BB7C73',
+    'Param/Value/A51EA15F', 'Param/Value/B7F2DBC2', 'Param/Value/C84927BC',
+    'Param/Value/C8AB6DDE', 'Param/Value/CF0DFBAB', 'Param/Value/CWINV2',
 
     # 律师 / 大状
     'Param/Value/LSNAME',

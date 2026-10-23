@@ -1,7 +1,7 @@
 // 急救专家（城镇 1/34）
-Param/Value/JJNAME=<c val="00FF00">急救专家</c>
+Param/Value/JJNAME=<c val="5CE0BD">急救专家</c>
 Param/Value/JJDESC=一名技术高超的急救科医生，使用他的能力保护镇民。<n/><n/><c val="BBDDFF">选择一个死者。若你当晚没有死亡，你会将他起死回生。你只能成功复活一次。你只能复活城镇角色。</c>
-Param/Value/JJTAG=<c val="00FF00">城镇（权力）</c>
+Param/Value/JJTAG=<c val="5CE0BD">城镇（权力）</c>
 Param/Value/JJBOX4=一名技术高超的急救科医生，使用他的能力保护镇民。
 Param/Value/JJBOX1=- 选择一个死者，若你当晚没有死亡，你会将他起死回生。
 Param/Value/JJBOX2=<n/>- 你可以成功复活一次。<n/>- 你只能复活城镇角色。<n/>- 被复活的角色会刷新他的能力使用次数。
@@ -19,3 +19,4 @@ Param/Value/JJLIVE= 已经活着。这次没有复活，次数还在。
 Param/Value/JJSIZE=<s val="ModLeftSize16">
 Param/Value/JJCLOSE=</s>
 Param/Value/JJREVIVED=<c val="FFFF00">由于不知名的原因，你被复活了。</c>
+Param/Value/JJCARD=<c val="5CE0BD">

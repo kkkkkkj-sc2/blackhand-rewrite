@@ -1,6 +1,6 @@
-// 主教（城镇 1/35）；名字配色沿用城镇权力角色执法长。
-Param/Value/ZJNAME=<c val="23EF32">主教</c>
-Param/Value/ZJALIGN=<c val="23EF32">城镇（权力）</c>
+// 主教（城镇 1/35）；独立翠绿配色。
+Param/Value/ZJNAME=<c val="37A866">主教</c>
+Param/Value/ZJALIGN=<c val="37A866">城镇（权力）</c>
 Param/Value/ZJDESC=当地宗教区的一名主教，可以为镇民提供宗教支持。<n/><n/><c val="BBDDFF">每晚选择一个人，该人会获得教区的支持。</c>
 Param/Value/ZJBOX1=- 每晚选择一个人，该人会获得教区的支持。
 Param/Value/ZJBOX2A=<n/>- 获得教区支持的人，在次日投下的票相当于两人。
@@ -9,8 +9,8 @@ Param/Value/ZJBOX2C=<n/>- 你不可以选择自己。
 Param/Value/ZJBOX2D=<n/>- 你的能力使用有一晚间隔。
 Param/Value/ZJBOX2E=<n/>- 所有人都会得知谁获得了支持。
 Param/Value/ZJBOX4=你是为镇民提供宗教支持的主教。
-Param/Value/ZJOPT2=投下的票相当于两人。
-Param/Value/ZJOPT3=投下的票相当于三人。
+Param/Value/ZJOPT2=投下的票相当于两人
+Param/Value/ZJOPT3=投下的票相当于三人
 Param/Value/ZJCRIME=无
 // 晨报：编号 + "." + 名字 + ZJNEWS1 + 票数 + ZJNEWS2（2/3 均适用）。
 Param/Value/ZJNEWS1=获得了教区的支持！他在今天投下的票相当于
@@ -22,8 +22,12 @@ Param/Value/ZJPICK=<s val="ModLeftSize16">你将向
 Param/Value/ZJPICKEND=提供教区的支持。</s>
 Param/Value/ZJOFF=<s val="ModLeftSize16">你取消了这次支持。</s>
 Param/Value/ZJCOOLDOWN=<s val="ModLeftSize16">你的能力使用有一晚间隔，今晚无法提供教区的支持。</s>
-// 魅力组候选提示：保留各键原有候选，加入主教。
-Param/Value/C0685A17=- 你认为他会是个市长、执法长、征募官、人口普查官或主教。
-Param/Value/6E101407=- 你认为他会是个市长、执法长、征募官或主教。
-Param/Value/77A27769=- 你认为他会是个市长、执法长、征募官或主教。
-Param/Value/BAFE0763=- 你认为他会是个市长、执法长、征募官或主教。
+// 公共场所组候选提示：与牧师同组；共用 4F1EBF4B 和 CWINV2 由 strings-shw.txt 维护。
+Param/Value/3051C3D7=- 他可能是公告员、法官、牧师、系命人、煽动家、主教，也有可能只是个赌鬼。
+Param/Value/72BB7C73=- 他可能是公告员、法官、牧师、系命人、煽动家、主教，也有可能只是个赌鬼。
+Param/Value/A51EA15F=- 他可能是公告员、法官、牧师、系命人、煽动家、主教，也有可能只是个赌鬼。
+Param/Value/B7F2DBC2=- 他可能是公告员、法官、牧师、系命人、煽动家、主教，也有可能只是个赌鬼。
+Param/Value/C84927BC=- 他可能是公告员、法官、牧师、系命人、煽动家、主教，也有可能只是个赌鬼。
+Param/Value/C8AB6DDE=- 他可能是公告员、法官、牧师、系命人、煽动家、主教，也有可能只是个赌鬼。
+Param/Value/CF0DFBAB=- 他可能是公告员、法官、牧师、系命人、煽动家、主教，也有可能只是个赌鬼。
+Param/Value/ZJCARD=<c val="37A866">

@@ -5,7 +5,7 @@
   "cn": "主教",
   "name_key": "ZJNAME",
   "desc_key": "ZJDESC",
-  "investigator": ["E9AD85E58A9B1", "E9AD85E58A9B2"],
+  "investigator": ["E585ACE585B1E59CBAE689801", "E585ACE585B1E59CBAE689802"],
   "crime_key": "ZJCRIME",
   "options": [
     {"i": 0, "exists": true, "important": 2, "default": false, "key": "ZJOPT2"},
@@ -19,7 +19,7 @@
   ],
   "interactions": {
     "swap": {"text": "一般登门，受巴士司机、女巫、欺骗者换向，按最终实际访问目标结算；不能选择自己。"},
-    "investigate": {"text": "探员与市长、执法长、征募官、人口普查官同属魅力组 E9AD85E58A9B1/2，候选提示保留原角色并加入主教。图鉴案底为无。", "investigator": true},
+    "investigate": {"text": "探员与牧师同属公共场所组 E585ACE585B1E59CBAE689801/2：你的目标常出入公共场所；候选包括公告员、法官、牧师、系命人、煽动家、主教和赌鬼。图鉴案底为无。", "investigator": true},
     "restrict": {"text": "可被限制；被限制或入狱当夜无效果，且不消耗冷却。"},
     "guessage": {"text": "审查页城镇第 32 项 → 35。", "in_guess_list": true}
   },

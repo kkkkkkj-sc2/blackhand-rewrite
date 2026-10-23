@@ -133,8 +133,8 @@ Param/Value/CWNAME=<c val="C9A44A">煽动家</c>
 Param/Value/CWCARD=<c val="C9A44A">
 Param/Value/CWDESC=盘踞在市政厅阴影中的野心家，以恐惧为薪柴，企图将整个法庭据为己有。<n/><n/><c val="BBDDFF">每晚选择一人进行陷害：在警长眼中看起来像黑手党/三合会角色；在探员眼中看起来像不活跃的市民。白天可使用恐慌值。</c>
 Param/Value/CWINV1=你的目标常出入公共场所
-Param/Value/CWINV2=- 他可能是公告员、法官、牧师、系命人、煽动家，也有可能只是个赌鬼。
-Param/Value/4F1EBF4B=- 他可能是公告员、法官、牧师、系命人、煽动家，也有可能只是个赌鬼。
+Param/Value/CWINV2=- 他可能是公告员、法官、牧师、系命人、煽动家、主教，也有可能只是个赌鬼。
+Param/Value/4F1EBF4B=- 他可能是公告员、法官、牧师、系命人、煽动家、主教，也有可能只是个赌鬼。
 Param/Value/CWCRIME=腐败
 Param/Value/CWBOX1=- 每晚选择一人进行陷害：在警长眼中看起来像黑手党/三合会角色；在探员眼中看起来像不活跃的市民。<n/>- 在白天可以使用恐慌值。
 Param/Value/CWBOX2=<n/>- 你初始拥有 0 点恐慌值。<n/>- 你可以拥有最多 4 点恐慌值。<n/>- 每个夜晚结束时，获得 1 点恐慌值。

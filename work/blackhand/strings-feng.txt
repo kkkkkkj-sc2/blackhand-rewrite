@@ -1,9 +1,10 @@
 // 疯子 (城镇 1/33)
-Param/Value/FENGNAME=<c val="00FF00">疯子</c>
+Param/Value/FENGNAME=<c val="4DFF29">疯子</c>
 Param/Value/FENGDESC=一名把自己当成黑手领袖的疯子。<n/><n/><c val="BBDDFF">你以为你是一个黑手党/三合会的领袖角色，但其实你不是。</c>
-Param/Value/FENGTAG= (<c val="00FF00">城镇</c>)
+Param/Value/FENGTAG= (<c val="4DFF29">城镇</c>)
 Param/Value/FENGBOX1=- 你以为你是一个黑手党/三合会的领袖角色，但其实你不是。
 Param/Value/FENGBOX2=<n/>- 你会认为自己的角色是设定中固定出现的黑手党/三合会领袖角色。<n/>- 盟友名单里，其他人同时看到真实领袖和你，并把你标成疯子。你的名单里没有真实领袖，你看到的自己是领袖。<n/>- 你和其他成员可以互相交流，但是你和真实领袖互相听不到对方。其他人同时听得到你们两个。<n/>- 你的攻击实际上不会产生任何效果。<n/>- 真实领袖会知道你想要攻击谁。
 Param/Value/FENGBOX4=以为自己是领袖的城镇成员。
 Param/Value/FENGCRIME=非法闯入，谋杀
 Param/Value/FENGATK= 想要杀死 
+Param/Value/FENGCARD=<c val="4DFF29">

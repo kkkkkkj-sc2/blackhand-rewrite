@@ -1,8 +1,8 @@
 // 观察者(城镇 1/31) 文案
-Param/Value/GCZNAME=<c val="00FF00">观察者</c>
+Param/Value/GCZNAME=<c val="80BFA3">观察者</c>
 Param/Value/GCZDESC=沉默的夜行者，常年在屋顶与窗棂之间穿行，注视着小镇的每一扇门。<n/><n/><c val="BBDDFF">每晚观察一名玩家（可以是自己）：天亮时，你将得知昨晚有哪些角色访问了目标。</c>
 Param/Value/GCZABIL=- 每晚观察一个人，获知有哪些角色访问了他。
-Param/Value/GCZTAG= (<c val="00FF00">观察</c>)
+Param/Value/GCZTAG= (<c val="80BFA3">观察</c>)
 Param/Value/GCZGOAL=一个彻夜注视小镇街道的守望者，谨慎地帮助市民。
 Param/Value/GCZACH=<s val="International17"><c val="FFFF00">观察者注视着夜晚的街道。推理你看到的访问者!</c></s>
 Param/Value/GCZBTN=观察
@@ -51,3 +51,4 @@ Param/Value/DLSW=可查出堕落审判者
 Param/Value/DLREV=<s val="ModLeftSize16Bold"><c val="FFFF88">你的目标是一个 </c><c val="AAAAAA">堕落审判者</c><c val="FFFF88">!</c></s>
 Param/Value/DLBOXS=<n/>- 你能查出堕落审判者。
 Param/Value/DLBOXS0=- 你能查出堕落审判者。
+Param/Value/GCZCARD=<c val="80BFA3">
