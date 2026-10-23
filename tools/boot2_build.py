@@ -221,6 +221,10 @@ HIDDEN_SPRITES = [
      DDS_DIR / 'BHReed.dds', r'Assets\Textures\BHReed.dds'),
     ('BHReedL', DDS_DIR / 'BHSpriteReedL.m3', r'Assets\Units\BHSpriteReed2D_L\BHSpriteReed2D_L.m3',
      DDS_DIR / 'BHReedL.dds', r'Assets\Textures\BHReedL.dds'),
+    ('BHNight', DDS_DIR / 'BHSpriteNight.m3', r'Assets\Units\BHSpriteNight2D\BHSpriteNight2D.m3',
+     DDS_DIR / 'BHNightingale.dds', r'Assets\Textures\BHNightingale.dds'),
+    ('BHNightL', DDS_DIR / 'BHSpriteNightL.m3', r'Assets\Units\BHSpriteNight2D_L\BHSpriteNight2D_L.m3',
+     DDS_DIR / 'BHNightingaleL.dds', r'Assets\Textures\BHNightingaleL.dds'),
 ]
 HIDDEN_MODELS = [
     (cid, m3, member, tex, texm, _hidden_model_block(cid, member))
@@ -867,7 +871,7 @@ def main() -> int:
         model_defs = NAILONG_MODELS if args.no_hidden else CUSTOM_MODELS
     models = write_models(out, model_defs)
     print(f"5d) 自加模型 {len(models)} 个 ← {DDS_DIR.name}/: {[Path(m).name for m in models]}"
-          f"{'  [只用奶龙（--no-hidden）]' if args.no_hidden else '  [奶龙 + 隐藏立牌 mon3tr/reed]'}"
+          f"{'  [只用奶龙（--no-hidden）]' if args.no_hidden else '  [奶龙 + 隐藏立牌 mon3tr/reed/night]'}"
           f"{'  [探针变体 ' + args.sprite_variants + ']' if args.sprite_variants else ''}")
     cover = write_cover(out, args.cover)
     print(f"5b) 街机封面 {args.cover} → {cover}")
