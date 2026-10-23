@@ -54094,6 +54094,7 @@ void gf_CBWhisper (int lp_player, int lp_recipient, string lp_message, text lp_n
 void gf_CBSystemMessage (text lp_message, int lp_player, int lp_sender, int lp_option, soundlink lp_sound, color lp_color) {
     // Variable Declarations
     int lv_b;
+    text lv_wrapped;
 
     // Automatic Variable Declarations
     const int auto21ABA8AA_ae = 1;
@@ -54109,11 +54110,15 @@ void gf_CBSystemMessage (text lp_message, int lp_player, int lp_sender, int lp_o
         SoundPlay(lp_sound, PlayerGroupSingle(lp_player), 100.0, 0.0);
     }
 
+    // 聊天框消息统一套 <s val="LastWill">：gf_CBMagnifyText 靠把 LastWill 换成
+    // LastWillBig/Bigger 来放大，不套标签的消息放大后仍是小字（2026-10-23 铁律）。
+    lv_wrapped = (StringExternal("Param/Value/AA6376D7") + lp_message + StringExternal("Param/Value/258B2E40"));
+
     if ((DialogControlIsVisible(gv_chatBoxItem[1][0], lp_player) == true)) {
         lv_b = 20;
         for ( ; ( (auto21ABA8AA_ai >= 0 && lv_b <= auto21ABA8AA_ae) || (auto21ABA8AA_ai < 0 && lv_b >= auto21ABA8AA_ae) ) ; lv_b += auto21ABA8AA_ai ) {
             if ((lv_b == 1)) {
-                libNtve_gf_SetDialogItemText(gv_chatBoxItem[lv_b][0], lp_message, PlayerGroupSingle(lp_player));
+                libNtve_gf_SetDialogItemText(gv_chatBoxItem[lv_b][0], lv_wrapped, PlayerGroupSingle(lp_player));
                 libNtve_gf_SetDialogItemColor(gv_chatBoxItem[lv_b][1], lp_color, PlayerGroupSingle(lp_player));
                 DialogControlSetEnabled(gv_chatBoxItem[lv_b][0], PlayerGroupSingle(lp_player), true);
                 DialogControlSetEnabled(gv_chatBoxItem[lv_b][1], PlayerGroupSingle(lp_player), true);
@@ -54136,7 +54141,7 @@ void gf_CBSystemMessage (text lp_message, int lp_player, int lp_sender, int lp_o
         lv_b = 20;
         for ( ; ( (autoBBAB877E_ai >= 0 && lv_b <= autoBBAB877E_ae) || (autoBBAB877E_ai < 0 && lv_b >= autoBBAB877E_ae) ) ; lv_b += autoBBAB877E_ai ) {
             if ((DialogControlIsVisible(gv_chatBoxItem[lv_b][0], lp_player) == false)) {
-                libNtve_gf_SetDialogItemText(gv_chatBoxItem[lv_b][0], lp_message, PlayerGroupSingle(lp_player));
+                libNtve_gf_SetDialogItemText(gv_chatBoxItem[lv_b][0], lv_wrapped, PlayerGroupSingle(lp_player));
                 libNtve_gf_SetDialogItemColor(gv_chatBoxItem[lv_b][1], lp_color, PlayerGroupSingle(lp_player));
                 DialogControlSetEnabled(gv_chatBoxItem[lv_b][0], PlayerGroupSingle(lp_player), true);
                 DialogControlSetEnabled(gv_chatBoxItem[lv_b][1], PlayerGroupSingle(lp_player), true);

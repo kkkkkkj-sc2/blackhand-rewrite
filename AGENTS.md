@@ -71,6 +71,10 @@
 
 - **`SoundLink` 的参数类型是 `soundlink`**（不是 `sound`）：自定义函数收音效参数写错类型 → 所有调用处报「参数类型同函数定义不匹配」并连带整个脚本解析失败（整图报废）。
 
+10. **聊天框消息必须跟着聊天框放大**：任何经聊天框（`gv_chatBoxItem`）播送的消息，文字必须写在 `<s val="LastWill">…</s>` 里（开标签键 `AA6376D7`、闭标签 `258B2E40`），并对该玩家再调一次 `gf_CBMagnifyText(p, ge_Magnify_Magnify / ge_Magnify_SuperMagnify)`（按 `gv_magnified[p][0]` / `[1]`）。
+    - 原理：放大不是缩放控件，而是把文本里的 `<s val="LastWill">` 用 `TextReplaceWord` 换成 `LastWillBig` / `LastWillBigger` —— **没套 `LastWill` 标签的消息永远是小字**（2026-10-23 教区支持播报踩的就是这个）。
+    - 已统一：`gf_CBSystemMessage` 内部包标签 + 末尾按放大状态调；`gf_CBAddChat` / `gf_CBWhisper` 各自已按同一写法处理。**新加任何播送入口都要照这个来**，不要再直接 `SetDialogItemText(gv_chatBoxItem…)` 塞裸文本。
+
 ## 标准循环
 
 ```bash
