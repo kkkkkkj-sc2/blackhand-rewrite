@@ -4,7 +4,7 @@
 
 ## 能力与交互
 
-- 每晚选择另一名活人，正常登门；再次点击同一人取消。交换、控制、限制和关押沿用现有访问体系。
+- 每晚选择另一名活人，正常登门。目标按钮悬停为“使其负伤”；选中后隐藏目标按钮，自己的座位显示灰色“取消”按钮。点击自己取消、恢复原目标按钮；改选其他活人恢复旧目标并隐藏新目标。自己的按钮仅用于取消，不是访问自己。交换、控制、限制和关押沿用现有访问体系。
 - 成功施伤只记案底 **4：破坏治安**。不记非法闯入或谋杀，不设凶手归因。
 - 每次新伤在获得的当晚都不会致死，从下一晚起生效；可同时存在多名负伤者。
 - 后续任何真实访客可触发旧伤，包含第二访问槽和当夜随后死亡的访客。负伤者访问自己、所有恶棍的访问均豁免。
@@ -12,6 +12,7 @@
 - 夜间无敌或剩余免死机会阻止施伤，并让受害者认出恶棍；已有伤势在获得此类防护时清除。伤势逻辑不消耗防护次数。
 - 保镖访问可触发旧伤，但不拦截施伤，不与恶棍互砍。
 - 普通死亡优先，伤势不得覆盖已有死因、描述及归因。旧伤死亡在系命传播之前处理。
+- “你听见痛苦的呻吟声...”沿用教父枪声的红色 `FF0000` + `ModLeftSize16`；系统/角色提示默认也使用 `ModLeftSize16`，由原替换表随聊天框变为 20/24 号，还原回 16。玩家聊天/私聊原样式不改。
 
 ## 判胜
 
@@ -38,9 +39,11 @@
 python3 tools/test_egun.py
 python3 tools/test_egun_finish.py
 python3 tools/test_egun_peripheral.py
+python3 tools/test_egun_actions.py
+python3 tools/test_chat_styles.py
 python3 tools/galaxy_lint.py
-python3 tools/boot2_build.py --out work/boot2-shw294.SC2Map
-python3 tools/boot2_build.py --out work/boot2-shw294-solo.SC2Map --solo
+python3 tools/boot2_build.py --out work/boot2-shw297.SC2Map
+python3 tools/boot2_build.py --out work/boot2-shw297-solo.SC2Map --solo
 ```
 
 核心测试执行主脚本实际函数，含 4,000 个独立预期随机用例及 UBSan/bounds；结算和外围另有专项测试。这些验证不替代 SC2 引擎内的实际对局、UI 与音效验收。

@@ -71,9 +71,9 @@
 
 - **`SoundLink` 的参数类型是 `soundlink`**（不是 `sound`）：自定义函数收音效参数写错类型 → 所有调用处报「参数类型同函数定义不匹配」并连带整个脚本解析失败（整图报废）。
 
-10. **聊天框消息必须跟着聊天框放大**：任何经聊天框（`gv_chatBoxItem`）播送的消息，文字必须写在 `<s val="LastWill">…</s>` 里（开标签键 `AA6376D7`、闭标签 `258B2E40`），并对该玩家再调一次 `gf_CBMagnifyText(p, ge_Magnify_Magnify / ge_Magnify_SuperMagnify)`（按 `gv_magnified[p][0]` / `[1]`）。
-    - 原理：放大不是缩放控件，而是把文本里的 `<s val="LastWill">` 用 `TextReplaceWord` 换成 `LastWillBig` / `LastWillBigger` —— **没套 `LastWill` 标签的消息永远是小字**（2026-10-23 教区支持播报踩的就是这个）。
-    - 已统一：`gf_CBSystemMessage` 内部包标签 + 末尾按放大状态调；`gf_CBAddChat` / `gf_CBWhisper` 各自已按同一写法处理。**新加任何播送入口都要照这个来**，不要再直接 `SetDialogItemText(gv_chatBoxItem…)` 塞裸文本。
+10. **聊天框消息必须跟着聊天框放大**：系统/角色提示沿用教父枪声的 `<s val="ModLeftSize16">…</s>`（开标签键 `9D1CF31D`、闭标签 `258B2E40`），颜色写在字号内。`gf_CBSystemMessage` 已以此兜底，并按 `gv_magnified[p][0]` / `[1]` 调用 `gf_CBMagnifyText`；新入口不要直接向聊天框塞裸文本。
+    - 原理：`auto_gf_CBMagnifyText_TriggerFunc` 用 `TextReplaceWord` 把 **ModLeftSize16 → 20 / 24**，还原时回到 16；其余对齐/粗体也有对应替换。**不是只能使用 LastWill**（2026-10-24 用户纠正）。
+    - `gf_CBAddChat` / `gf_CBWhisper` 的原玩家聊天样式保留；`LastWill → LastWillBig / LastWillBigger` 仅是替换表支持的另一组，不是角色提示的默认样式。已带样式/颜色的旧文案保持内层格式。红色夜间播报参考 `D5208FE7`：`<s val="ModLeftSize16"><c val="FF0000">…</c></s>`。
 
 ## 标准循环
 

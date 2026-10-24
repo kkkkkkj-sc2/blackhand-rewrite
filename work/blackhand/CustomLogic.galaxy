@@ -54204,9 +54204,9 @@ void gf_CBSystemMessage (text lp_message, int lp_player, int lp_sender, int lp_o
         SoundPlay(lp_sound, PlayerGroupSingle(lp_player), 100.0, 0.0);
     }
 
-    // 聊天框消息统一套 <s val="LastWill">：gf_CBMagnifyText 靠把 LastWill 换成
-    // LastWillBig/Bigger 来放大，不套标签的消息放大后仍是小字（2026-10-23 铁律）。
-    lv_wrapped = (StringExternal("Param/Value/AA6376D7") + lp_message + StringExternal("Param/Value/258B2E40"));
+    // 系统提示沿用教父枪声的 ModLeftSize16；原有内层字号/颜色保持不变。
+    // gf_CBMagnifyText 按原表将 16 替换为 20/24，还原时替换回 16。
+    lv_wrapped = (StringExternal("Param/Value/9D1CF31D") + lp_message + StringExternal("Param/Value/258B2E40"));
 
     if ((DialogControlIsVisible(gv_chatBoxItem[1][0], lp_player) == true)) {
         lv_b = 20;
@@ -76026,7 +76026,7 @@ bool gt_ASActionButtonANeutral_Func (bool testConds, bool runActions) {
 
     }
     if ((lv_target > 0)) {
-        if ((gv_roles[lv_source][1] == 3) && (gv_roles[lv_source][0] == 28) && (lv_target != lv_source) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_target) == true)) {
+        if ((gv_roles[lv_source][1] == 3) && (gv_roles[lv_source][0] == 28) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_target) == true)) {
             gf_SKA_3_egun(lv_source, lv_target);
         }
 
@@ -107515,37 +107515,73 @@ void gf_SKN_3_egun (int lv_a) {
 
 void gf_RAEgunActions (int lp_player) {
     int lv_a;
+    int lv_target;
     const int autoEGRA_ae = 15;
     const int autoEGRA_ai = 1;
+
+    if ((lp_player < 1) || (lp_player > 15)) {
+        return;
+    }
+
+    lv_target = gv_action[lp_player][0];
+    if ((lv_target < 1) || (lv_target > 15) || (lv_target == lp_player)) {
+        gv_action[lp_player][0] = 0;
+        lv_target = 0;
+    }
+    else if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_target) == false)) {
+        gv_action[lp_player][0] = 0;
+        lv_target = 0;
+    }
 
     DialogControlSetEnabled(gv_switchButtonItem, PlayerGroupSingle(lp_player), false);
     lv_a = 1;
     for ( ; ( (autoEGRA_ai >= 0 && lv_a <= autoEGRA_ae) || (autoEGRA_ai < 0 && lv_a >= autoEGRA_ae) ) ; lv_a += autoEGRA_ai ) {
         DialogControlSetVisible(gv_actionDialogItem[lv_a][6], PlayerGroupSingle(lp_player), false);
-        DialogControlSetVisible(gv_actionDialogItem[lv_a][5], PlayerGroupSingle(lp_player), ((lv_a != lp_player) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)));
-        if ((lv_a != lp_player) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) {
+        DialogControlSetVisible(gv_actionDialogItem[lv_a][5], PlayerGroupSingle(lp_player), false);
+        if ((lv_a == lp_player)) {
+            libNtve_gf_SetDialogItemTooltip(gv_actionDialogItem[lv_a][5], StringExternal("Param/Value/EGCANCELTIP"), PlayerGroupSingle(lp_player));
+            libNtve_gf_SetDialogItemColor(gv_actionDialogItem[lv_a][5], Color(50.20, 50.20, 50.20), PlayerGroupSingle(lp_player));
+            DialogControlSetVisible(gv_actionDialogItem[lv_a][5], PlayerGroupSingle(lp_player), (lv_target != 0));
+        }
+        else if ((lv_a != lp_player) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) {
             libNtve_gf_SetDialogItemTooltip(gv_actionDialogItem[lv_a][5], StringExternal("Param/Value/EGTIP"), PlayerGroupSingle(lp_player));
             libNtve_gf_SetDialogItemColor(gv_actionDialogItem[lv_a][5], Color(76.86, 47.84, 26.67), PlayerGroupSingle(lp_player));
-            DialogControlSetSize(gv_actionDialogItem[lv_a][5], PlayerGroupSingle(lp_player), 120, 30);
-            libNtve_gf_SetDialogItemImage(gv_actionDialogItem[lv_a][5], "ActionNormal.dds", PlayerGroupSingle(lp_player));
-            libNtve_gf_SetDialogItemImage2(gv_actionDialogItem[lv_a][5], "ActionHighlight.dds", PlayerGroupSingle(lp_player));
+            DialogControlSetVisible(gv_actionDialogItem[lv_a][5], PlayerGroupSingle(lp_player), (lv_a != lv_target));
         }
+
+        DialogControlSetSize(gv_actionDialogItem[lv_a][5], PlayerGroupSingle(lp_player), 120, 30);
+        libNtve_gf_SetDialogItemImage(gv_actionDialogItem[lv_a][5], "ActionNormal.dds", PlayerGroupSingle(lp_player));
+        libNtve_gf_SetDialogItemImage2(gv_actionDialogItem[lv_a][5], "ActionHighlight.dds", PlayerGroupSingle(lp_player));
     }
 }
 
-// 新增角色（非原图抽取）：恶棍单目标选择，同一目标再次点击取消。
+// 新增角色（非原图抽取）：恶棍单目标选择；自己座位仅用于取消。
 void gf_SKA_3_egun (int lv_source, int lv_target) {
-    if ((lv_source == lv_target) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_target) == false)) {
+    if ((lv_source < 1) || (lv_source > 15) || (lv_target < 1) || (lv_target > 15)) {
         return;
     }
 
-    if ((gv_action[lv_source][0] == lv_target)) {
+    if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_source) == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_target) == false)) {
+        return;
+    }
+
+    if ((lv_source == lv_target)) {
+        if ((gv_action[lv_source][0] == 0)) {
+            return;
+        }
+
         gv_action[lv_source][0] = 0;
+        gf_RAEgunActions(lv_source);
         gf_CBSystemMessage(StringExternal("Param/Value/EGCANCEL"), lv_source, lv_source, 0, SoundLink("Silent", -1), Color(0,0,0));
         return;
     }
 
+    if ((gv_action[lv_source][0] == lv_target)) {
+        return;
+    }
+
     gv_action[lv_source][0] = lv_target;
+    gf_RAEgunActions(lv_source);
     gf_CBSystemMessage((StringExternal("Param/Value/EGSEL1") + TextWithColor(StringToText((gv_number[lv_target] + "." + gv_name[lv_target])), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_target])) + StringExternal("Param/Value/EGSEL2")), lv_source, lv_source, 0, SoundLink("Silent", -1), Color(0,0,0));
 }
 

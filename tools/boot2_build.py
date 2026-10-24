@@ -321,6 +321,7 @@ MUST_HAVE_KEYS = [
   'Param/Value/EGBOX6',
   'Param/Value/EGCRIME',
   'Param/Value/EGTIP',
+  'Param/Value/EGCANCELTIP',
   'Param/Value/EGSEL1',
   'Param/Value/EGSEL2',
   'Param/Value/EGCANCEL',

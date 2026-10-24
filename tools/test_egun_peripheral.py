@@ -40,6 +40,9 @@ def main():
     assert strings["Param/Value/EGBOX2"] == "".join("<n/>- " + trait for trait in traits)
     assert strings["Param/Value/EGBOX6"] == "存活并看到城镇全部死亡。"
     assert strings["Param/Value/EGCRIME"] == "破坏治安"
+    assert strings["Param/Value/EGTIP"] == "使其负伤"
+    assert strings["Param/Value/EGCANCELTIP"] == "取消"
+    assert strings["Param/Value/EGNIGHT"] == '<s val="ModLeftSize16"><c val="FF0000">你听见痛苦的呻吟声...</c></s>'
     merged = load_gamestrings()
     assert "保镖" in merged["Param/Value/D9495B72"] and "恶棍" in merged["Param/Value/D9495B72"]
     assert all("恶棍" in value for key, value in merged.items()
