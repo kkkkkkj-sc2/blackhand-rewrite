@@ -2,7 +2,7 @@
 
 ## 玩家操作
 
-- 中立（温和），拼音 `gongshengti`。默认权重 **0**，可在自设中手动添加；修改权重后可进入全体随机、中立随机和中立温和池。
+- 中立（温和），拼音 `gongshengti`。默认权重 **0.5**，可从全体随机、中立随机和中立温和池抽出，也可在自设中手动添加。
 - 首夜点击另一名活人的行动按钮，**立即、不可撤销**地绑定；双方立刻获得身份提示并可交谈。不能选择自己、假死者或另一名共生体，避免互绑闭环。
 - 首夜结束仍无宿主：黎明死亡，聚会夜也不豁免。
 - 宿主非中立：共生体使用自己的开关（或 `-on` / `-off`），为宿主发动一次当晚整夜无敌，默认关闭。
@@ -39,7 +39,7 @@
 - 死因：`q` 突袭，`r` 未寄宿，`s` 纽带反噬，`t` 主动牺牲；均有验尸官分支。
 - `gf_GSKillPlayerDirect` 保留原死亡清理完整函数体；自动包装函数先捕获玩家参数再委托。宿主死亡时先无等待地移除所有依附者，再执行完整尸体／银行／界面清理，避免清理让出线程时出现错误判胜。
 - 25 个既有终局逐人循环跳过共生体，循环后独立结算；`gf_DQShareWin` 后再次幂等同步。角色号29不得访问只有21槽的角色首胜数组。
-- 探员使用独立「冰冷意识」线索；未犯罪时警长按正常无嫌疑路径，突袭记非法闯入与谋杀。
+- 探员使用独立「冰冷意识」线索；未犯罪时警长按正常无嫌疑路径；突袭造成死亡时只记谋杀，不记非法闯入。
 
 ## 自动回归
 
@@ -49,8 +49,8 @@ python3 tools/test_gongshengti_core.py
 python3 tools/test_gongshengti_chat.py
 python3 tools/test_gongshengti_allies.py
 python3 tools/galaxy_lint.py
-python3 tools/boot2_build.py --out work/boot2-shw300.SC2Map
-python3 tools/boot2_build.py --out work/boot2-shw300-solo.SC2Map --solo
+python3 tools/boot2_build.py --out work/boot2-shw301.SC2Map
+python3 tools/boot2_build.py --out work/boot2-shw301-solo.SC2Map --solo
 ```
 
 测试从维护中的 Galaxy 源码抽取实际函数，再以 C++ 与明确的引擎替身执行，覆盖绑定／按钮／命令／限次／共享胜负、战斗／死亡、频道及权限。**不等同于 SC2 引擎编译或游戏内实测。**

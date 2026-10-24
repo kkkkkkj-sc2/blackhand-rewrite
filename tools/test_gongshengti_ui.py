@@ -16,7 +16,8 @@ SCRIPT = ROOT / 'work/blackhand/CustomLogic.galaxy'
 NAMES = ('gf_GSIs', 'gf_GSActive', 'gf_GSPlayerLabel', 'gf_GSBind',
          'gf_GSSetShield', 'gf_GSSelectStrike', 'gf_SKN_3_gongshengti',
          'gf_SKA_3_gongshengti', 'gf_SKW_3_gongshengti', 'gt_GSStrike_Func',
-         'gf_GSShareWin', 'gf_GSActions', 'gf_BHRoleFitsKind', 'gf_BHHistFaction')
+         'gf_GSShareWin', 'gf_GSActions', 'gf_BHRoleFitsKind', 'gf_BHHistFaction',
+         'gf_OSRandomizeMatrix')
 
 PREFIX = r'''
 #include <cassert>
@@ -25,6 +26,10 @@ PREFIX = r'''
 #include <vector>
 using string=std::string;
 using text=std::string;
+using fixed=double;
+fixed gv_finalWeights[9][36];
+int gv_rolesArray[16];
+int gv_townMax=35, gv_mafiaTriadMax=21;
 bool alive[16], current[16], gv_won[16], gv_diedAtNight[16];
 int gv_alivePlayers=1, gv_currentPlayers=2;
 int gv_gsHost[16], gv_gsStrike[16], gv_gsResult[16];
@@ -147,10 +152,19 @@ int main() {
     assert(!switchEnabled[1]); gf_GSBind(1,2);
     for(int target=1;target<=15;++target) assert(!visible[1][target*10+5]);
     assert(switchEnabled[1]); gv_gsUsed[1]=true; gf_GSActions(1); assert(!switchEnabled[1]);
-    // Benign eligibility remains zero-weight by default, but explicit weight can enable it.
+    // Default weight is 0.5; only eligible benign random kinds can draw the role.
     for(int kind=1;kind<=22;++kind) {
         reset(); assert(gf_BHRoleFitsKind(kind,3,29)==(kind==1 || kind==14 || kind==19));
     }
+    // Exercise the complete production weight-to-role mapper across the 0.5-wide GS interval.
+    for(int role=29;role<36;++role) gv_finalWeights[3][role]=0.5;
+    for(int kind=1;kind<=22;++kind) for(double roll: {-0.001,0.0,0.25,0.499999,0.5}) {
+        reset(); gv_rolesArray[1]=kind;
+        gf_OSRandomizeMatrix(3,1,roll);
+        bool eligible=(kind==1 || kind==14 || kind==19) && roll>=0.0 && roll<0.5;
+        assert((gv_roles[3][1]==3 && gv_roles[3][0]==29)==eligible); ++checks;
+    }
+
     reset(); gv_roleOptions[4][1][3]=true; gv_roleOptions[4][19][2]=true;
     assert(!gf_BHRoleFitsKind(1,3,29) && !gf_BHRoleFitsKind(19,3,29) && gf_BHRoleFitsKind(14,3,29));
     assert(gf_BHHistFaction(3,29)==6);
@@ -215,6 +229,13 @@ int main() {
 
 def main():
     source = SCRIPT.read_text()
+    values = dict(line.split('=', 1) for line in (ROOT / 'work/blackhand/strings-gs.txt').read_text().splitlines()
+                  if line.startswith('Param/Value/'))
+    assert values['Param/Value/GSBOX6'] == '与你的宿主一同胜利，即使你已死亡'
+    assert values['Param/Value/GSCRIME'] == '谋杀'
+    for weight in ('gv_roleWeights[3][29]', 'gv_bankSaveWeights[0][3][29]'):
+        assert re.findall(re.escape(weight) + r'\s*=\s*([^;]+);', mask(source)) == ['0.5']
+
     bodies = [function(source, name) for name in NAMES]
     select = mask(function(source, 'gf_GSSelectStrike'))
     assert not re.search(r'gv_action\[lp_host\][^;]*=', select)

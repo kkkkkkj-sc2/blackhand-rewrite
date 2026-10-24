@@ -633,6 +633,10 @@ def main() -> None:
     if args.core:
         print(f'DRAFT CORE ONLY: {args.core}; integration not tested', flush=True)
 
+    values = dict(line.split('=', 1) for line in (ROOT / 'work/blackhand/strings-lawyers.txt').read_text().splitlines()
+                  if line.startswith('Param/Value/'))
+    assert values['Param/Value/DZCONVERT'] == '<n/>- 若己方没有杀人角色，你会变为暴徒。'
+
     code = harness(source, core, integrated=args.core is None)
     with tempfile.TemporaryDirectory(prefix='bh-lawyer-tests-') as tmp:
         cpp, exe = Path(tmp) / 'lawyers.cpp', Path(tmp) / 'lawyers'

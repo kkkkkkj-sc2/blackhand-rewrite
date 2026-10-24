@@ -6098,8 +6098,8 @@ void gf_InitializeVariables () {
     gv_e78AAFE7BDAAE58FAFE883BD[3][29] = StringExternal("Param/Value/GSCRIME");
     gv_roleInvestigatorArray[3][29][0] = StringExternal("Param/Value/GSSCAN1");
     gv_roleInvestigatorArray[3][29][1] = StringExternal("Param/Value/GSSCAN2");
-    gv_roleWeights[3][29] = 0.0;
-    gv_bankSaveWeights[0][3][29] = 0.0;
+    gv_roleWeights[3][29] = 0.5;
+    gv_bankSaveWeights[0][3][29] = 0.5;
     gv_bankSaveWeights[0][3][28] = 0.0;
     gv_bankSaveWeights[0][3][27] = 0.0;
     gv_bankSaveWeights[0][3][26] = 0.0;
@@ -108715,7 +108715,7 @@ void gf_GSAttack (int lp_sym, int lp_target) {
         return;
     }
 
-    gf_BHCrimeTrespass(lp_sym);
+    // 共生体突袭只记谋杀，不产生非法闯入案底。
     if ((gv_guarded[lp_target] != 0) && (lp_sym != lp_target)) {
         lv_guard = gv_guarded[lp_target];
         gv_guarded[lp_target] = 0;

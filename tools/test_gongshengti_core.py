@@ -203,7 +203,7 @@ int main() {
     setup(); order(); gv_action[2][0]=8; gf_GSResolveKills();
     assert(!alive[1] && !alive[3] && alive[2]);
     assert(gv_gsUsed[1] && gv_gsSacrificed[1] && gv_action[2][0]==8);
-    assert(killer[3]==1 && murders[1]==1 && trespass[1]==1);
+    assert(killer[3]==1 && murders[1]==1 && trespass[1]==0);
     assert(gv_damage[1]==1 && gv_damage[3]==1 && cleanup[1]==1 && cleanup[3]==1);
     assert(gv_deathMethod[1]=="t" && gv_deathMethod[3]=="q"); cases++;
 
@@ -221,12 +221,12 @@ int main() {
         if(defense==3) gv_immuneChance[3]=1;
         gf_GSResolveKills();
         assert(!alive[1] && alive[3] && gv_gsUsed[1] && gv_gsSacrificed[1]);
-        assert(gv_healing[3]==0 && gv_immuneChance[3]==0 && murders[1]==0 && cleanup[1]==1);
+        assert(gv_healing[3]==0 && gv_immuneChance[3]==0 && murders[1]==0 && trespass[1]==0 && cleanup[1]==1);
         cases++;
     }
     setup(); order(); gv_guarded[3]=4; gf_GSResolveKills();
     assert(bodyguardCalls==1 && alive[3] && !alive[4] && !alive[1]);
-    assert(killer[4]==1 && murders[1]==1 && gv_guarded[3]==0 && gv_damage[1]==1); cases++;
+    assert(killer[4]==1 && murders[1]==1 && trespass[1]==0 && gv_guarded[3]==0 && gv_damage[1]==1); cases++;
     setup(); order(); gv_guarded[3]=4; gv_healing[4]=1; gf_GSResolveKills();
     assert(bodyguardCalls==1 && alive[3] && alive[4] && !alive[1] && gv_healing[4]==0); cases++;
 
@@ -278,6 +278,7 @@ def main() -> None:
     stage = extracted(source, 'gf_GSStageDeath')
     assert 'Wait(' not in stage and 'gf_KillPlayer(' not in stage
     assert 'gv_gsUsed[lv_p] = true' not in extracted(source, 'gf_GSPrepareNight')
+    assert 'gf_BHCrimeTrespass(' not in mask('\n'.join(extracted(source, name) for name in NAMES))
     run_harness(source)
 
 
