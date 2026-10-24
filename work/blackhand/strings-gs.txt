@@ -1,0 +1,52 @@
+// 共生体（中立温和 3/29）：首夜立即绑定，共生体死后仍随宿主获胜。
+Param/Value/GSNAME=<c val="88B8B8">共生体</c>
+Param/Value/GSCARD=<c val="88B8B8">
+Param/Value/GSALIGN=<c val="88B8B8">中立（温和）</c>
+Param/Value/GSDESC=一种依附他人而存在的奇异生命，自此与宿主命运相连。<n/><n/><c val="BBDDFF">在第一个夜晚选择一个宿主。</c>
+Param/Value/GSBOX1=在第一个夜晚选择一个宿主。
+Param/Value/GSBOX2=<n/>- 你会得知宿主的身份，宿主会知道你是谁。<n/>- 你的胜利条件和宿主相同。<n/>- 在宿主死亡后，你也会一同死亡。<n/>- 若你的宿主不是一个中立角色，限一次机会，你可以让宿主当晚获得夜间无敌。<n/>- 若你的宿主是一个中立角色，限一次机会，宿主可以选择攻击一人，你死亡。<n/>- 你可以在晚上和宿主交谈。<n/>- 若第一个夜晚你没有选择宿主，你会死亡。
+Param/Value/GSBOX4=一种依附他人而存在的奇异生命，自此与宿主命运相连。
+Param/Value/GSBOX6=与你的宿主一同获胜；即使你已经死亡，只要宿主胜利，你也胜利。
+Param/Value/GSCRIME=非法闯入，谋杀
+Param/Value/GSSCAN1=你在目标身边感受到一股冰冷而奇异的意识。
+Param/Value/GSSCAN2=那暗示他会是个共生体。
+Param/Value/GSBINDTIP=立即选为宿主（不可撤销）
+Param/Value/GSHOST1=你感到一股冰冷而奇异的意识融入了你的体内——
+Param/Value/GSHOST2=成为了你的共生体。此刻开始，你们命运相连。
+Param/Value/GSKNOW2=成为了你的宿主。他是「
+Param/Value/GSKNOW3=」，现在，你们命运相连。
+Param/Value/GSCHOOSE=首夜点击另一名玩家的行动按钮立即绑定宿主，确认后不可更改。你不能选择自己或另一名共生体。
+Param/Value/GSSHIELDHINT=你的宿主不是中立角色。你可使用开关，为宿主发动仅有一次的当晚夜间无敌；默认关闭。
+Param/Value/GSSHIELDON=你决定今晚为宿主提供夜间无敌。
+Param/Value/GSSHIELDOFF=你取消了今晚对宿主的夜间保护。
+Param/Value/GSSTRIKEHINT=你有一个尚可牺牲的共生体。夜间输入 -symb 楼层号 选择额外攻击目标，单独输入 -symb 取消。这不会替换你的原有行动；发动后共生体死亡。
+Param/Value/GSSTRIKEWAIT=你的宿主是中立角色，他可在夜间使用 -symb 楼层号 指挥你发动一次致命突袭，代价是你的死亡。
+Param/Value/GSSTRIKESEL1=你决定让共生体突袭
+Param/Value/GSSTRIKESEL2=；发动后共生体将会死亡。
+Param/Value/GSSTRIKECANCEL=你取消了共生体的额外突袭。
+Param/Value/GSSTRIKEERROR=现在无法指挥共生体突袭。请在夜间选择另一名存活玩家的楼层号，且你须有存活、尚未发动能力的共生体。
+Param/Value/GSWIN=你随宿主一同获胜了！
+Param/Value/GSLOSE=你的宿主未能获胜。
+Param/Value/GSATTACKNIGHT=<s val="ModLeftSize16"><c val="FF0000">你隐约听到夜风中飘过一声空洞的悲鸣，随即消散在黑暗之中……</c></s>
+Param/Value/GSATTACKDEATH=他死于一次暴走的共生体致命突袭。
+Param/Value/GSATTACKOWN=<s val="ModLeftSize16"><c val="FF0000">你被一名共生体撕碎了。</c></s>
+Param/Value/GSUNBOUNDDEATH=因未能在黎明前寻得寄宿之躯，他的生命形态彻底枯竭瓦解。
+Param/Value/GSUNBOUNDOWN=<s val="ModLeftSize16"><c val="FF0000">你未能在黑夜中找到宿主，随着晨光降临，失去寄托的你迎来了终结。</c></s>
+Param/Value/GSUNBOUNDNIGHT=<s val="ModLeftSize16"><c val="FF0000">你听到夜色中传来一声微弱绝望的叹息，随后消散为虚无……</c></s>
+Param/Value/GSBONDNIGHT=<s val="ModLeftSize16"><c val="FF0000">你听到夜风中撕裂的惨叫骤然回荡，随后伴随着一声空洞而诡异的共振轰然止息……</c></s>
+Param/Value/GSBONDDEATH=伴随着宿主的倒下，生命纽带彻底崩溃，他承受致命反噬衰竭而亡。
+Param/Value/GSBONDOWN=<s val="ModLeftSize16"><c val="FF0000">因为宿主死亡，你也跟着死亡了。</c></s>
+Param/Value/GSSACRIFICEDEATH=他将全部生命融入最后一次致命突袭，随后共生之躯彻底崩解。
+Param/Value/GSSACRIFICEOWN=<s val="ModLeftSize16"><c val="FF0000">你燃尽生命发动了最后的突袭。无论突袭是否命中，你的共生之躯都已崩解；你仍将与宿主共享胜利。</c></s>
+Param/Value/GSSHIELDSELF=<s val="ModLeftSize16">你消耗了唯一一次能力机会，使宿主获得整晚无敌。你不会因此死亡。</s>
+Param/Value/GSSHIELDHOST=<s val="ModLeftSize16">你的共生体消耗了唯一一次能力机会，使你获得整晚无敌。</s>
+Param/Value/GSATTACKIMMUNE=<s val="ModLeftSize16">共生体的突袭被目标的无敌挡下。</s>
+Param/Value/GSCORONERQ=死因：共生体致命突袭。
+Param/Value/GSCORONERR=死因：未能找到宿主，生命形态枯竭瓦解。
+Param/Value/GSCORONERS=死因：宿主死亡引发的共生纽带反噬。
+Param/Value/GSCORONERT=死因：发动共生体突袭，主动牺牲生命。
+Param/Value/GSCHNAME=共生体
+Param/Value/GSCHJOIN=一位共生体跟随着你们的成员来到了你们的集会地。
+Param/Value/GSCHOPEN=<c val="88B8B8">[共生体]
+Param/Value/GSCHSEP=：
+Param/Value/GSCHCLOSE=</c>

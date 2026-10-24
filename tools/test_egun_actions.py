@@ -25,7 +25,7 @@ BOUNDARIES = {
         'yanluo', 'tianxuanzhe', 'wenyisanbuzhe', 'shengcunzhe', 'xiaochou',
         'nvwu', 'ximingren', 'zonghuozhe', 'shiyizhe', 'xiejiaotu',
         'sharenkuang', 'wuyi', 'shenjiguan', 'cuanweizhe', 'duoluoshenpanzhe',
-        'yingwuzhe', 'dugui', 'yuanhun')
+        'yingwuzhe', 'dugui', 'yuanhun', 'gongshengti')
 } | {'gf_SKA_1_yijing'}
 ENGINE = {
     'if', 'for', 'while', 'return', 'PlayerGroupSingle', 'PlayerGroupHasPlayer',

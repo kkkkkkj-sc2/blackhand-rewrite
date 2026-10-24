@@ -1,0 +1,28 @@
+{
+  "pool": 3,
+  "role": 29,
+  "pinyin": "gongshengti",
+  "cn": "共生体",
+  "name_key": "GSNAME",
+  "desc_key": "GSDESC",
+  "investigator": [],
+  "crime_key": "GSCRIME",
+  "options": [],
+  "flag10": false,
+  "guessable": true,
+  "help_preview": null,
+  "extra_def_lines": [
+    "gv_roleInvestigatorArray[3][29][0] = StringExternal(\"Param/Value/GSSCAN1\");",
+    "gv_roleInvestigatorArray[3][29][1] = StringExternal(\"Param/Value/GSSCAN2\");",
+    "gv_roleWeights[3][29] = 0.0;"
+  ],
+  "interactions": {
+    "swap": {"text": "首夜绑定是立即完成的关系建立，绑定后不被女巫/司机重定向；常规护盾访问自己，宿主指令的牺牲刀由共生体登门，受女巫/司机影响。"},
+    "investigate": {"text": "独立冰冷意识线索组；无行动/绑定/护盾访问自己，突袭正常登记访问、非法闯入与谋杀。"},
+    "restrict": {"text": "护盾和突袭默认可被限制，监禁阻止操作；已立即建立的宿主关系不因随后限制而解除。"},
+    "guessage": {"text": "审查页中立列表包含共生体。", "in_guess_list": true},
+    "doctor_guard": {"text": "突袭遵循无敌、次数盾、救治和保镖拦截；无宿主、宿主连带死亡和主动牺牲不受救治或无敌阻止。"}
+  },
+  "note": "中立温和，默认权重0；首夜立即且不可撤销地绑定另一名非共生体活人，互知身份；无宿主于首夜黎明死亡。与宿主同胜、宿主死亡连带死亡，共生体可死后共胜。依宿主当前是否中立分一次护盾/一次牺牲突袭，共用一次机会。加入宿主既有夜聊或建立私人夜聊；法官/公告员宿主赋予以共生体为说话者的夜间公开发言。角色29不访问银行首胜数组。",
+  "review_status": "reviewed"
+}
