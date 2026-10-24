@@ -1,0 +1,49 @@
+// 恶棍（中立邪恶 3/28）：默认权重0，无额外开关，无夜间无敌。
+Param/Value/EGNAME=<c val="C47A44">恶棍</c>
+Param/Value/EGCARD=<c val="C47A44">
+Param/Value/EGALIGN=<c val="C47A44">中立（邪恶）</c>
+Param/Value/EGDESC=一个游手好闲，居无定所的恶徒，他享受伤害其他人的快感。<n/><n/><c val="BBDDFF">每晚选择另一名玩家，将其打成重伤。</c>
+Param/Value/EGBOX1=每晚选择另一名玩家，将其打成重伤。不能选择自己。
+Param/Value/EGBOX2=<n/>- 新伤从获得效果的下一晚起生效：负伤者被其他人访问后会死亡。<n/>- 负伤会持续至被治愈；被你选择的人会知道自己负伤了。<n/>- 对夜间无敌或有剩余免死机会的人施伤无效，他会认出你。<n/>- 负伤者获得夜间无敌或免死机会时，伤势会恢复。<n/>- 医生和巫医可以治愈负伤。<n/>- 所有恶棍的访问及负伤者访问自己，都不会触发伤势。<n/>- 保镖的访问会触发伤势，但不会拦截施伤或与你互砍。
+Param/Value/EGBOX4=一个游手好闲，居无定所的恶徒，他享受伤害其他人的快感。
+Param/Value/EGBOX6=存活并看到城镇全部死亡。
+Param/Value/EGCRIME=破坏治安
+Param/Value/EGTIP=将这名玩家打成重伤；再次点击可取消。
+Param/Value/EGSEL1=你决定将
+Param/Value/EGSEL2=暴打一顿。
+Param/Value/EGCANCEL=你放弃了今晚的施暴。
+Param/Value/EGWOUND=你在街道上行走时，突然有一个人冲出来将你暴打了一顿！你负伤了，若有人访问你可能会导致你死亡！
+Param/Value/EGATTACK1=你把
+Param/Value/EGATTACK2=暴打了一顿！他负伤了。
+Param/Value/EGIMMUNET1=你在街道上行走时，有个恶棍试图攻击你，但是你击退了他！你看到了他的模样，他是
+Param/Value/EGIMMUNET2=.
+Param/Value/EGIMMUNEA1=你试图将
+Param/Value/EGIMMUNEA2=暴打一顿，不过你没有打过他！他得知了你是谁。
+Param/Value/EGALREADY=你的目标已经负伤了！你虽然是恶徒，不过你可没想杀他。
+Param/Value/EGHEALER=你的目标似乎被人毒打过，他遍体鳞伤。在你的照顾下，他逐渐康复。
+Param/Value/EGPATIENT=你因伤势过重濒临死亡，然而一位医生救治了你。在他的照顾下，你逐渐康复。
+Param/Value/EGCLEANSE=你清楚地记得几天前你曾被人毒打，但是现在你的伤势突然恢复如初。
+Param/Value/EGHEALBLOCK1=你把
+Param/Value/EGHEALBLOCK2=暴打了一顿，不过他得到了及时救治，没有留下伤势。
+Param/Value/EGNIGHT=你听见痛苦的呻吟声...
+Param/Value/EGDEATH=死者遍体鳞伤，最终因伤势恶化而死。
+Param/Value/EGDIED=你因负伤后被访问，伤势恶化而死亡。
+Param/Value/EGCORONER=死者因恶棍留下的伤势恶化而死。
+Param/Value/EGWIN=恶棍胜利
+Param/Value/EGWINTITLE=恶棍胜利
+Param/Value/EGWINBODY=城镇已全数死亡，仍然存活的恶棍达成了目标。
+Param/Value/1CEF178B=- 那暗示他会是个巴士司机、保镖、恶棍、欺骗者/迷惑者，或是审查员。
+Param/Value/1DEADB2F=- 那暗示他会是个巴士司机、保镖、恶棍、欺骗者/迷惑者。
+Param/Value/1FD3905E=- 那暗示他会是个巴士司机、保镖、恶棍、欺骗者/迷惑者。
+Param/Value/2B772EFE=- 那暗示他会是个巴士司机、保镖、恶棍、欺骗者/迷惑者。
+Param/Value/2D76CD9B=- 那暗示他会是个巴士司机、保镖、恶棍、欺骗者/迷惑者。
+Param/Value/41166422=- 那暗示他会是个巴士司机、保镖、恶棍、欺骗者/迷惑者，或是审查员。
+Param/Value/4654F827=- 那暗示他会是个巴士司机、保镖、恶棍、欺骗者/迷惑者。
+Param/Value/56E7EEEB=- 那暗示他会是个巴士司机、保镖、恶棍、欺骗者/迷惑者、审查员，或者传闻中的冤魂。
+Param/Value/A5853129=- 那暗示他会是个巴士司机、保镖、恶棍、欺骗者/迷惑者。
+Param/Value/C0D6293D=- 那暗示他会是个巴士司机、保镖、恶棍、欺骗者/迷惑者。
+Param/Value/CF76CC01=- 那暗示他会是个巴士司机、保镖、恶棍、欺骗者/迷惑者。
+Param/Value/D24C65D8=- 那暗示他会是个巴士司机、保镖、恶棍、欺骗者/迷惑者。
+Param/Value/DEF7D7EB=- 那暗示他会是个巴士司机、保镖、恶棍、欺骗者/迷惑者，或是审查员。
+Param/Value/EACC9ADF=- 那暗示他会是个巴士司机、保镖、恶棍、欺骗者/迷惑者。
+Param/Value/FC60340A=- 那暗示他会是个巴士司机、保镖、恶棍、欺骗者/迷惑者、审查员，或者传闻中的冤魂。

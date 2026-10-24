@@ -1,0 +1,26 @@
+{
+  "pool": 3,
+  "role": 28,
+  "pinyin": "egun",
+  "cn": "恶棍",
+  "name_key": "EGNAME",
+  "desc_key": "EGDESC",
+  "investigator": ["E4B88DE696ADE7A7BBE58AA81", "E4B88DE696ADE7A7BBE58AA82"],
+  "crime_key": "EGCRIME",
+  "options": [],
+  "flag10": false,
+  "guessable": true,
+  "help_preview": null,
+  "extra_def_lines": [
+    "gv_roleWeights[3][28] = 0.0;"
+  ],
+  "interactions": {
+    "swap": {"text": "正常登门，访问通过 gf_BHVisitAction 登记，受女巫与巴士司机等干扰影响。"},
+    "investigate": {"text": "探员属于保镖的不断移动组；仅记录破坏治安，不记非法闯入或谋杀。"},
+    "restrict": {"text": "默认可被限制，入狱不能行动；无夜间无敌。"},
+    "guessage": {"text": "审查页中立列表可以猜出恶棍。", "in_guess_list": true},
+    "doctor_guard": {"text": "医生、巫医治疗伤势；保镖登门会触发旧伤，但施伤不是攻击拦截，不互砍。"}
+  },
+  "note": "中立邪恶，默认权重0；每晚只能伤害其他人。每次新伤从获得效果的下一晚起生效，由非本人、非恶棍的真实访问触发旧伤。永久/临时/次数免疫阻止施伤并清除旧伤。目标存活且城镇全部死亡。角色28不做银行首胜索引。",
+  "review_status": "reviewed"
+}
