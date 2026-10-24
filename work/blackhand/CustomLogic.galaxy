@@ -106417,6 +106417,8 @@ void gf_XRBuild () {
 
     DialogCreate(540, 390, c_anchorCenter, 0, 40, false);
     gv_xrPanel = DialogLastCreated();
+    // 额外规则是设定页弹层：提升整个对话框，避免被后创建的保存格窗口遮挡。
+    DialogSetRenderPriority(gv_xrPanel, 700);
     DialogSetImageVisible(gv_xrPanel, false);
     libNtve_gf_CreateDialogItemImage(gv_xrPanel, 540, 390, c_anchorTopLeft, 0, 0, StringToText(""), "Assets\\Textures\\border-protoss-transportslot-filled.dds", c_triggerImageTypeBorder, true, Color(100, 100, 100), c_triggerBlendModeNormal);
     libNtve_gf_CreateDialogItemLabel(gv_xrPanel, 500, 36, c_anchorTopLeft, 20, 16, StringExternal("Param/Value/XRTITLE"), Color(100.00, 80.00, 40.00), false, 2.0);
