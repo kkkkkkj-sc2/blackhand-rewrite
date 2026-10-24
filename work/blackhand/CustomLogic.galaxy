@@ -105800,6 +105800,11 @@ void gf_SKN_3_zhongcaizhe (int lv_a) {
     const int autoZCNP_ae = 15;
     const int autoZCNP_ai = 1;
 
+    // 被动无敌每夜重设；无名单、冷却或被限制时也生效。
+    if ((gv_roleOptions[3][27][0] == true)) {
+        gv_immune[lv_a][0] = true;
+    }
+
     gf_ZCPrune(lv_a);
     if ((gv_zcN[lv_a] == 0)) {
         return;
