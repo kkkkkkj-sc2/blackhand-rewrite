@@ -105643,6 +105643,9 @@ void gf_ZCApply (int lp_who, int lp_n, int lp_a, int lp_b, int lp_c) {
 void gf_ZCRefreshPick (int lp_who) {
     int lv_i;
     int lv_j;
+    int lv_seat;
+    int lv_row;
+    int lv_x;
     bool lv_mark;
     string lv_s;
     const int autoZCRF_ae = 15;
@@ -105656,6 +105659,19 @@ void gf_ZCRefreshPick (int lp_who) {
             DialogControlSetVisible(gv_zcPickBtn[lv_i], PlayerGroupSingle(lp_who), false);
         }
         else {
+            // 按当前显示楼层排布；按钮仍绑定内部玩家号，点击不会随位置串人。
+            lv_seat = StringToInt(gv_number[lv_i]);
+            if ((lv_seat < 1) || (lv_seat > 15)) {
+                lv_seat = lv_i;
+            }
+
+            lv_row = ((lv_seat - 1) / 2);
+            lv_x = -160;
+            if (((lv_seat - 1) - (lv_row * 2)) == 1) {
+                lv_x = 160;
+            }
+
+            DialogControlSetPosition(gv_zcPickBtn[lv_i], PlayerGroupSingle(lp_who), c_anchorTop, lv_x, (40 + (lv_row * 28)));
             DialogControlSetVisible(gv_zcPickBtn[lv_i], PlayerGroupSingle(lp_who), true);
             lv_mark = false;
             lv_j = 0;
