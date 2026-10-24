@@ -20,6 +20,13 @@
 - 兼容黑手党／三合会／共济会／邪教、感染者双人频道、中立致命同角色频道、间谍窃听与疯子领袖隔离。
 - 监禁、狱警私聊、禁言、私密审查频道等原有隔离规则优先，不得通过共生体绕过。
 
+## 盟友清单
+
+- 宿主已有盟友清单时，共生体以「共生体」身份加入该清单，也能查看宿主的完整清单。包括黑手党、三合会、邪教、共济会及已开启的中立致命同角色联盟。
+- 首夜绑定立即刷新；以后死亡、转阵营等沿用原清单刷新，死者采用原有死亡标记。没有盟友清单的宿主不会因此凭空得到一份。
+- 不改变任何人的真实阵营或胜利条件，不把共生体转化为黑手党／三合会／邪教徒。疯子原本看不到的领袖及其共生体仍不可见。
+- 共生体使用自己的清单折叠设置。先完成全部宿主清单，再复制给共生体，避免座位先后导致读取旧清单或重复追加。
+
 ## 维护接线
 
 唯一实现仍在 `work/blackhand/CustomLogic.galaxy`，不加载插件或拼接临时片段。
@@ -40,9 +47,10 @@
 python3 tools/test_gongshengti_ui.py
 python3 tools/test_gongshengti_core.py
 python3 tools/test_gongshengti_chat.py
+python3 tools/test_gongshengti_allies.py
 python3 tools/galaxy_lint.py
-python3 tools/boot2_build.py --out work/boot2-shw299.SC2Map
-python3 tools/boot2_build.py --out work/boot2-shw299-solo.SC2Map --solo
+python3 tools/boot2_build.py --out work/boot2-shw300.SC2Map
+python3 tools/boot2_build.py --out work/boot2-shw300-solo.SC2Map --solo
 ```
 
 测试从维护中的 Galaxy 源码抽取实际函数，再以 C++ 与明确的引擎替身执行，覆盖绑定／按钮／命令／限次／共享胜负、战斗／死亡、频道及权限。**不等同于 SC2 引擎编译或游戏内实测。**

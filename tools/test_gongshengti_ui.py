@@ -35,7 +35,7 @@ string gv_number[16], gv_name[16], gv_variant;
 text gv_roleNameArray[9][36];
 bool gv_gameOver=false, gv_isNight=true, gv_nightProcessingPhase=false, gv_nightSequence=true;
 int gv_dayNumber=1, eventPlayer=1, gv_endButtonItem=1, gv_unit[16], gv_nameTag[16], gv_hat[16][2];
-int refreshes=0, joins=0, pictures=0;
+int refreshes=0, joins=0, pictures=0, rosterRefreshes=0;
 int gv_actionDialogItem[16][7], gv_switchButtonItem=999;
 bool visible[16][160], switchEnabled[16], gv_roleOptions[9][36][12];
 bool gf_BHListHas(int,int) { return false; }
@@ -64,6 +64,7 @@ void libNtve_gf_SetDialogItemColor(int,int,int) {}
 void DialogControlSetSize(int,int,int,int) {}
 void libNtve_gf_SetDialogItemImage(int,string,int) {}
 void libNtve_gf_SetDialogItemImage2(int,string,int) {}
+void gf_RefreshRoleBox() { ++rosterRefreshes; }
 void gf_GSRefreshChat() { ++refreshes; }
 void gf_GSChatJoin(int) { ++joins; }
 int EventPlayer() { return eventPlayer; }
@@ -95,7 +96,7 @@ CASES = r'''
 void reset(int sym=1,int host=2,int pool=1) {
     gv_gameOver=false; gv_isNight=true; gv_nightProcessingPhase=false;
     gv_nightSequence=true; gv_dayNumber=1; eventPlayer=sym;
-    refreshes=joins=pictures=0; notified.clear(); eventMessage="";
+    refreshes=joins=pictures=rosterRefreshes=0; notified.clear(); eventMessage="";
     for(int p=0;p<=15;++p) {
         alive[p]=current[p]=(p>0); gv_won[p]=gv_diedAtNight[p]=false;
         gv_gsHost[p]=gv_gsStrike[p]=gv_gsResult[p]=0;
@@ -118,7 +119,7 @@ int main() {
         for(int pool: {1,2,3,5}) {
             reset(sym,host,pool); gf_GSBind(sym,host);
             assert(gv_gsHost[sym]==host && gv_visitation[sym]==sym);
-            assert(joins==1 && refreshes==1 && switchEnabled[sym]==(pool!=3));
+            assert(joins==1 && refreshes==1 && rosterRefreshes==1 && switchEnabled[sym]==(pool!=3));
             gf_GSBind(sym,host); assert(joins==1);
             gf_GSBind(sym,sym); assert(gv_gsHost[sym]==host);
             ++checks;
