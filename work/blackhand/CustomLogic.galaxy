@@ -8055,7 +8055,7 @@ void gf_DisplayRoles () {
                     gv_immuneChance[lv_a] = 1;
                 }
 
-                if ((gv_roles[lv_a][0] == 23)) {
+                if ((gv_roles[lv_a][0] == 23) || (gv_roles[lv_a][0] == 28)) {
                     gv_immuneChance[lv_a] = 1;
                 }
 

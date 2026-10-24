@@ -1,6 +1,6 @@
 # 恶棍（3/28）
 
-中立（邪恶），拼音 `egun`，铜褐色 `C47A44`，默认权重 0，无额外开关、无自身夜间无敌。
+中立（邪恶），拼音 `egun`，铜褐色 `C47A44`，默认权重 0，无额外开关；开局拥有一次夜间无敌机会（`gv_immuneChance=1`），消耗后不会在夜间或面板刷新时补充。
 
 ## 能力与交互
 
@@ -39,11 +39,12 @@
 python3 tools/test_egun.py
 python3 tools/test_egun_finish.py
 python3 tools/test_egun_peripheral.py
+python3 tools/test_egun_start.py
 python3 tools/test_egun_actions.py
 python3 tools/test_chat_styles.py
 python3 tools/galaxy_lint.py
-python3 tools/boot2_build.py --out work/boot2-shw297.SC2Map
-python3 tools/boot2_build.py --out work/boot2-shw297-solo.SC2Map --solo
+python3 tools/boot2_build.py --out work/boot2-shw298.SC2Map
+python3 tools/boot2_build.py --out work/boot2-shw298-solo.SC2Map --solo
 ```
 
 核心测试执行主脚本实际函数，含 4,000 个独立预期随机用例及 UBSan/bounds；结算和外围另有专项测试。这些验证不替代 SC2 引擎内的实际对局、UI 与音效验收。
