@@ -2,7 +2,7 @@
 
 ## 玩家操作
 
-- 中立（温和），拼音 `gongshengti`。默认权重 **0.5**，可从全体随机、中立随机和中立温和池抽出，也可在自设中手动添加。
+- 中立（温和），拼音 `gongshengti`。默认与板子共用随机权重均为 **0.5**，可从全体随机、中立随机和中立温和池抽出，也可在自设中手动添加。
 - 首夜点击另一名活人的行动按钮，**立即、不可撤销**地绑定；双方立刻获得身份提示并可交谈。不能选择自己、假死者或另一名共生体，避免互绑闭环。
 - 首夜结束仍无宿主：黎明死亡，聚会夜也不豁免。
 - 宿主非中立：共生体使用自己的开关（或 `-on` / `-off`），为宿主发动一次当晚整夜无敌，默认关闭。
@@ -44,6 +44,7 @@
 ## 自动回归
 
 ```bash
+python3 tools/test_gongshengti_weights.py
 python3 tools/test_gongshengti_ui.py
 python3 tools/test_gongshengti_core.py
 python3 tools/test_gongshengti_chat.py
