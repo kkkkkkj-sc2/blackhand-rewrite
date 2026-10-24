@@ -28,6 +28,16 @@ def main():
     assert set(strings) <= set(required)
     assert spec["options"] == [] and spec["flag10"] is False
     assert spec["investigator"] == ["E4B88DE696ADE7A7BBE58AA81", "E4B88DE696ADE7A7BBE58AA82"]
+    assert strings["Param/Value/EGBOX1"] == "每晚选择一个人，他负伤。"
+    traits = [
+        "负伤者被访问后会死亡。",
+        "负伤效果对有夜间无敌者无效，且他会知道你是谁。",
+        "负伤会从获得该效果的第二天开始生效。",
+        "医生会治愈负伤状态。",
+        "被你选择的人知道他负伤了。",
+        "你的访问不会导致负伤者死亡。",
+    ]
+    assert strings["Param/Value/EGBOX2"] == "".join("<n/>- " + trait for trait in traits)
     assert strings["Param/Value/EGBOX6"] == "存活并看到城镇全部死亡。"
     assert strings["Param/Value/EGCRIME"] == "破坏治安"
     merged = load_gamestrings()
