@@ -30,6 +30,7 @@ NAMES = (
     'gf_GSChatReady', 'gf_JSIs', 'gf_JSWon', 'gf_EGWon', 'gf_XRGangShare',
     'gf_CheckEnd', 'gf_SKF_1_jingzhang',
     'gf_ETTownWin', 'gf_ETMafiaWin', 'gf_ETTriadWin', 'gf_BHFactionReset',
+    'gf_BHSpyActive', 'gf_BHSeenFaction', 'gf_BHInvestigatedRoleName', 'gf_BHPrivateRoleName',
 )
 # Pre-conversion body: only the one real-identity name call may differ.
 # Group clues, framing, immunity and all original control flow remain exact.
@@ -106,7 +107,7 @@ def integration(source: str) -> list[tuple[str, str]]:
     profession_reference = investigator.replace('gf_BHInvestigatedRoleName(', 'gf_DQSeenName(')
     assert hashlib.sha256(profession_reference.encode()).hexdigest() == INVESTIGATOR_SHA256, 'group clues/framing/immunity must remain byte-identical; only real-identity name is changed'
     sheriff = mask(function(source, 'gf_SKF_1_jingzhang'))
-    assert 'gf_BHFaction(gv_visitation[lv_a])' in sheriff, 'sheriff must query target alignment'
+    assert 'gf_BHSeenFaction(gv_visitation[lv_a])' in sheriff, 'sheriff must query reported alignment, including the converted-Spy exception'
     assert not re.search(r'gv_roles\[gv_visitation\[lv_a\]\]\[1\]\s*==\s*[25]\b', sheriff)
 
     predicates = []
@@ -328,6 +329,8 @@ void testQueries() {
         role(p,pool,id); gv_bhFaction[p]=faction;
         bool converted=pool==1 && (faction==2 || faction==5);
         CHECK(gf_BHConverted(p)==converted); CHECK(gf_BHFaction(p)==(converted?faction:pool));
+        CHECK(gf_BHSeenFaction(p)==(converted && id==8?1:(converted?faction:pool)));
+        CHECK(gf_BHSpyActive(p)==(pool==1 && id==8 && !converted));
         CHECK(gf_LMCat(p)==(converted?faction:pool)); CHECK(gf_LMRole(p)==(converted?0:id));
         string expected=converted?TextWithColor(StringExternal("Param/Value/BHFROLE"+std::to_string(id)),Color(faction==2?85.10:56.08,faction==2?62.75:74.90,faction==2?56.08:81.96)):gv_roleNameArray[pool][id];
         CHECK(gf_BHRoleName(p)==expected);

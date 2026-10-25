@@ -24,6 +24,7 @@ NAMES = (
     'gf_SKP_1_tanyuan', 'gf_SKP_1_lianbangtanyuan',
     'gt_E78AAFE7BDAAE8AEB0E5BD95_Func',
     'gf_SKF_1_tanyuan', 'gf_SKF_1_lianbangtanyuan',
+    'gf_BHSeenFaction', 'gf_BHDeathName',
 )
 # Exact original bodies, before the identity-color exception. Canonicalizing
 # ONLY the new name call must recover these; this protects ordinary group clues,
@@ -177,7 +178,9 @@ void ordinaryMatrix() {
             gv_seqAfterPlagueInteract[2]=plague;
             gv_e69FA5E8BF87E4BA86[1][2]=seen;
             if(frame) { gv_framed[2][1]=5; gv_framed[2][0]=4; }
-            text identity=faction?expectedColored(role,faction):gv_roleNameArray[1][role];
+            text identity=faction && role!=8?expectedColored(role,faction):gv_roleNameArray[1][role];
+            CHECK(gf_BHDeathName(2)==identity);
+            CHECK(gf_BHFaction(2)==(faction?faction:1));
             if(actor==27) {
                 // Federal has no framing branch. The direct-identity switch
                 // precedes and bypasses immunity/plague/revisit as before.
@@ -221,7 +224,7 @@ void ordinaryMatrix() {
     }
 }
 void disguiseAndNativeCases() {
-    for(int targetPool: {1,2,3,5}) for(int targetRole: {1,4,21,22,33}) for(int faction: {0,2,5}) {
+    for(int targetPool: {1,2,3,5}) for(int targetRole: {1,4,8,21,22,33}) for(int faction: {0,2,5}) {
         for(bool federal: {false,true}) for(int state=0;state<3;++state) {
             context="native/disguise pool="+std::to_string(targetPool)+" role="+std::to_string(targetRole)+" faction="+std::to_string(faction)+" state="+std::to_string(state);
             reset(1,federal?27:4,targetPool,targetRole,faction);
@@ -229,7 +232,7 @@ void disguiseAndNativeCases() {
             if(state==2) gv_alivePlayers&=~(1u<<2);
             gv_fzPool[2]=5; gv_fzRole[2]=22; // Fake leader is NOT the investigated profession.
             bool hidden=targetPool==3 && targetRole==21 && state==0;
-            bool converted=targetPool==1 && faction!=0;
+            bool converted=targetPool==1 && faction!=0 && targetRole!=8;
             text name=hidden?gv_roleNameArray[1][6]:(converted?expectedColored(targetRole,faction):gv_roleNameArray[targetPool][targetRole]);
             gv_roleOptions[1][federal?27:4][0]=true;
             if(federal) gf_SKF_1_lianbangtanyuan(1); else gf_SKF_1_tanyuan(1);

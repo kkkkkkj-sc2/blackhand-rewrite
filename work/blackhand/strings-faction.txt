@@ -3,6 +3,7 @@ Param/Value/BHFJOIN5=你转变为「<c val="8FBFD1">三合会</c>」阵营。
 Param/Value/BHFGOAL2=与黑手党一同胜利。
 Param/Value/BHFGOAL5=与三合会一同胜利。
 Param/Value/BHFKEEP=（保留原职业）
+Param/Value/BHFSPYTRAIT=<n/>- 当你转变为黑手党或三合会阵营时，你失去能力。但是，你会仍然被当做城镇阵营。
 Param/Value/BHFUSAGE=试用指令：-faction mafia / -faction triad（转换自己）；-faction 楼层 mafia / triad（转换指定楼层）。仅可转换尚属城镇的存活玩家。
 Param/Value/BHFREJECT=转换未执行：只能将尚属城镇的存活玩家转换为黑手党或三合会。
 Param/Value/BHFDONE=阵营转换已完成：

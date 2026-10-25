@@ -29,7 +29,18 @@ def harness(source: str) -> str:
         assert len(expressions) >= 2, ('known-identity cemetery paths lost faction-aware display', name)
         assignments.extend(expressions)
 
-    raw = skill + '\n' + '\n'.join(assignments)
+    assert len(assignments) == 6, 'review every existing public cemetery expression'
+    projection_owners = {'gf_SKF_1_jingzhang': 4, 'gf_SKK_1_shenchayuan': 1,
+                         'gf_YLTellFaction': 3, 'gf_BHInvestigatedRoleName': 1}
+    for name, count in projection_owners.items():
+        assert len(re.findall(r'\bgf_BHSeenFaction\s*\(', mask(function(source, name)))) == count, name
+
+    assert len(re.findall(r'\bgf_BHSeenFaction\s*\(', mask(source))) == 11, 'outward projection leaked into true-faction mechanics'
+    roster = mask(function(source, 'gf_RefreshRoleBox'))
+    assert roster.count('gf_BHPrivateRoleName(') == 9 and 'gf_BHDeathName(' not in roster
+    assert 'Param/Value/BHFSPYTRAIT' in function(source, 'gf_RTTownRoleText')
+    faction_report = function(source, 'gf_YLTellFaction')
+    raw = skill + '\n' + faction_report + '\n' + '\n'.join(assignments)
     used = set(re.findall(r'\bgv_\w+', mask(raw)))
     needed = used - set(re.findall(r'\bgv_\w+', base))
     declarations = {}
@@ -38,7 +49,7 @@ def harness(source: str) -> str:
         declarations[name] = f'{kind} {name}{dims};'
 
     assert not needed - declarations.keys(), needed - declarations.keys()
-    unknown = core.calls(raw) - core.calls(base) - {'gf_SKK_1_shenchayuan', 'gf_ESSearcherKill', 'gf_ESBodyguardKill'}
+    unknown = core.calls(raw) - core.calls(base) - {'gf_SKK_1_shenchayuan', 'gf_ESSearcherKill', 'gf_ESBodyguardKill', 'gf_YLTellFaction', 'gf_BHNotify'}
     assert not unknown, ('new effect boundary must be explicit', unknown)
     wrappers = '\n'.join(f'void grave_{i}(int p) {{ int lv_a={"0" if "gv_executionList[lv_a]" in statement else "p"}; int lp_player=p; {translate(statement)} }}' for i, statement in enumerate(assignments))
     renderers = ','.join(f'grave_{i}' for i in range(len(assignments)))
@@ -47,14 +58,15 @@ def harness(source: str) -> str:
 std::vector<std::pair<int,int>> searcherHits, guardHits;
 void gf_ESSearcherKill(int target,int killer) { searcherHits.push_back({target,killer}); }
 void gf_ESBodyguardKill(int target,int guard) { guardHits.push_back({target,guard}); }
-''' + translate(skill) + '\n' + wrappers + r'''
+void gf_BHNotify(text value,int player,string sound) { gf_CBSystemMessage(value,player,player,0,sound,Color(0,0,0)); }
+''' + translate(skill) + '\n' + translate(faction_report) + '\n' + wrappers + r'''
 void cornerReset(string label) {
     brReset(label);
 ''' + '\n'.join(f'    clearValue({name});' for name in sorted(needed)) + r'''
     searcherHits.clear(); guardHits.clear();
 }
 void testAuditorFaction() {
-    for(int pool:{1,2,3,5}) for(int profession:{1,4,13,21,26,27,33,35})
+    for(int pool:{1,2,3,5}) for(int profession:{1,4,8,13,21,26,27,33,35})
     for(int overridePool:{0,2,5}) for(bool immunity:{false,true}) for(int guess=0;guess<3;++guess) for(bool guarded:{false,true}) {
         cornerReset("auditor role/true-faction/option/guess/bodyguard matrix");
         role(1,1,26); role(8,pool,profession); gv_bhFaction[8]=overridePool;
@@ -64,7 +76,7 @@ void testAuditorFaction() {
         gv_guarded[8]=guarded?15:0; gv_damage[8]=4;
         const string before=professionState();
         const int faction=pool==1 && overridePool!=0?overridePool:pool;
-        const bool spared=guess==0 && immunity && pool==1 && faction==1;
+        const bool spared=guess==0 && immunity && pool==1 && (faction==1 || profession==8);
         const bool attacked=guess==0 && !spared;
         gf_SKK_1_shenchayuan(1);
         CHECK(professionState()==before && gv_bhFaction[8]==overridePool);
@@ -78,6 +90,23 @@ void testAuditorFaction() {
         }
         else CHECK(gv_damage[8]==4 && gv_damage[15]==0 && gv_damage[1]==0 && gv_guarded[8]==(guarded?15:0));
         CHECK(hasMessage(1,guess!=0?"0CFCAFEA":spared?"0F85F45E":"A4C61FD7"));
+    }
+}
+void testReportedFaction() {
+    for(int pool:{1,2,3,5}) for(int profession:{1,4,8,24,27,35}) for(int faction:{0,2,5}) {
+        cornerReset("Spy outward town identity versus unchanged true faction");
+        role(1,1,2); role(8,pool,profession); gv_bhFaction[8]=faction;
+        gv_visitation[1]=8; gv_roleOptions[1][2][0]=true;
+        const int actual=pool==1 && faction!=0?faction:pool;
+        const int reported=pool==1 && profession==8?1:actual;
+        const string before=professionState();
+        CHECK(gf_BHFaction(8)==actual && gf_BHSeenFaction(8)==reported);
+        gf_SKF_1_jingzhang(1);
+        CHECK(hasMessage(1,"BD797B72")==bool(reported==2));
+        CHECK(hasMessage(1,"361742C1")==bool(reported==5));
+        messages.clear(); gf_YLTellFaction(1,8);
+        CHECK(hasMessage(1,reported==1?"YLFACT1":reported==2?"YLFACT2":reported==5?"YLFACT5":"YLFACTN"));
+        CHECK(professionState()==before && gv_bhFaction[8]==faction);
     }
 }
 void testConvertedGraveyard() {
@@ -102,7 +131,7 @@ void testConvertedGraveyard() {
     }
 }
 int main() {
-    testAuditorFaction(); testConvertedGraveyard();
+    testAuditorFaction(); testReportedFaction(); testConvertedGraveyard();
     std::cout << "PASS actual auditor + cemetery expressions: " << fixtures << " fixtures, " << checks << " checks; UBSan/bounds; explicit combat/rendering boundaries" << std::endl;
 }
 '''

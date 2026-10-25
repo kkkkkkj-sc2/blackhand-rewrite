@@ -33,7 +33,8 @@ NAMES = (
     'gf_GSActive', 'gf_GSChatPeer', 'gf_GSChatRoot', 'gf_GSGRPartner',
     'gf_GSChatXR', 'gf_GSEffectiveChannel', 'gf_FZChatHidden',
     'gf_GSChatHidden', 'gf_GSChatRecipient', 'gf_FZClick', 'gf_RAFengziActions',
-    'gf_FZBind',
+    'gf_FZBind', 'gf_BHSpyActive', 'gf_BHSeenFaction',
+    'gf_BHInvestigatedRoleName', 'gf_BHPrivateRoleName',
 )
 BARON_NAMES = ('gf_BRFake', 'gt_ASActionButtonATown_Func', 'gt_ASActionButtonBTown_Func')
 
@@ -334,7 +335,9 @@ void identity_cases() {
         check(gv_roles[2][1]==1 && gv_roles[2][0]==id);
         check(gf_BHRoleName(2)==expectedName(id,faction));
         check(gf_FZFaceName(2)==expectedName(id,faction));
-        check(gf_BHDeathName(2)==expectedName(id,faction));
+        check(gf_BHDeathName(2)==(id==8?gv_roleNameArray[1][8]:expectedName(id,faction)));
+        check(gf_BHInvestigatedRoleName(2)==(id==8?gv_roleNameArray[1][8]:expectedName(id,faction)));
+        check(gf_BHPrivateRoleName(2)==expectedName(id,faction));
         check(gf_DQSeenName(2)==gv_roleNameArray[1][id]);
         auto before=std::array<text,7>{};
         for(int item=0;item<7;++item) before[item]=gv_roleBoxText[2][item];

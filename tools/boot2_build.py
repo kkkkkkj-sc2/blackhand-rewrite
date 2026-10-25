@@ -349,6 +349,7 @@ MUST_HAVE_KEYS = [
   'Param/Value/BHFGOAL2',
   'Param/Value/BHFGOAL5',
   'Param/Value/BHFKEEP',
+  'Param/Value/BHFSPYTRAIT',
   'Param/Value/BHFUSAGE',
   'Param/Value/BHFREJECT',
   'Param/Value/BHFDONE',
