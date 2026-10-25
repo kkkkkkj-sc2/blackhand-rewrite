@@ -2329,6 +2329,7 @@ void gf_XRLifeFlush ();
 bool gf_XRTryRebirth (int lp_player, bool lp_remake);
 void gf_XRGangSay (int lp_player, string lp_message);
 void gf_XRDeadSay (int lp_player, string lp_message, bool lp_public);
+void gf_XRAnnounce (int lp_player);
 void gf_XROpenNight ();
 void gf_XRSyncChecks ();
 void gf_XRBindHost ();
@@ -61583,6 +61584,8 @@ bool gt_Start_Func (bool testConds, bool runActions) {
             if ((gv_roleOptions[3][6][4] == true)) {
                 gf_CBSystemMessage(StringExternal("Param/Value/BHEANN"), lv_a, 0, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
             }
+
+            gf_XRAnnounce(lv_a);
         }
     }
 
@@ -106548,6 +106551,30 @@ void gf_XRDeadSay (int lp_player, string lp_message, bool lp_public) {
                 gf_CBSystemMessage(lv_line, lv_a, lp_player, 0, SoundLink("Silent", -1), Color(45.00, 45.00, 50.00));
             }
         }
+    }
+}
+
+// 开局取名和清聊天结束后，与红开关一起向在场玩家公布额外规则。
+void gf_XRAnnounce (int lp_player) {
+    if ((lp_player < 1) || (lp_player > 15)) {
+        return;
+    }
+
+    if ((gv_xrLife == false) && (gv_xrGang == false) && (gv_xrDead == false)) {
+        return;
+    }
+
+    gf_CBSystemMessage(StringExternal("Param/Value/XRANNHEADER"), lp_player, 0, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+    if ((gv_xrLife == true)) {
+        gf_CBSystemMessage(StringExternal("Param/Value/XRANNLIFE"), lp_player, 0, 0, SoundLink("Silent", -1), Color(0,0,0));
+    }
+
+    if ((gv_xrGang == true)) {
+        gf_CBSystemMessage(StringExternal("Param/Value/XRANNGANG"), lp_player, 0, 0, SoundLink("Silent", -1), Color(0,0,0));
+    }
+
+    if ((gv_xrDead == true)) {
+        gf_CBSystemMessage(StringExternal("Param/Value/XRANNDEAD"), lp_player, 0, 0, SoundLink("Silent", -1), Color(0,0,0));
     }
 }
 

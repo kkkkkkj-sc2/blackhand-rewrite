@@ -372,3 +372,7 @@ Param/Value/XRGANG=<c val="CC6666">[团伙·</c>
 Param/Value/XRGANG2=<c val="CC6666">] </c>
 Param/Value/XRIN=<s val="ModLeftSize16Bold"><c val="CC6666">你进入了团伙频道。只有和你同名的人听得到。</c></s>
 Param/Value/XRGANGWIN=<n/><c val="CC6666">同名有一人胜利，其余同名一起胜利，不必活到最后。</c>
+Param/Value/XRANNHEADER=本局游戏启用了以下额外规则：
+Param/Value/XRANNLIFE=「<c val="FFFF00">转世重生</c>」：最先死亡的四名玩家会一同以生存者的身份复活，每人初始有 1 份食物。
+Param/Value/XRANNGANG=「<c val="FFFF00">团伙作案</c>」：同名中立致命会加入各自的频道，且胜利条件不再要求存活到最后。
+Param/Value/XRANNDEAD=「<c val="FFFF00">亡灵小镇</c>」：死者在死后依然可以发言。

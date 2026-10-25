@@ -545,6 +545,7 @@ MUST_HAVE_KEYS = [
     'Param/Value/XRDEADLAB', 'Param/Value/XRGANGLAB', 'Param/Value/XRLIFELAB', 'Param/Value/XRLIFEDOT', 'Param/Value/XRLIFEON', 'Param/Value/XRCLOSE',
     'Param/Value/XRDEAD', 'Param/Value/XRGANG', 'Param/Value/XRGANG2', 'Param/Value/XRIN', 'Param/Value/XRGANGWIN',
     'Param/Value/XRFOODBOX',
+    'Param/Value/XRANNHEADER', 'Param/Value/XRANNLIFE', 'Param/Value/XRANNGANG', 'Param/Value/XRANNDEAD',
     'Param/Value/JJNAME', 'Param/Value/JJDESC', 'Param/Value/JJTAG',
     'Param/Value/JJBOX1', 'Param/Value/JJBOX2', 'Param/Value/JJBOX4',
     'Param/Value/JJCRIME', 'Param/Value/JJINV1', 'Param/Value/JJINV2',
