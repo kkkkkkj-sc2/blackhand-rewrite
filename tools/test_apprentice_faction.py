@@ -62,7 +62,14 @@ def immediate_guard(source: str, owner: str, callee: str, wrapper: str,
 
 
 def harness(source: str) -> str:
-    bodies = [function(source, name) for name in NAMES]
+    names = NAMES
+    if 'bool gf_BHApprenticeAllyLearn (int lp_player, int lp_mentor) {' in source:
+        names += ('gf_BHApprenticeAllyLearn', 'gf_BHApprenticeNativeInit',
+                  'gf_SKO_2_qinglizhe', 'gf_SKO_5_xiangzhu',
+                  'gf_SKO_2_bangjiazhe', 'gf_SKO_5_shenxun',
+                  'gf_SKO_2_qipianzhe', 'gf_SKO_5_mihuo')
+
+    bodies = [function(source, name) for name in names]
     guards = [
         immediate_guard(source, 'gf_SequencePrep', 'gf_SKP_1_xuetu',
                         'dispatchPrep', 'int lv_a'),
@@ -76,8 +83,16 @@ def harness(source: str) -> str:
     live = mask(raw)
     learning = mask(bodies[0])
     assert 'gv_roles[gv_visitation[lv_a]][1] == 1' in learning
-    assert not re.search(r'\bgv_bhFaction\b|\bgf_BHFaction\(', learning), (
-        'learning qualification/state must not reinterpret Town profession')
+    town_start = learning.index('if ((gv_roles[gv_visitation[lv_a]][1] == 1)) {')
+    town_open = learning.index('{', town_start)
+    town_end, depth = town_open + 1, 1
+    while depth:
+        depth += (learning[town_end] == '{') - (learning[town_end] == '}')
+        town_end += 1
+
+    assert not re.search(r'\bgv_bhFaction\b|\bgf_BHFaction\(',
+                         learning[town_start:town_end]), (
+        'Town learning must keep its own faction, independent of mentor faction')
     assert set(re.findall(r'gv_roleBoxText\[lp_player\]\[(\d+)\]\s*=',
                           mask(function(source, 'gf_BHFactionCard')))) == {'0', '3', '6'}
 
@@ -94,14 +109,14 @@ def harness(source: str) -> str:
     globals_text = '\n'.join(declarations[name] for name in sorted(used))
     resets = '\n'.join(f'    clearValue({name});' for name in sorted(used))
     calls = set(re.findall(r'\b(\w+)\s*\(', live)) - {'if', 'for', 'while', 'return'}
-    defined = set(NAMES) | {'dispatchPrep', 'dispatchLearning', 'dispatchClick'}
+    defined = set(names) | {'dispatchPrep', 'dispatchLearning', 'dispatchClick'}
     assert not calls - defined - BOUNDARIES, ('new unreviewed dependency', calls - defined - BOUNDARIES)
     headers = '\n'.join(body.split('{', 1)[0].strip() + ';' for body in bodies)
     code = translate(raw)
     code = re.sub(r'\bnull\b', 'text{}', code)
     code = re.sub(r'^(\s+(?:int|bool|text|string)\s+\w+(?:\[\d+\])*)\s*;',
                   r'\1 = {};', code, flags=re.M)
-    for name, body in zip(NAMES, bodies):
+    for name, body in zip(names, bodies):
         start = source.index(body)
         print(f'  {name}: {source.count(chr(10), 0, start) + 1}..'
               f'{source.count(chr(10), 0, start + len(body)) + 1}', flush=True)

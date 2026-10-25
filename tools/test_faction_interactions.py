@@ -28,8 +28,11 @@ EXTRA = (
     'gf_HLIsVictim', 'gf_HLSnap', 'gf_ESForesterKill',
     'gf_HLResolveOne', 'gf_HLForesterNight',
     'gf_DQClassify', 'gf_YLTellFaction',
-    'gf_RAJijiuActions', 'gf_SKA_1_jijiuzhuanjia',
-    'gf_JJRefreshAbilities', 'gf_JJRevive',
+    'gf_JJFactionAllowed', 'gf_RAJijiuActions', 'gf_SKA_1_jijiuzhuanjia',
+    'gf_JJRefreshAbilities', 'gf_JJRevive', 'gf_BHApprenticeNativeInit',
+    'gf_SKO_2_qinglizhe', 'gf_SKO_5_xiangzhu',
+    'gf_SKO_2_bangjiazhe', 'gf_SKO_5_shenxun',
+    'gf_SKO_2_qipianzhe', 'gf_SKO_5_mihuo',
     'gf_SKO_1_shimin', 'gf_SKO_1_yijing', 'gf_SKO_1_yujing',
     'gf_SKO_1_gongjihuizhanglao', 'gf_SKO_1_tuiwujunren', 'gf_SKO_1_shiguan',
     'gf_BHLeaderResolve', 'gf_BHFeign', 'gf_BHLeaderKill',
@@ -243,11 +246,12 @@ void testTrapInteractions() {
         if(second) gv_visitation2[8]=15; else gv_visitation[8]=15;
         gf_HLForesterNight(); CHECK(gv_shots[1]==1 && gv_hlFaction[1][0]==team);
         CHECK(gv_hlLeft[1][0]==1 && gv_hlHouse[1][0]==15 && killed.empty());
-        // Owner's later alignment does not retarget an already deployed trap.
+        // shw317: an existing converted Forester trap follows the new true team.
         gv_bhFaction[1]=team==2?5:2; gv_visitation[1]=0;
         converted(9,team==2?5:2); gv_visitation[9]=15;
-        gf_HLResolveOne(1,0); CHECK(killed==std::vector<int>{9});
-        CHECK(gv_alivePlayers&(1u<<8)); CHECK(gv_hlLeft[1][0]==0);
+        gf_HLResolveOne(1,0); CHECK(killed==std::vector<int>{8});
+        CHECK(gv_alivePlayers&(1u<<9)); CHECK(gv_hlLeft[1][0]==0);
+        CHECK(gv_hlFaction[1][0]==(team==2?5:2));
     }
     for(int team:{2,5}) for(bool alliedGuard:{false,true}) {
         interactionReset("party trap must spare converted allied bodyguard interceptor");
