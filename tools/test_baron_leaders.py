@@ -488,6 +488,20 @@ void testFreezeAndResolve() {
         const int faction=gf_BHFaction(8); gf_BRResolveRecruit(); CHECK(gf_BHFaction(8)==faction);
         CHECK(std::any_of(messages.begin(),messages.end(),[](const Message& m) { return m.target==1 && m.value==StringExternal("Param/Value/BRRESULT")+"0"; }));
     }
+    for(int pool:{2,5}) for(int cap:{2,3,4}) for(int timing=0;timing<4;++timing) {
+        brReset("first-night dead leader cannot recruit, including deferred death membership",pool);
+        setRecruitCap(pool,cap);
+        std::vector<int> targets; for(int p=2;p<cap+2;++p) targets.push_back(p);
+        commandTargets(targets);
+        if(timing==0 || timing==2) gv_diedAtNight[1]=true;
+        freeze(); CHECK(gv_brReady[1]==(timing!=0 && timing!=2));
+        if(timing==1 || timing==3) gv_diedAtNight[1]=true;
+        if(timing==2) gv_diedAtNight[1]=false; // later clearing must not revive frozen eligibility
+        if(timing==3) gv_alivePlayers&=~(1u<<1);
+        gf_BRResolveRecruit();
+        for(int p:targets) CHECK(gf_BHFaction(p)==1 && !hasMessage(p,pool==2?"BHFJOIN2":"BHFJOIN5"));
+        CHECK(recruits().empty() && gv_brDone);
+    }
     brReset("late JJ revival: target dead at freeze, alive at final commit");
     commandTargets({8}); gv_alivePlayers&=~(1u<<8); gv_diedAtNight[8]=true;
     freeze(); CHECK(gv_brReady[1]);

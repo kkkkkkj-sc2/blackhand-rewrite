@@ -31,7 +31,8 @@ NAMES = (
     'gf_CheckEnd', 'gf_SKF_1_jingzhang',
     'gf_ETTownWin', 'gf_ETMafiaWin', 'gf_ETTriadWin', 'gf_BHFactionReset',
 )
-# Pre-conversion profession investigation body, fixed at the implementation start.
+# Pre-conversion body: only the one real-identity name call may differ.
+# Group clues, framing, immunity and all original control flow remain exact.
 INVESTIGATOR_SHA256 = '8e2a4c5c121b49b6757fdafe4e045c7afbe862b8ee473ab719d893b0937b0ee2'
 
 
@@ -101,7 +102,9 @@ def integration(source: str) -> list[tuple[str, str]]:
     rows = re.findall(r'gv_roleBoxText\[lp_player\]\[(\d+)\]\s*=(?!=)', card)
     assert set(rows) == {'0', '3', '6'}, ('card may only write alignment/goal/win rows', rows)
     investigator = function(source, 'gf_SKF_1_tanyuan')
-    assert hashlib.sha256(investigator.encode()).hexdigest() == INVESTIGATOR_SHA256, 'profession investigation must remain byte-identical'
+    assert investigator.count('gf_BHInvestigatedRoleName(') == 1, 'only real-identity branch may use faction-colored name'
+    profession_reference = investigator.replace('gf_BHInvestigatedRoleName(', 'gf_DQSeenName(')
+    assert hashlib.sha256(profession_reference.encode()).hexdigest() == INVESTIGATOR_SHA256, 'group clues/framing/immunity must remain byte-identical; only real-identity name is changed'
     sheriff = mask(function(source, 'gf_SKF_1_jingzhang'))
     assert 'gf_BHFaction(gv_visitation[lv_a])' in sheriff, 'sheriff must query target alignment'
     assert not re.search(r'gv_roles\[gv_visitation\[lv_a\]\]\[1\]\s*==\s*[25]\b', sheriff)
@@ -122,7 +125,7 @@ def integration(source: str) -> list[tuple[str, str]]:
         predicates.append((name, f'bool award_{name}(int lv_a) {{ int lv_ci=0, lv_shw=0, lv_tx=0; return {branch[1]}; }}'))
 
     assert len(predicates) == 25, ('ET qualification coverage changed; review new entries', len(predicates))
-    print('PASS: declarations/forward references, solo event registration, conversion side-effect allowlist, card rows 0/3/6, unchanged investigator, sheriff target faction, 25 actual ET award expressions', flush=True)
+    print('PASS: declarations/forward references, solo event registration, conversion side-effect allowlist, card rows 0/3/6, unchanged investigator except real-identity name, sheriff target faction, 25 actual ET award expressions', flush=True)
     return predicates
 
 

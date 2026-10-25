@@ -105,10 +105,13 @@ def check_wiring(source, old):
         assert 'gf_BHDeathName' in live, ('death context not wired', name)
         assert not re.search(r'\bgf_DQSeenName\s*\(', live), ('old uncolored death name remains', name)
 
-    for name in ('gf_SKF_1_tanyuan', 'gf_SKF_1_guanchazhe'):
-        body = mask(function(source, name))
-        assert 'gf_DQSeenName' in body, ('profession investigation must remain profession-only', name)
-        assert not re.search(r'\bgf_BH(?:Role|Death)Name\s*\(', body), ('investigation leaks alignment color', name)
+    # Observer still sees profession-only names. Real-identity investigation is
+    # the narrowly permitted exception; ordinary clues must remain unchanged.
+    body = mask(function(source, 'gf_SKF_1_guanchazhe'))
+    assert 'gf_DQSeenName' in body, 'observer must retain seen profession names'
+    assert not re.search(r'\bgf_BH(?:Role|Death|InvestigatedRole)Name\s*\(', body), 'observer leaks alignment color'
+    from test_faction_investigation import check_wiring as check_investigation_wiring
+    check_investigation_wiring(source)
 
     card = mask(function(source, 'gf_RTRoleCard'))
     assert re.search(r'gf_BHFactionCard\s*\(\s*lp_player\s*\)\s*;\s*\}', card), 'card override must run last'
@@ -125,7 +128,7 @@ def check_wiring(source, old):
     owner_text = '\n'.join(mask(function(source, name)) for name in NAMES)
     assert not re.search(r'\bgv_(?:name|playerColor|number|playerSpot)\s*\[[^;\n]*\]\s*=(?!=)', owner_text), 'identity helpers must not recolor/rename players'
     assert source.count('gf_FZFaceName(lv_a)') >= 2, 'both own-card header paths must keep the presentation entry'
-    print('PASS source wiring: night order, death contexts, profession-only investigation, private card', flush=True)
+    print('PASS source wiring: night order, death contexts, identity-only investigation color, private card', flush=True)
 
 
 def check_baron_wiring(source):

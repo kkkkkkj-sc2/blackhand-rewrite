@@ -354,6 +354,7 @@ bool gf_BHConverted (int lp_player);
 void gf_BHConvertedSuccession (int lp_player);
 int gf_BHFaction (int lp_player);
 text gf_BHRoleName (int lp_player);
+text gf_BHInvestigatedRoleName (int lp_player);
 text gf_BHDeathName (int lp_player);
 void gf_BHFactionCard (int lp_player);
 void gf_BHRefreshFactionChat ();
@@ -93080,7 +93081,7 @@ if (((gv_seqAfterPlagueInteract[gv_visitation[lv_a]] == true) || (gv_immune[gv_v
             gf_CBSystemMessage((StringExternal("Param/Value/A10FCC35") + gv_roleNameArray[gv_framed[gv_visitation[lv_a]][1]][gv_framed[gv_visitation[lv_a]][0]] + StringExternal("Param/Value/7F1398F2")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
         }
         else {
-            gf_CBSystemMessage((StringExternal("Param/Value/373E8EF6") + gf_DQSeenName(gv_visitation[lv_a]) + StringExternal("Param/Value/385D6DB5")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+            gf_CBSystemMessage((StringExternal("Param/Value/373E8EF6") + gf_BHInvestigatedRoleName(gv_visitation[lv_a]) + StringExternal("Param/Value/385D6DB5")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
         }
     }
     else {
@@ -93120,7 +93121,7 @@ void gf_SKF_1_lianbangtanyuan (int lv_a) {
     // Implementation
 TriggerExecute(gt_E78AAFE7BDAAE8AEB0E5BD95, false, false);
 if ((gv_roleOptions[1][27][0] == true)) {
-    gf_CBSystemMessage((StringExternal("Param/Value/14230C7D") + gf_DQSeenName(gv_visitation[lv_a]) + StringExternal("Param/Value/3004D2CB")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+    gf_CBSystemMessage((StringExternal("Param/Value/14230C7D") + gf_BHInvestigatedRoleName(gv_visitation[lv_a]) + StringExternal("Param/Value/3004D2CB")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
 }
 else {
     if ((gv_e69FA5E8BF87E4BA86[lv_a][gv_visitation[lv_a]] == true)) {
@@ -93132,7 +93133,7 @@ else {
                 gf_CBSystemMessage((StringExternal("Param/Value/5630260B") + gv_roleNameArray[1][1] + StringExternal("Param/Value/270AC812")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
             }
             else {
-                gf_CBSystemMessage((StringExternal("Param/Value/D88882E8") + gf_DQSeenName(gv_visitation[lv_a]) + StringExternal("Param/Value/F84562C4")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                gf_CBSystemMessage((StringExternal("Param/Value/D88882E8") + gf_BHInvestigatedRoleName(gv_visitation[lv_a]) + StringExternal("Param/Value/F84562C4")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
             }
         }
     }
@@ -95416,7 +95417,7 @@ else {
 void gf_SKK_1_shenchayuan (int lv_a) {
     // Implementation
 if ((gv_roles[gv_visitation[lv_a]][0] == gv_e8A880E781B5E78C9CE6B58B[lv_a][0]) && (gv_roles[gv_visitation[lv_a]][1] == gv_e8A880E781B5E78C9CE6B58B[lv_a][1])) {
-    if ((gv_roles[gv_visitation[lv_a]][1] == 1) && (gv_roleOptions[1][26][0] == true)) {
+    if ((gv_roles[gv_visitation[lv_a]][1] == 1) && (gf_BHFaction(gv_visitation[lv_a]) == 1) && (gv_roleOptions[1][26][0] == true)) {
         gf_CBSystemMessage((StringExternal("Param/Value/0F85F45E") + gv_roleNameArray[gv_e8A880E781B5E78C9CE6B58B[lv_a][1]][gv_e8A880E781B5E78C9CE6B58B[lv_a][0]] + StringExternal("Param/Value/00F6A91D")), lv_a, 0, 0, SoundLink("EditorDefaultSound", -1), Color(0,0,0));
     }
     else {
@@ -99829,6 +99830,15 @@ int gf_DQSeenRole (int lp_player) {
 
 text gf_DQSeenName (int lp_player) {
     return gv_roleNameArray[gf_DQSeenPool(lp_player)][gf_DQSeenRole(lp_player)];
+}
+
+// 仅真实身份调查按实际阵营着色；普通分组线索与原有伪装入口保持独立。
+text gf_BHInvestigatedRoleName (int lp_player) {
+    if ((gf_BHConverted(lp_player) == true)) {
+        return gf_BHRoleName(lp_player);
+    }
+
+    return gf_DQSeenName(lp_player);
 }
 
 int gf_DQClassify (int lp_player) {
@@ -110188,7 +110198,7 @@ void gf_BRFreezeRecruit () {
     gv_brFrozen = true;
     lv_a = 1;
     while ((lv_a <= 15)) {
-        gv_brReady[lv_a] = ((gf_BRIs(lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gv_bhFeignRole[lv_a] == 0) && (gv_roleblocked[lv_a] == 0) && (gv_jailed[lv_a] == 0));
+        gv_brReady[lv_a] = ((gf_BRIs(lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gv_diedAtNight[lv_a] == false) && (gv_bhFeignRole[lv_a] == 0) && (gv_roleblocked[lv_a] == 0) && (gv_jailed[lv_a] == 0));
         lv_a += 1;
     }
 }
@@ -110207,7 +110217,7 @@ void gf_BRResolveRecruit () {
     lv_a = 1;
     while ((lv_a <= 15)) {
         lv_n = 0;
-        if ((gv_brReady[lv_a] == true) && (gf_BRIs(lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) {
+        if ((gv_brReady[lv_a] == true) && (gf_BRIs(lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gv_diedAtNight[lv_a] == false)) {
             lv_i = 0;
             while ((lv_i < gf_BRRecruitLimit(lv_a))) {
                 lv_target = gv_brRecruit[lv_a][lv_i];
