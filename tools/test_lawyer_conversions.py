@@ -33,7 +33,8 @@ def calls_in(code: str) -> set[str]:
 
 
 def harness(source: str) -> str:
-    names = ['gf_RSConversions', 'gf_LSConvert', 'gf_LSIs']
+    names = ['gf_RSConversions', 'gf_LSConvert', 'gf_LSIs',
+             'gf_BHConvertedSuccession', 'gf_BHConverted', 'gf_BHFaction']
     bodies = []
     for name in names:
         body = function(source, name)
@@ -67,7 +68,7 @@ def harness(source: str) -> str:
     globals_text = '\n'.join(declarations[name] for name in sorted(used))
     resets = '\n'.join(f'    clearValue({name});' for name in sorted(used))
     headers = '\n'.join(body.split('{', 1)[0] + ';' for body in bodies)
-    print(f'Extracted full dispatcher, LSConvert/LSIs, {len(names) - 3} actual SKV functions, '
+    print(f'Extracted full dispatcher, LSConvert/LSIs, faction succession/identity, {len(names) - 6} actual SKV functions, '
           f'{len(used)} actual global declarations; no conversion/count stubs', flush=True)
 
     return r'''

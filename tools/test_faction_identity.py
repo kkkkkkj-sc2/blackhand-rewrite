@@ -289,7 +289,7 @@ void reset() {
 }
 text expectedName(int id,int faction) {
     // Declarative output contract: the source supplies the logic and key lookup.
-    int color=faction==2?Color(85.10,62.75,56.08):Color(20.00,40.00,100.00);
+    int color=faction==2?Color(85.10,62.75,56.08):Color(56.08,74.90,81.96);
     return "<color"+std::to_string(color)+">{Param/Value/BHFROLE"+std::to_string(id)+"}</color>";
 }
 bool sees(int viewer,int member) {

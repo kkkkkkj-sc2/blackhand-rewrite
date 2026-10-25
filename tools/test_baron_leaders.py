@@ -124,6 +124,7 @@ def harness(source: str) -> str:
     constants_text = '\n'.join(f'constexpr int {name}={index};' for index, name in enumerate(constants, 10))
     boundary = r'''
 std::map<std::pair<int,int>,text> uiText;
+std::map<std::pair<int,int>,text> uiTooltip;
 std::map<std::pair<int,int>,int> uiColor;
 std::map<std::pair<int,int>,bool> uiVisible;
 std::map<std::pair<int,int>,std::pair<int,int>> uiSize;
@@ -150,7 +151,7 @@ void DialogControlSetVisible(int item,playergroup group,bool show) { for(int p=1
 void DialogControlSetSize(int item,playergroup group,int width,int height) { for(int p=1;p<=15;++p) if(group&(1u<<p)) uiSize[{p,item}]={width,height}; }
 void libNtve_gf_SetDialogItemColor(int item,int color,playergroup group) { for(int p=1;p<=15;++p) if(group&(1u<<p)) uiColor[{p,item}]=color; }
 template<class... T> void DialogControlSetPosition(T...) {}
-template<class... T> void libNtve_gf_SetDialogItemTooltip(T...) {}
+void libNtve_gf_SetDialogItemTooltip(int item,text value,playergroup group) { for(int p=1;p<=15;++p) if(group&(1u<<p)) uiTooltip[{p,item}]=value; }
 template<class... T> void gf_CBHighlightText(T...) {}
 void gf_RANoActions(int p) { for(int t=1;t<=15;++t) for(int slot:{5,6}) uiVisible[{p,gv_actionDialogItem[t][slot]}]=false; }
 ''' + headers + '\n' + code + r'''
@@ -162,7 +163,7 @@ string baronState() {
 void brReset(string label,int pool=2) {
     reset(label);
 ''' + resets + r'''
-    uiText.clear(); uiColor.clear(); uiVisible.clear(); uiSize.clear(); registeredCommands.clear();
+    uiText.clear(); uiTooltip.clear(); uiColor.clear(); uiVisible.clear(); uiSize.clear(); registeredCommands.clear();
     gf_BRReset();
     gv_dayNumber=1; gv_isNight=true; gv_bhFactionChatOpen=true;
     gv_townMax=35;
@@ -378,7 +379,7 @@ void testFreezeAndResolve() {
             CHECK(hasMessage(p,pool==2?"BHFJOIN2":"BHFJOIN5"));
             CHECK(gv_roleBoxText[p][3]==StringExternal(pool==2?"Param/Value/BHFGOAL2":"Param/Value/BHFGOAL5") || p==8);
         }
-        CHECK(gf_BHRoleName(2).find(pool==2?"<c=85063056>":"<c=20040100>")==0);
+        CHECK(gf_BHRoleName(2).find(pool==2?"<c=85063056>":"<c=56075082>")==0);
         const string state=baronState(); clearEffects(); gf_BRResolveRecruit();
         CHECK(baronState()==state && events.empty());
     }
@@ -439,20 +440,51 @@ void testFreezeAndResolve() {
     }
 }
 void testUIAndReset() {
-    brReset("two buttons coexist and recruitment is private"); gf_BRSetup(1);
-    for(int target=2;target<=15;++target) {
-        CHECK(uiVisible[{1,gv_actionDialogItem[target][5]}]);
-        CHECK(uiVisible[{1,gv_actionDialogItem[target][6]}]);
-        CHECK(uiSize[{1,gv_actionDialogItem[target][5]}].first==60);
-        CHECK(uiSize[{1,gv_actionDialogItem[target][6]}].first==60);
+    for(int pool:{2,5}) {
+        brReset("both leader UIs: selected knife hidden, self cancels, compact faction prompt",pool);
+        gf_BRSetup(1);
+        CHECK(messages.size()==1);
+        CHECK(messages[0].value==StringExternal(pool==2?"Param/Value/BRFIRST":"Param/Value/BRFIRST5"));
+        const int color=pool==2?Color(78.82,41.96,47.06):Color(63.53,57.25,80.00);
+        for(int target=2;target<=15;++target) {
+            CHECK(uiVisible[{1,gv_actionDialogItem[target][5]}]);
+            CHECK(uiVisible[{1,gv_actionDialogItem[target][6]}]);
+            CHECK(uiSize[{1,gv_actionDialogItem[target][5]}].first==60);
+            CHECK(uiSize[{1,gv_actionDialogItem[target][6]}].first==60);
+            CHECK(uiTooltip[{1,gv_actionDialogItem[target][6]}]==StringExternal("Param/Value/BRTOOLTIP"));
+            CHECK(uiColor[{1,gv_actionDialogItem[target][5]}]==color);
+            CHECK(uiColor[{1,gv_actionDialogItem[target][6]}]==color);
+        }
+        CHECK(!uiVisible[{1,gv_actionDialogItem[1][5]}]);
+        CHECK(!uiVisible[{1,gv_actionDialogItem[1][6]}]);
+        gf_BRClick(1,2,false);
+        CHECK(gv_action[1][0]==2 && !uiVisible[{1,gv_actionDialogItem[2][5]}]);
+        CHECK(uiVisible[{1,gv_actionDialogItem[1][5]}]);
+        CHECK(uiText[{1,gv_actionDialogItem[1][5]}]==StringExternal("Param/Value/B636A68D"));
+        CHECK(uiTooltip[{1,gv_actionDialogItem[1][5]}]==StringExternal("Param/Value/B636A68D"));
+        CHECK(uiVisible[{1,gv_actionDialogItem[2][6]}]);
+        gf_BRClick(1,3,true);
+        CHECK(gv_action[1][0]==2 && recruits()==std::vector<int>{3});
+        gf_BRClick(1,4,false);
+        CHECK(gv_action[1][0]==4 && !uiVisible[{1,gv_actionDialogItem[4][5]}]);
+        CHECK(uiVisible[{1,gv_actionDialogItem[2][5]}]);
+        gf_BRClick(1,1,false);
+        CHECK(gv_action[1][0]==0 && !uiVisible[{1,gv_actionDialogItem[1][5]}]);
+        CHECK(uiVisible[{1,gv_actionDialogItem[4][5]}] && recruits()==std::vector<int>{3});
+        const string before=professionState(); gf_BRDraw(1); gf_BRList(1); CHECK(professionState()==before);
+        for(const auto& m:messages) CHECK(m.target==1);
+        commandTargets({8}); freeze(); gf_BRResolveRecruit();
+        CHECK(hasMessage(8,pool==2?"BHFJOIN2":"BHFJOIN5"));
+        CHECK(std::none_of(messages.begin(),messages.end(),[pool](const Message& m) {
+            return m.target!=8 && m.value.find(pool==2?"BHFJOIN2":"BHFJOIN5")!=string::npos;
+        }));
+        gf_BRReset(); CHECK(!gv_brFrozen && !gv_brDone);
+        for(int p=0;p<16;++p) { CHECK(!gv_brReady[p]); CHECK(recruits(p).empty()); }
+        clearEffects(); gv_dayNumber=2; gf_BRSetup(1);
+        CHECK(messages.empty());
+        for(int target=1;target<=15;++target) CHECK(!uiVisible[{1,gv_actionDialogItem[target][6]}]);
+        gt_BRRecruit_Init(); CHECK(registeredCommands==std::vector<string>{"-recruit"});
     }
-    CHECK(!uiVisible[{1,gv_actionDialogItem[1][6]}]);
-    const string before=professionState(); gf_BRDraw(1); gf_BRList(1); CHECK(professionState()==before);
-    for(const auto& m:messages) CHECK(m.target==1);
-    commandTargets({8}); freeze(); gf_BRResolveRecruit();
-    gf_BRReset(); CHECK(!gv_brFrozen && !gv_brDone);
-    for(int p=0;p<16;++p) { CHECK(!gv_brReady[p]); CHECK(recruits(p).empty()); }
-    gt_BRRecruit_Init(); CHECK(registeredCommands==std::vector<string>{"-recruit"});
 }
 int main(int argc,char** argv) {
     const string selected=argc>1?argv[1]:"all";

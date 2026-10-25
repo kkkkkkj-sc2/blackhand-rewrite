@@ -769,6 +769,7 @@ MUST_HAVE_KEYS = [
     'Param/Value/BRBUTTON',
     'Param/Value/BRTOOLTIP',
     'Param/Value/BRFIRST',
+    'Param/Value/BRFIRST5',
     'Param/Value/BRLEADMAFIA',
     'Param/Value/BRLEADTRIAD',
     'Param/Value/BRINVSTRONG',

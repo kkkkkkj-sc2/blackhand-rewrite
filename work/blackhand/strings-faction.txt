@@ -1,5 +1,5 @@
 Param/Value/BHFJOIN2=你转变为「<c val="D9A08F">黑手党</c>」阵营。
-Param/Value/BHFJOIN5=你转变为「<c val="3366FF">三合会</c>」阵营。
+Param/Value/BHFJOIN5=你转变为「<c val="8FBFD1">三合会</c>」阵营。
 Param/Value/BHFGOAL2=与黑手党一同胜利。
 Param/Value/BHFGOAL5=与三合会一同胜利。
 Param/Value/BHFKEEP=（保留原职业）
