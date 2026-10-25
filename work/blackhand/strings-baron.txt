@@ -7,15 +7,19 @@ Param/Value/NJTAG= (<c val="C96B78">致命</c>，<c val="C96B78">领袖</c>)
 Param/Value/TDTAG= (<c val="A292CC">致命</c>，<c val="A292CC">领袖</c>)
 Param/Value/NJBOX1=每晚杀死一人。
 Param/Value/TDBOX1=每晚杀死一人。
-Param/Value/NJBOX2=- 你拥有夜间无敌。<n/>- 当你在场时，所有黑手党角色会被替换为随机的城镇角色。<n/>- 在你的第一个夜晚，你可以使用-recruit或者技能按钮来选择至多三个人，将他们招募进黑手党。他们会保留自己的角色和能力。<n/>- 被你招募者会在第一天夜晚结束时加入黑手党。<n/>- 你无法招募中立角色和三合会角色。<n/>- 若当前没有可以杀人的黑手党角色，被你招募的人会成为党徒。
-Param/Value/TDBOX2=- 你拥有夜间无敌。<n/>- 当你在场时，所有三合会角色会被替换为随机的城镇角色。<n/>- 在你的第一个夜晚，你可以使用-recruit或者技能按钮来选择至多三个人，将他们招募进三合会。他们会保留自己的角色和能力。<n/>- 被你招募者会在第一天夜晚结束时加入三合会。<n/>- 你无法招募中立角色和黑手党角色。<n/>- 若当前没有可以杀人的三合会角色，被你招募的人会成为暴徒。
+Param/Value/NJBOX2=- 你拥有夜间无敌。<n/>- 当你在场时，所有黑手党角色会被替换为随机的城镇角色。<n/>- 在你的第一个夜晚，你可以使用-recruit或者技能按钮来选择招募目标（人数上限由能力开关决定），将他们招募进黑手党。他们会保留自己的角色和能力。<n/>- 被你招募者会在第一天夜晚结束时加入黑手党。<n/>- 你无法招募中立角色和三合会角色。<n/>- 若当前没有可以杀人的黑手党角色，被你招募的人会成为党徒。
+Param/Value/TDBOX2=- 你拥有夜间无敌。<n/>- 当你在场时，所有三合会角色会被替换为随机的城镇角色。<n/>- 在你的第一个夜晚，你可以使用-recruit或者技能按钮来选择招募目标（人数上限由能力开关决定），将他们招募进三合会。他们会保留自己的角色和能力。<n/>- 被你招募者会在第一天夜晚结束时加入三合会。<n/>- 你无法招募中立角色和黑手党角色。<n/>- 若当前没有可以杀人的三合会角色，被你招募的人会成为暴徒。
 Param/Value/NJBOX4=你是一名初来咋到，渴望建立自己的势力的家族领袖。
 Param/Value/TDBOX4=你是一名初来咋到，渴望建立自己的势力的帮派领袖。
 Param/Value/NJCRIME=非法闯入，谋杀
 Param/Value/TDCRIME=非法闯入，谋杀
-Param/Value/BRUSAGE=用 -recruit 楼层… 选择至多3名招募目标，例如 -recruit 1 2 3；单独输入 -recruit 清空名单。新名单会替换原名单。
+Param/Value/BRUSAGE=用 -recruit 楼层… 选择招募目标，人数上限由能力开关决定；单独输入 -recruit 清空名单。新名单会替换原名单。
 Param/Value/BRSELECT=你当前的招募名单：
-Param/Value/BRLIMIT=招募名单最多只能有3人。
+Param/Value/BRMAX2=可以招募二人
+Param/Value/BRMAX3=可以招募三人
+Param/Value/BRMAX4=可以招募四人
+Param/Value/BRLIMIT=招募人数上限：
+Param/Value/BRBOXMAX=<n/>- 本局首夜招募人数上限：
 Param/Value/BRINVALID=请输入有效的其他存活玩家楼层；同一人不能重复选择。
 Param/Value/BRRESULT=首夜招募已结算，成功招募人数：
 Param/Value/BRBUTTON=招募

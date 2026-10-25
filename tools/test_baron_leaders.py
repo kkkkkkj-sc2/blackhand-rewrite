@@ -22,7 +22,7 @@ from test_egun import SCRIPT, function, mask, translate
 
 REQUIRED = {
     'gf_BRIs', 'gf_BRRandomTown', 'gf_BRReplaceSlots', 'gf_BRReset',
-    'gf_BRCanSelect', 'gf_BRSelectable', 'gf_BRCount', 'gf_BRList',
+    'gf_BRCanSelect', 'gf_BRSelectable', 'gf_BRRecruitLimit', 'gf_BRCount', 'gf_BRList',
     'gf_BRDraw', 'gf_BRSetup', 'gf_BRClick', 'gf_BRClaim',
     'gf_BRFreezeRecruit', 'gf_BRResolveRecruit',
 }
@@ -38,7 +38,7 @@ def integration(source: str) -> tuple[str, ...]:
         assert declaration, ('missing actual declaration', name)
         assert declaration.start() + declaration[0].index(name) == live.index(name), ('global used before declaration', name)
 
-    assert re.search(r'^int\[16\]\[3\]\s+gv_brRecruit\s*;', live, re.M)
+    assert re.search(r'^int\[16\]\[4\]\s+gv_brRecruit\s*;', live, re.M)
     assert re.search(r'^bool\[16\]\s+gv_brReady\s*;', live, re.M)
     assert re.search(r'^trigger\s+gt_BRRecruit\s*;', live, re.M)
     for name in names | {'gt_BRRecruit_Func', 'gt_BRRecruit_Init'}:
@@ -76,7 +76,9 @@ def integration(source: str) -> tuple[str, ...]:
     assert not re.search(r'\b(?:gf_BHFaction|gv_bhFaction|gv_roles|gv_fzPool)\b', selectable), 'click eligibility must not reveal hidden faction/profession'
     assert not re.search(r'\bgv_(?:visitation2?|location)\b', resolve_body), 'non-visiting recruitment must not depend on attack visitation'
     print('PASS wiring: slot replacement before binding; reset; both knife claims; freeze before jail reset; JJ revival before resolve before CheckEnd; registered production command', flush=True)
-    return tuple(sorted(names)) + ('gt_BRRecruit_Func', 'gt_BRRecruit_Init', 'gf_BHPickLeader') + VISITS
+    # Checkbox helpers execute in test_baron_options; this suite owns runtime recruitment.
+    runtime = names - {'gf_BRNormalizeOptions', 'gf_BROptionClick'}
+    return tuple(sorted(runtime)) + ('gt_BRRecruit_Func', 'gt_BRRecruit_Init', 'gf_BHPickLeader') + VISITS
 
 
 def harness(source: str) -> str:
@@ -178,7 +180,7 @@ void brReset(string label,int pool=2) {
 }
 std::vector<int> recruits(int p=1) {
     std::vector<int> result;
-    for(int slot=0;slot<3;++slot) if(gv_brRecruit[p][slot]!=0) result.push_back(gv_brRecruit[p][slot]);
+    for(int slot=0;slot<4;++slot) if(gv_brRecruit[p][slot]!=0) result.push_back(gv_brRecruit[p][slot]);
     return result;
 }
 void command(string message,int p=1) {
@@ -301,6 +303,74 @@ void testSelectionAndCommand() {
     for(int target:{INT_MIN,-1,0,1,16,INT_MAX}) CHECK(!gf_BRSelectable(1,target));
     gv_alivePlayers&=~(1u<<8); CHECK(!gf_BRSelectable(1,8));
     gv_alivePlayers|=1u<<8; gv_currentPlayers&=~(1u<<8); CHECK(!gf_BRSelectable(1,8));
+}
+void setRecruitCap(int pool,int cap) {
+    for(int bit=0;bit<3;++bit) gv_roleOptions[pool][22][bit]=(bit==cap-2);
+}
+void testRecruitCaps() {
+    for(int pool:{2,5}) for(int cap:{2,3,4}) {
+        brReset("configured command/button/dawn capacity "+std::to_string(pool)+"/"+std::to_string(cap),pool);
+        setRecruitCap(pool,cap); setRecruitCap(pool==2?5:2,cap==4?2:4);
+        CHECK(gf_BRRecruitLimit(1)==cap);
+        std::vector<int> targets;
+        for(int p=2;p<cap+2;++p) targets.push_back(p);
+        gv_action[1][0]=8; gv_visitation[1]=8; gv_visitation2[1]=13;
+        const string before=professionState();
+        commandTargets(targets);
+        CHECK(recruits()==targets && gf_BRCount(1)==cap && professionState()==before);
+        CHECK(messages.back().value.find(std::to_string(cap)+"/"+std::to_string(cap))!=string::npos);
+        const auto pending=recruits();
+        auto excessive=targets; excessive.push_back(12);
+        commandTargets(excessive);
+        CHECK(recruits()==pending && professionState()==before);
+        CHECK(messages.back().value==StringExternal("Param/Value/BRLIMIT")+std::to_string(cap));
+        gf_BRClick(1,12,true);
+        CHECK(recruits()==pending && professionState()==before);
+        CHECK(messages.back().value==StringExternal("Param/Value/BRLIMIT")+std::to_string(cap));
+        gf_BRClick(1,targets.back(),true); CHECK(gf_BRCount(1)==cap-1);
+        gf_BRClick(1,14,true); CHECK(gf_BRCount(1)==cap && recruits().back()==14);
+        CHECK(uiColor[{1,gv_actionDialogItem[14][6]}]==Color(0.0,30.0,0.0));
+        commandTargets(targets);
+        freeze(); gf_BRResolveRecruit();
+        for(int p:targets) CHECK(gf_BHFaction(p)==pool && gv_roles[p][1]==1);
+        CHECK(recruits().empty() && professionState()==before);
+        CHECK(messages.back().value==StringExternal("Param/Value/BRRESULT")+std::to_string(cap));
+        for(int p:targets) CHECK(hasMessage(p,pool==2?"BHFJOIN2":"BHFJOIN5"));
+
+        brReset("actual FZ presentation uses selected pool capacity, never recruits",pool);
+        setRecruitCap(pool,cap); setRecruitCap(pool==2?5:2,cap==4?2:4);
+        role(1,1,33); gv_fzPool[1]=pool; gv_fzRole[1]=22;
+        CHECK(gf_BRRecruitLimit(1)==cap && gf_BRFake(1));
+        commandTargets(targets); CHECK(recruits()==targets);
+        freeze(); gf_BRResolveRecruit();
+        for(int p:targets) CHECK(gf_BHFaction(p)==1);
+        CHECK(recruits().empty());
+
+        brReset("resolve obeys cap even with stale upper storage slots",pool);
+        setRecruitCap(pool,cap);
+        for(int slot=0;slot<4;++slot) gv_brRecruit[1][slot]=slot+2;
+        CHECK(gf_BRCount(1)==cap);
+        freeze(); gf_BRResolveRecruit();
+        for(int slot=0;slot<4;++slot) CHECK(gf_BHFaction(slot+2)==(slot<cap?pool:1));
+        CHECK(recruits().empty());
+    }
+    for(int pool:{2,5}) for(int bits=0;bits<8;++bits) {
+        brReset("runtime option-mask fallback agrees with normalization",pool);
+        for(int bit=0;bit<3;++bit) gv_roleOptions[pool][22][bit]=(bits&(1<<bit))!=0;
+        CHECK(gf_BRRecruitLimit(1)==((bits&4)?4:(bits&1)?2:3));
+    }
+    brReset("two leaders keep independent configured capacities");
+    role(15,5,22); setRecruitCap(2,2); setRecruitCap(5,4);
+    commandTargets({2,3}); commandTargets({4,5,6,7},15);
+    CHECK(gf_BRCount(1)==2 && gf_BRCount(15)==4);
+    freeze(); gf_BRResolveRecruit();
+    for(int p:{2,3}) CHECK(gf_BHFaction(p)==2);
+    for(int p:{4,5,6,7}) CHECK(gf_BHFaction(p)==5);
+    CHECK(recruits().empty() && recruits(15).empty());
+    CHECK(gf_BRRecruitLimit(0)==3 && gf_BRRecruitLimit(16)==3);
+    for(int p=1;p<=15;++p) gv_brRecruit[p][3]=8;
+    gf_BRReset();
+    for(int p=1;p<=15;++p) CHECK(recruits(p).empty());
 }
 void testLeaderIdentity() {
     brReset("true role identity, never effective-faction or FZ presentation identity");
@@ -492,6 +562,7 @@ int main(int argc,char** argv) {
     if(selected=="all" || selected=="leaders") testLeaderRandomMasks();
     if(selected=="all" || selected=="town") testRandomTown();
     if(selected=="all" || selected=="select") testSelectionAndCommand();
+    if(selected=="all" || selected=="caps") testRecruitCaps();
     if(selected=="all" || selected=="identity") testLeaderIdentity();
     if(selected=="all" || selected=="windows") testClosedWindows();
     if(selected=="all" || selected=="claim") testClaim();
@@ -507,7 +578,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--script', type=Path, default=SCRIPT)
     parser.add_argument('--cxx', default='g++')
-    parser.add_argument('--case', choices=('all', 'slots', 'leaders', 'town', 'select', 'identity', 'windows', 'claim', 'dawn', 'ui'), default='all', help='Run one group for diagnosis, or the full suite (default)')
+    parser.add_argument('--case', choices=('all', 'slots', 'leaders', 'town', 'select', 'caps', 'identity', 'windows', 'claim', 'dawn', 'ui'), default='all', help='Run one group for diagnosis, or the full suite (default)')
     args = parser.parse_args()
     source = args.script.read_text(encoding='utf-8')
     code = harness(source)

@@ -325,7 +325,7 @@ const int c_bhSoloFillMax = 6;      // solo 测试共六人（玩家 + 最多五
 int[16] gv_bhFaction;
 bool gv_bhFactionChatOpen = false;
 // shw308: private pending recruitment, separate from night attack slots.
-int[16][3] gv_brRecruit;
+int[16][4] gv_brRecruit;
 bool[16] gv_brReady;
 bool gv_brFrozen = false;
 bool gv_brDone = false;
@@ -336,6 +336,7 @@ void gf_BRReplaceSlots ();
 void gf_BRReset ();
 bool gf_BRCanSelect (int lp_player);
 bool gf_BRSelectable (int lp_source, int lp_target);
+int gf_BRRecruitLimit (int lp_player);
 int gf_BRCount (int lp_player);
 void gf_BRList (int lp_player);
 void gf_BRDraw (int lp_player);
@@ -1472,6 +1473,8 @@ void gf_InitializeOther ();
 int gf_ZJSupportWeight ();
 void gf_ZJNormalizeOptions ();
 void gf_ZJOptionClick ();
+void gf_BRNormalizeOptions ();
+void gf_BROptionClick ();
 void gf_RAZhujiaoActions (int lp_player);
 void gf_SKR_1_zhujiao (int lv_a);
 void gf_SKA_1_zhujiao (int lv_source, int lv_target);
@@ -5759,6 +5762,15 @@ void gf_InitializeVariables () {
     gv_roleInvestigatorArray[2][22][0] = gv_investigatorE5BCBAE5A4A7E6B094E59CBA1;
     gv_roleInvestigatorArray[2][22][1] = gv_investigatorE5BCBAE5A4A7E6B094E59CBA2;
     gv_e78AAFE7BDAAE58FAFE883BD[2][22] = StringExternal("Param/Value/NJCRIME");
+    gv_roleOptionExists[2][22][0] = true;
+    gv_roleOptionsImportant[2][22][0] = 2;
+    gv_roleOptionsText[2][22][0] = StringExternal("Param/Value/BRMAX2");
+    gv_roleOptionExists[2][22][1] = true;
+    gv_roleOptionsImportant[2][22][1] = 2;
+    gv_roleOptionsText[2][22][1] = StringExternal("Param/Value/BRMAX3");
+    gv_roleOptionExists[2][22][2] = true;
+    gv_roleOptionsImportant[2][22][2] = 2;
+    gv_roleOptionsText[2][22][2] = StringExternal("Param/Value/BRMAX4");
     gv_roleNameArray[3][1] = StringExternal("Param/Value/752B197C");
     gv_roleDescriptionArray[3][1] = StringExternal("Param/Value/872B318B");
     gv_roleInvestigatorArray[3][1][0] = gv_investigatorE6ADA6E599A81;
@@ -6659,6 +6671,15 @@ void gf_InitializeVariables () {
     gv_roleInvestigatorArray[5][22][0] = gv_investigatorE5BCBAE5A4A7E6B094E59CBA1;
     gv_roleInvestigatorArray[5][22][1] = gv_investigatorE5BCBAE5A4A7E6B094E59CBA2;
     gv_e78AAFE7BDAAE58FAFE883BD[5][22] = StringExternal("Param/Value/TDCRIME");
+    gv_roleOptionExists[5][22][0] = true;
+    gv_roleOptionsImportant[5][22][0] = 2;
+    gv_roleOptionsText[5][22][0] = StringExternal("Param/Value/BRMAX2");
+    gv_roleOptionExists[5][22][1] = true;
+    gv_roleOptionsImportant[5][22][1] = 2;
+    gv_roleOptionsText[5][22][1] = StringExternal("Param/Value/BRMAX3");
+    gv_roleOptionExists[5][22][2] = true;
+    gv_roleOptionsImportant[5][22][2] = 2;
+    gv_roleOptionsText[5][22][2] = StringExternal("Param/Value/BRMAX4");
     gf_DefaultRoleOptions();
     gf_InitializeNames();
     gf_InitializeOther();
@@ -7662,6 +7683,20 @@ void gf_DefaultRoleOptions () {
     gv_roleOptions[5][13][1] = true;
     gv_roleOptions[5][13][2] = true;
     gv_bankSaveWeights[0][5][13] = 0.0;
+    // 男爵/泰斗：招募人数三档互斥，默认三人；先登记再生成默认快照。
+    gv_roleOptionAllowed[2][22][0] = true;
+    gv_roleOptionAllowed[2][22][1] = true;
+    gv_roleOptionAllowed[2][22][2] = true;
+    gv_roleOptions[2][22][0] = false;
+    gv_roleOptions[2][22][1] = true;
+    gv_roleOptions[2][22][2] = false;
+    gv_roleOptionAllowed[5][22][0] = true;
+    gv_roleOptionAllowed[5][22][1] = true;
+    gv_roleOptionAllowed[5][22][2] = true;
+    gv_roleOptions[5][22][0] = false;
+    gv_roleOptions[5][22][1] = true;
+    gv_roleOptions[5][22][2] = false;
+
     // 主教：默认三票，两档均允许自设；默认快照覆盖新增角色。
     gv_roleOptionAllowed[1][35][0] = true;
     gv_roleOptionAllowed[1][35][1] = true;
@@ -40661,7 +40696,7 @@ void gf_RTMafiaRoleText (int lp_player) {
     if ((gv_roles[lv_a][1] == 2) && (gv_roles[lv_a][0] == 22)) {
         gv_roleBoxText[lv_a][0] = (gv_roleBoxText[lv_a][0] + StringExternal("Param/Value/NJTAG"));
         gv_roleBoxText[lv_a][1] = StringExternal("Param/Value/NJBOX1");
-        gv_roleBoxText[lv_a][2] = StringExternal("Param/Value/NJBOX2");
+        gv_roleBoxText[lv_a][2] = (StringExternal("Param/Value/NJBOX2") + StringExternal("Param/Value/BRBOXMAX") + IntToText(gf_BRRecruitLimit(lv_a)));
         gv_roleBoxText[lv_a][4] = StringExternal("Param/Value/NJBOX4");
         SoundPlay(SoundLink("Tychus_Attack", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
     }
@@ -42269,7 +42304,7 @@ void gf_RTTriadRoleText (int lp_player) {
     if ((gv_roles[lv_a][1] == 5) && (gv_roles[lv_a][0] == 22)) {
         gv_roleBoxText[lv_a][0] = (gv_roleBoxText[lv_a][0] + StringExternal("Param/Value/TDTAG"));
         gv_roleBoxText[lv_a][1] = StringExternal("Param/Value/TDBOX1");
-        gv_roleBoxText[lv_a][2] = StringExternal("Param/Value/TDBOX2");
+        gv_roleBoxText[lv_a][2] = (StringExternal("Param/Value/TDBOX2") + StringExternal("Param/Value/BRBOXMAX") + IntToText(gf_BRRecruitLimit(lv_a)));
         gv_roleBoxText[lv_a][4] = StringExternal("Param/Value/TDBOX4");
         SoundPlay(SoundLink("Tychus_Attack", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
     }
@@ -50593,6 +50628,7 @@ bool auto_gf_OSComputeOptions_TriggerFunc (bool testConds, bool runActions) {
         }
 
     }
+    gf_BRNormalizeOptions();
     TriggerEnable(gt_RepickHost, false);
     TriggerEnable(gt_RepickHostButtonEFBC9F, false);
     DialogControlSetEnabled(gv_repickButtonItem, PlayerGroupAll(), false);
@@ -84548,6 +84584,7 @@ bool gt_OSCheckboxes_Func (bool testConds, bool runActions) {
 
     if ((gv_variantSelection != 1) && (gv_variantSelection != 8) && (gv_variantSelection != 9) && (gv_variantSelection != 10)) {
         gf_ZJOptionClick();
+        gf_BROptionClick();
     }
 
     if ((EventDialogControl() == gv_optionsPanelItem[4]) && (gv_variantSelection != 2)) {
@@ -107770,6 +107807,70 @@ void gf_BHWithdrawVotes (int lp_player) {
     gv_bhSkipWeight[lp_player] = 0;
 }
 
+// 男爵/泰斗：旧档全关回三人；异常多开按四人 > 二人 > 三人归一。
+void gf_BRNormalizeOptions () {
+    int lv_pool;
+    int lv_selected;
+    int lv_bit;
+
+    lv_pool = 2;
+    while ((lv_pool <= 5)) {
+        lv_selected = 1;
+        if ((gv_roleOptions[lv_pool][22][2] == true)) {
+            lv_selected = 2;
+        }
+        else if ((gv_roleOptions[lv_pool][22][0] == true)) {
+            lv_selected = 0;
+        }
+
+        lv_bit = 0;
+        while ((lv_bit <= 2)) {
+            gv_roleOptions[lv_pool][22][lv_bit] = (lv_bit == lv_selected);
+            lv_bit += 1;
+        }
+
+        lv_pool += 3;
+    }
+}
+
+void gf_BROptionClick () {
+    int lv_i;
+    int lv_j;
+    int lv_bit;
+
+    if (((gv_roleCategory != 2) && (gv_roleCategory != 5)) || (gv_roleSelection != 22)) {
+        return;
+    }
+
+    lv_i = 0;
+    while ((lv_i <= 3)) {
+        lv_bit = gv_roleOptShown[lv_i];
+        if ((EventDialogControl() == gv_roleOptBox[lv_i]) && (lv_bit >= 0) && (lv_bit <= 2) && (gv_roleOptionAllowed[gv_roleCategory][22][lv_bit] == true)) {
+            if ((gv_roleOptions[gv_roleCategory][22][lv_bit] == true)) {
+                lv_j = 0;
+                while ((lv_j <= 2)) {
+                    gv_roleOptions[gv_roleCategory][22][lv_j] = (lv_j == lv_bit);
+                    lv_j += 1;
+                }
+            }
+
+            gf_BRNormalizeOptions();
+            lv_j = 0;
+            while ((lv_j <= 3)) {
+                if ((gv_roleOptShown[lv_j] >= 0) && (gv_roleOptShown[lv_j] <= 11)) {
+                    libNtve_gf_SetDialogItemChecked(gv_roleOptBox[lv_j], gv_roleOptions[gv_roleCategory][22][gv_roleOptShown[lv_j]], PlayerGroupAll());
+                }
+
+                lv_j += 1;
+            }
+
+            return;
+        }
+
+        lv_i += 1;
+    }
+}
+
 // 主教（1/35）：正常登门；支持独立于永久票权，仅覆盖紧接着的白天。
 int gf_ZJSupportWeight () {
     if ((gv_roleOptions[1][35][0] == true)) {
@@ -109752,7 +109853,7 @@ void gf_BRReset () {
     while ((lv_a <= 15)) {
         gv_brReady[lv_a] = false;
         lv_i = 0;
-        while ((lv_i < 3)) {
+        while ((lv_i < 4)) {
             gv_brRecruit[lv_a][lv_i] = 0;
             lv_i += 1;
         }
@@ -109778,13 +109879,41 @@ bool gf_BRSelectable (int lp_source, int lp_target) {
     return ((PlayerGroupHasPlayer(gv_currentPlayers, lp_target) == true) && (PlayerGroupHasPlayer(gv_alivePlayers, lp_target) == true) && (gv_bhFeignRole[lp_target] == 0));
 }
 
+int gf_BRRecruitLimit (int lp_player) {
+    int lv_pool;
+
+    if ((lp_player < 1) || (lp_player > 15)) {
+        return 3;
+    }
+
+    lv_pool = gf_BHFaction(lp_player);
+    if ((gf_BRFake(lp_player) == true) && (gf_BHConverted(lp_player) == false)) {
+        lv_pool = gv_fzPool[lp_player];
+    }
+
+    if ((lv_pool != 2) && (lv_pool != 5)) {
+        return 3;
+    }
+
+    // 与自设规范化一致：异常多开时四人优先，其次二人；全关回落三人。
+    if ((gv_roleOptions[lv_pool][22][2] == true)) {
+        return 4;
+    }
+
+    if ((gv_roleOptions[lv_pool][22][0] == true)) {
+        return 2;
+    }
+
+    return 3;
+}
+
 int gf_BRCount (int lp_player) {
     int lv_i;
     int lv_n;
 
     lv_n = 0;
     lv_i = 0;
-    while ((lv_i < 3)) {
+    while ((lv_i < gf_BRRecruitLimit(lp_player))) {
         if ((gv_brRecruit[lp_player][lv_i] != 0)) {
             lv_n += 1;
         }
@@ -109800,9 +109929,9 @@ void gf_BRList (int lp_player) {
     int lv_target;
     text lv_text;
 
-    lv_text = (StringExternal("Param/Value/BRSELECT") + IntToText(gf_BRCount(lp_player)) + StringToText("/3 "));
+    lv_text = (StringExternal("Param/Value/BRSELECT") + IntToText(gf_BRCount(lp_player)) + StringToText("/") + IntToText(gf_BRRecruitLimit(lp_player)) + StringToText(" "));
     lv_i = 0;
-    while ((lv_i < 3)) {
+    while ((lv_i < gf_BRRecruitLimit(lp_player))) {
         lv_target = gv_brRecruit[lp_player][lv_i];
         if ((lv_target >= 1) && (lv_target <= 15)) {
             lv_text = (lv_text + IntToText(gv_playerSpot[lv_target]) + StringToText(". ") + TextWithColor(StringToText(gv_name[lv_target]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_target])) + StringToText("  "));
@@ -109870,7 +109999,7 @@ void gf_BRDraw (int lp_player) {
         libNtve_gf_SetDialogItemTooltip(gv_actionDialogItem[lv_a][6], StringExternal("Param/Value/BRTOOLTIP"), PlayerGroupSingle(lp_player));
         lv_selected = false;
         lv_i = 0;
-        while ((lv_i < 3)) {
+        while ((lv_i < gf_BRRecruitLimit(lp_player))) {
             if ((gv_brRecruit[lp_player][lv_i] == lv_a)) {
                 lv_selected = true;
             }
@@ -109915,7 +110044,7 @@ void gf_BRClick (int lp_source, int lp_target, bool lp_recruit) {
 
         lv_slot = -1;
         lv_i = 0;
-        while ((lv_i < 3)) {
+        while ((lv_i < gf_BRRecruitLimit(lp_source))) {
             if ((gv_brRecruit[lp_source][lv_i] == lp_target)) {
                 gv_brRecruit[lp_source][lv_i] = 0;
                 gf_BRList(lp_source);
@@ -109931,7 +110060,7 @@ void gf_BRClick (int lp_source, int lp_target, bool lp_recruit) {
         }
 
         if ((lv_slot == -1)) {
-            gf_CBSystemMessage(StringExternal("Param/Value/BRLIMIT"), lp_source, lp_source, 0, SoundLink("UI_GenericError", -1), Color(0,0,0));
+            gf_CBSystemMessage((StringExternal("Param/Value/BRLIMIT") + IntToText(gf_BRRecruitLimit(lp_source))), lp_source, lp_source, 0, SoundLink("UI_GenericError", -1), Color(0,0,0));
             return;
         }
 
@@ -110053,7 +110182,7 @@ void gf_BRResolveRecruit () {
         lv_n = 0;
         if ((gv_brReady[lv_a] == true) && (gf_BRIs(lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) {
             lv_i = 0;
-            while ((lv_i < 3)) {
+            while ((lv_i < gf_BRRecruitLimit(lv_a))) {
                 lv_target = gv_brRecruit[lv_a][lv_i];
                 if ((gf_BHConvertFaction(lv_target, gv_roles[lv_a][1]) == true)) {
                     lv_n += 1;
@@ -110066,7 +110195,7 @@ void gf_BRResolveRecruit () {
         }
 
         lv_i = 0;
-        while ((lv_i < 3)) {
+        while ((lv_i < 4)) {
             gv_brRecruit[lv_a][lv_i] = 0;
             lv_i += 1;
         }
@@ -110083,7 +110212,7 @@ bool gt_BRRecruit_Func (bool testConds, bool runActions) {
     int lv_seat;
     int lv_target;
     int lv_j;
-    int[3] lv_targets;
+    int[4] lv_targets;
     string lv_word;
 
     lv_source = EventPlayer();
@@ -110099,13 +110228,13 @@ bool gt_BRRecruit_Func (bool testConds, bool runActions) {
         return false;
     }
 
-    if ((StringWord(EventChatMessage(false), 5) != "")) {
-        gf_CBSystemMessage(StringExternal("Param/Value/BRUSAGE"), lv_source, lv_source, 0, SoundLink("UI_GenericError", -1), Color(0,0,0));
+    if ((StringWord(EventChatMessage(false), (gf_BRRecruitLimit(lv_source) + 2)) != "")) {
+        gf_CBSystemMessage((StringExternal("Param/Value/BRLIMIT") + IntToText(gf_BRRecruitLimit(lv_source))), lv_source, lv_source, 0, SoundLink("UI_GenericError", -1), Color(0,0,0));
         return false;
     }
 
     lv_i = 0;
-    while ((lv_i < 3)) {
+    while ((lv_i < 4)) {
         lv_targets[lv_i] = 0;
         lv_word = StringWord(EventChatMessage(false), (lv_i + 2));
         if ((lv_word != "")) {
@@ -110145,7 +110274,7 @@ bool gt_BRRecruit_Func (bool testConds, bool runActions) {
 
     // Validate the ENTIRE request before replacing any pending selection.
     lv_i = 0;
-    while ((lv_i < 3)) {
+    while ((lv_i < 4)) {
         gv_brRecruit[lv_source][lv_i] = lv_targets[lv_i];
         lv_i += 1;
     }
