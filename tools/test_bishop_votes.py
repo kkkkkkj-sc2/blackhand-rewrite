@@ -64,7 +64,8 @@ def audit(source: str) -> None:
         assert 'gv_zjSupport' not in body, name
 
 
-def build_harness(source: str) -> str:
+def build_harness(source: str, *, extra_functions: tuple[str, ...] = (),
+                  extra_native: tuple[str, ...] = (), extra_cpp: str = '') -> str:
     names = [
         'gf_BHVoteWeight', 'gf_BHWithdrawVotes', 'gt_ASVote_Func',
         'gt_ASTrialVote_Func', 'gt_ASSkipButton_Func', 'gt_ASSkip_Func',
@@ -72,6 +73,7 @@ def build_harness(source: str) -> str:
         'gf_ASStopVote', 'gt_DetectLeave_Func', 'gt_ADAntiAFKPeriod_Func',
         'auto_gf_ASE692A4E7A5A8EFBC81_TriggerFunc',
     ]
+    names.extend(extra_functions)
     bodies = [function(source, name) for name in names]
     tally = function(source, 'auto_gf_TrialVoteResults_TriggerFunc')
     a = tally.index('    lv_sg = 0;')
@@ -105,6 +107,7 @@ def build_harness(source: str) -> str:
         'MaxF', 'RandomInt', 'TriggerIsEnabled', 'DialogControlIsVisible',
         'libNtve_gf_SetDialogItemImage', 'libNtve_gf_SetDialogItemImage2',
     }
+    native.update(extra_native)
     stubs = '\n'.join(f'template<class... A> int {name}(A... args) {{ ++calls["{name}"]; return 0; }}'
                       for name in sorted(calls - defined - native - {'if', 'else', 'for', 'while', 'return'}))
     constants = '\n'.join(f'constexpr int {name} = {i};' for i, name in enumerate(sorted(set(re.findall(r'\b(?:c_|ge_)\w+', code)) - {'c_bhSoloBuild'}), 1))
@@ -153,7 +156,7 @@ bool TriggerIsEnabled(int) { return false; }
 bool DialogControlIsVisible(int, int) { return true; }
 void libNtve_gf_SetDialogItemImage(int id, string, int) { changedImageIds.push_back(id); }
 void libNtve_gf_SetDialogItemImage2(int id, string, int) { changedImageIds.push_back(id); }
-''' + stubs + '\n' + headers + '\n' + code + '\nvoid reset() {\n' + reset + r'''
+''' + stubs + '\n' + headers + '\n' + extra_cpp + '\n' + code + '\nvoid reset() {\n' + reset + r'''
     calls.clear(); changedImageIds.clear(); eventPlayer = 1;
     gv_alivePlayers = gv_currentPlayers = gv_players = 0;
     for (int p = 1; p <= 15; ++p) {

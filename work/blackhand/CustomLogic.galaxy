@@ -37785,11 +37785,12 @@ bool auto_gf_ASReEnableButtons_TriggerFunc (bool testConds, bool runActions) {
 
     // Implementation
     Wait(lp_delay, c_timeGame);
+    // 强制撤票的事件发起者不是被撤票者；恢复传入目标，避免按钮跨日锁死。
     lv_a = 1;
     for ( ; ( (auto70F3C849_ai >= 0 && lv_a <= auto70F3C849_ae) || (auto70F3C849_ai < 0 && lv_a >= auto70F3C849_ae) ) ; lv_a += auto70F3C849_ai ) {
-        DialogControlSetEnabled(gv_actionDialogItem[lv_a][2], PlayerGroupSingle(EventPlayer()), true);
-        DialogControlSetEnabled(gv_actionDialogItem[lv_a][3], PlayerGroupSingle(EventPlayer()), true);
-        DialogControlSetEnabled(gv_actionDialogItem[lv_a][4], PlayerGroupSingle(EventPlayer()), true);
+        DialogControlSetEnabled(gv_actionDialogItem[lv_a][2], PlayerGroupSingle(lp_player), true);
+        DialogControlSetEnabled(gv_actionDialogItem[lv_a][3], PlayerGroupSingle(lp_player), true);
+        DialogControlSetEnabled(gv_actionDialogItem[lv_a][4], PlayerGroupSingle(lp_player), true);
     }
     return true;
 }
