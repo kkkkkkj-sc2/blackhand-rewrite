@@ -117,6 +117,10 @@ void libNtve_gf_SetDialogItemTooltip(int item,text value,int p) {
 text gf_DQSeenName(int p) {
     assert(p>=1 && p<=15); return gv_roleNameArray[gv_roles[p][1]][gv_roles[p][0]];
 }
+// Default-only suite: converted teams are executed separately by test_faction_identity.py.
+bool gf_BHConverted(int) { return false; }
+int gf_BHFaction(int p) { return gv_roles[p][1]; }
+text gf_BHDeathName(int p) { return gf_DQSeenName(p); }
 text gf_FZFaceName(int p) {
     assert(p>=1 && p<=15);
     return gv_fzPool[p] ? "FACE("+std::to_string(gv_fzPool[p])+")" : gf_DQSeenName(p);

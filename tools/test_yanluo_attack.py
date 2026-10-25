@@ -18,6 +18,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = ROOT / 'work/blackhand/CustomLogic.galaxy'
 FUNCTIONS = (
+    'gf_BHConverted', 'gf_BHFaction',
     'gf_ESYanluoKill', 'gf_SKK_3_yanluo', 'gf_YLTellFaction',
     'gf_BHVisit', 'gf_BHVisitSelf', 'gf_BHCrime', 'gf_BHCrimeMurder',
     'gf_BHRecordNightKiller',
@@ -26,7 +27,7 @@ FUNCTIONS = (
 
 def function(source: str, name: str) -> str:
     """Extract one whole definition by balancing braces outside comments/strings."""
-    match = re.search(r'^void ' + re.escape(name) + r'\s*\([^;{}]*\)\s*\{', source, re.M)
+    match = re.search(r'^(?:void|bool|int) ' + re.escape(name) + r'\s*\([^;{}]*\)\s*\{', source, re.M)
     assert match, f'missing definition: {name}'
     tokens = re.compile(r'//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*"|[{}]', re.S)
     depth = 0

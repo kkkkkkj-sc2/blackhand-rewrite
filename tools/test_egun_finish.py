@@ -78,7 +78,8 @@ def integration(source: str) -> list[str]:
 
 def harness(source: str, baseline: str) -> str:
     wrappers = integration(source)
-    names = ('gf_LMCat', 'gf_LMRole', 'gf_JSIs', 'gf_JSWon', 'gf_EGWon',
+    names = ('gf_BHConverted', 'gf_BHFaction',
+             'gf_LMCat', 'gf_LMRole', 'gf_JSIs', 'gf_JSWon', 'gf_EGWon',
              'gf_EGWoundDeath', 'gf_CheckEnd')
     bodies = [function(source, name) for name in names]
     old = function(baseline, 'gf_CheckEnd')

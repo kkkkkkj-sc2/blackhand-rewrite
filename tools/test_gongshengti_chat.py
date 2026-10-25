@@ -24,7 +24,7 @@ CHAT_NAMES = (
     "gf_GSChatHidden", "gf_GSChatRecipient", "gf_GSSpecialRecipient",
     "gf_GSSpecialSay", "gf_GSChatSay", "gf_GSRefreshChat", "gf_GSChatJoin",
 )
-SUPPORT_NAMES = ("gf_GSIs", "gf_GSActive", "gf_GSPlayerLabel", "gf_FZChatHidden", "gf_XRNeutralFatal")
+SUPPORT_NAMES = ("gf_BHConverted", "gf_GSIs", "gf_GSActive", "gf_GSPlayerLabel", "gf_FZChatHidden", "gf_XRNeutralFatal")
 
 
 def mask(source: str) -> str:
@@ -63,7 +63,7 @@ using text = std::string;
 bool gv_isNight=true, gv_gameOver=false, gv_xrGang=false;
 int gv_currentPlayers=1, gv_alivePlayers=2;
 bool current[16], alive[16];
-int gv_roles[16][2], gv_gsHost[16], gv_channel[16], gv_bhFeignRole[16];
+int gv_roles[16][2], gv_gsHost[16], gv_channel[16], gv_bhFeignRole[16], gv_bhFaction[16];
 int gv_jailed[16], gv_jailing[16], gv_privateChannel[16];
 int gv_grChild[16], gv_grParent[16], gv_fzLeader[16];
 bool gv_grPrivateChat[16], gv_crying[16], gv_silenced[16][2];

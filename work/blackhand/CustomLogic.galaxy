@@ -320,6 +320,22 @@ const int c_bhSaveRoleMax = 32;     // 保存格/I 段角色号上界（含天�
 const bool c_bhSoloFill = false;    // 虚拟补位总开关：shw179 发布收尾改回 false（测试请打 --solo 包）
 const int c_bhSoloFillMax = 6;      // solo 测试共六人（玩家 + 最多五个虚拟补位）
 
+// shw306: town profession and actual team are independent; 0 keeps original behavior.
+int[16] gv_bhFaction;
+bool gv_bhFactionChatOpen = false;
+int[16] gv_lmFaction;
+trigger gt_BHFaction;
+bool gf_BHConverted (int lp_player);
+int gf_BHFaction (int lp_player);
+text gf_BHRoleName (int lp_player);
+text gf_BHDeathName (int lp_player);
+void gf_BHFactionCard (int lp_player);
+void gf_BHRefreshFactionChat ();
+void gf_BHFactionReset ();
+bool gf_BHConvertFaction (int lp_player, int lp_faction);
+bool gt_BHFaction_Func (bool testConds, bool runActions);
+void gt_BHFaction_Init ();
+
 // 共生体(3/29)：永久关系和限次状态；夜间选择不占用宿主的行动变量。
 int[16] gv_gsHost;
 int[16] gv_gsStrike;
@@ -5080,6 +5096,7 @@ void gf_InitializeVariables () {
     // Implementation
     gf_EGReset();
     gf_GSReset();
+    gf_BHFactionReset();
     gv_roleNameArray[8][1] = StringExternal("Param/Value/C84ABB4B");
     gv_roleDescriptionArray[8][1] = StringExternal("Param/Value/6DBF7701");
     gv_roleInvestigatorArray[8][1][0] = StringExternal("Param/Value/8BFCC80B");
@@ -8924,18 +8941,18 @@ bool auto_gf_DayTransition_TriggerFunc (bool testConds, bool runActions) {
                                     while (true) {
                                         auto4244A5D4_var = PlayerGroupNextPlayer(auto4244A5D4_g, auto4244A5D4_var);
                                         if (auto4244A5D4_var < 0) { break; }
-                                        gf_ELAddMessage((StringExternal("Param/Value/0A3DD03C") + TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a])) + StringExternal("Param/Value/7966074E") + gf_DQSeenName(lv_a) + StringExternal("Param/Value/FA512AAA")), auto4244A5D4_var, Color(25.10, 0.00, 50.20), lv_a, 0);
+                                        gf_ELAddMessage((StringExternal("Param/Value/0A3DD03C") + TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a])) + StringExternal("Param/Value/7966074E") + gf_BHDeathName(lv_a) + StringExternal("Param/Value/FA512AAA")), auto4244A5D4_var, Color(25.10, 0.00, 50.20), lv_a, 0);
                                     }
                                 }
-                                UIDisplayMessage(PlayerGroupAll(), c_messageAreaDirective, (StringExternal("Param/Value/59159E4C") + TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a])) + StringExternal("Param/Value/F7067962") + gf_DQSeenName(lv_a) + StringExternal("Param/Value/1D82B64D")));
-                                gv_deadBoxText[0] = (gv_deadBoxText[0] + StringExternal("Param/Value/0288A7D8") + StringToText(gv_number[lv_a]) + StringExternal("Param/Value/EE1DD1C4") + TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a])) + StringExternal("Param/Value/5D670402") + gf_DQSeenName(lv_a) + StringExternal("Param/Value/FD15D18A"));
+                                UIDisplayMessage(PlayerGroupAll(), c_messageAreaDirective, (StringExternal("Param/Value/59159E4C") + TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a])) + StringExternal("Param/Value/F7067962") + gf_BHDeathName(lv_a) + StringExternal("Param/Value/1D82B64D")));
+                                gv_deadBoxText[0] = (gv_deadBoxText[0] + StringExternal("Param/Value/0288A7D8") + StringToText(gv_number[lv_a]) + StringExternal("Param/Value/EE1DD1C4") + TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a])) + StringExternal("Param/Value/5D670402") + gf_BHDeathName(lv_a) + StringExternal("Param/Value/FD15D18A"));
                                 libNtve_gf_SetDialogItemText(gv_deadBoxItem[3], gv_deadBoxText[0], PlayerGroupAll());
                                 if ((gv_suicide[lv_a] == true)) {
-                                    gv_deadBoxText[1] = (gv_deadBoxText[1] + StringExternal("Param/Value/4E3C5CB7") + StringToText(gv_number[lv_a]) + StringExternal("Param/Value/EBA65F20") + TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a])) + StringExternal("Param/Value/CC22ED3E") + gf_DQSeenName(lv_a) + StringExternal("Param/Value/CED7C809") + StringExternal("Param/Value/0F0F4739") + StringExternal("Param/Value/8884802E") + IntToText(gv_dayNumber) + StringExternal("Param/Value/145DB4FF"));
+                                    gv_deadBoxText[1] = (gv_deadBoxText[1] + StringExternal("Param/Value/4E3C5CB7") + StringToText(gv_number[lv_a]) + StringExternal("Param/Value/EBA65F20") + TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a])) + StringExternal("Param/Value/CC22ED3E") + gf_BHDeathName(lv_a) + StringExternal("Param/Value/CED7C809") + StringExternal("Param/Value/0F0F4739") + StringExternal("Param/Value/8884802E") + IntToText(gv_dayNumber) + StringExternal("Param/Value/145DB4FF"));
                                     libNtve_gf_SetDialogItemTooltip(gv_deadBoxItem[3], gv_deadBoxText[1], PlayerGroupAll());
                                 }
                                 else {
-                                    gv_deadBoxText[1] = (gv_deadBoxText[1] + StringExternal("Param/Value/20FDC18C") + StringToText(gv_number[lv_a]) + StringExternal("Param/Value/CAABD424") + TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a])) + StringExternal("Param/Value/7125D0A2") + gf_DQSeenName(lv_a) + StringExternal("Param/Value/C9919C94") + gv_deathText[lv_a] + StringExternal("Param/Value/9EC71430") + IntToText(gv_dayNumber) + StringExternal("Param/Value/7B7E1185"));
+                                    gv_deadBoxText[1] = (gv_deadBoxText[1] + StringExternal("Param/Value/20FDC18C") + StringToText(gv_number[lv_a]) + StringExternal("Param/Value/CAABD424") + TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a])) + StringExternal("Param/Value/7125D0A2") + gf_BHDeathName(lv_a) + StringExternal("Param/Value/C9919C94") + gv_deathText[lv_a] + StringExternal("Param/Value/9EC71430") + IntToText(gv_dayNumber) + StringExternal("Param/Value/7B7E1185"));
                                     libNtve_gf_SetDialogItemTooltip(gv_deadBoxItem[3], gv_deadBoxText[1], PlayerGroupAll());
                                 }
                             }
@@ -10017,16 +10034,16 @@ bool auto_gf_CheckVoteWin_TriggerFunc (bool testConds, bool runActions) {
                     auto8270A33F_ae = (gv_executionCount - 1);
                     lv_a = 0;
                     for ( ; ( (auto8270A33F_ai >= 0 && lv_a <= auto8270A33F_ae) || (auto8270A33F_ai < 0 && lv_a >= auto8270A33F_ae) ) ; lv_a += auto8270A33F_ai ) {
-                        gv_deadBoxText[1] = (gv_deadBoxText[1] + StringExternal("Param/Value/DDEF42B2") + StringToText(gv_number[gv_executionList[lv_a]]) + StringExternal("Param/Value/AAD54DB2") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/D85D95C8") + gf_DQSeenName(gv_executionList[lv_a]) + StringExternal("Param/Value/34EA0AE7") + StringExternal("Param/Value/1F1E5B42") + StringExternal("Param/Value/B7263B25") + IntToText(gv_dayNumber) + StringExternal("Param/Value/105B302F"));
+                        gv_deadBoxText[1] = (gv_deadBoxText[1] + StringExternal("Param/Value/DDEF42B2") + StringToText(gv_number[gv_executionList[lv_a]]) + StringExternal("Param/Value/AAD54DB2") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/D85D95C8") + gf_BHDeathName(gv_executionList[lv_a]) + StringExternal("Param/Value/34EA0AE7") + StringExternal("Param/Value/1F1E5B42") + StringExternal("Param/Value/B7263B25") + IntToText(gv_dayNumber) + StringExternal("Param/Value/105B302F"));
                         libNtve_gf_SetDialogItemTooltip(gv_deadBoxItem[3], gv_deadBoxText[1], PlayerGroupAll());
                         auto07FDA567_g = gv_currentPlayers;
                         auto07FDA567_var = -1;
                         while (true) {
                             auto07FDA567_var = PlayerGroupNextPlayer(auto07FDA567_g, auto07FDA567_var);
                             if (auto07FDA567_var < 0) { break; }
-                            gf_ELAddMessage((StringExternal("Param/Value/08CEBA77") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/FAA88393") + gf_DQSeenName(gv_executionList[lv_a]) + StringExternal("Param/Value/7F940192")), auto07FDA567_var, Color(25.10, 0.00, 50.20), lv_a, 0);
+                            gf_ELAddMessage((StringExternal("Param/Value/08CEBA77") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/FAA88393") + gf_BHDeathName(gv_executionList[lv_a]) + StringExternal("Param/Value/7F940192")), auto07FDA567_var, Color(25.10, 0.00, 50.20), lv_a, 0);
                         }
-                        UIDisplayMessage(PlayerGroupAll(), c_messageAreaDirective, (StringExternal("Param/Value/642CA6EB") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/51987162") + gf_DQSeenName(gv_executionList[lv_a]) + StringExternal("Param/Value/2E2227E4")));
+                        UIDisplayMessage(PlayerGroupAll(), c_messageAreaDirective, (StringExternal("Param/Value/642CA6EB") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/51987162") + gf_BHDeathName(gv_executionList[lv_a]) + StringExternal("Param/Value/2E2227E4")));
                         if ((gf_BHWillAny(gv_executionList[lv_a]) == true)) {
                             Wait(1.0, c_timeGame);
                             auto87047C23_g = gv_currentPlayers;
@@ -11446,7 +11463,9 @@ bool auto_gf_NightTransition_TriggerFunc (bool testConds, bool runActions) {
     gf_JSHeroNight();
     // 疯子的面板要抄领袖的 variableOptions。城镇准备早于黑手/三合会准备，
     // 抄早了就是上一晚的旧值（第一晚是 0）⇒ 教父还活着时右下角没有行动按钮。
+    gv_bhFactionChatOpen = true;
     gf_FZRefreshActions();
+    gf_BHRefreshFactionChat();
     gf_GSRefreshChat();
     TriggerEnable(gt_ASActionButtonATown, true);
     TriggerEnable(gt_ASActionButtonATown2, true);
@@ -11520,6 +11539,8 @@ bool auto_gf_NightTransition_TriggerFunc (bool testConds, bool runActions) {
     Wait(10.0, c_timeGame);
     TriggerEnable(gt_NPNightCamera, false);
     Wait(0.25, c_timeGame);
+    // Close BEFORE clearing channels: the following cinematic still waits two seconds.
+    gv_bhFactionChatOpen = false;
     auto1D25B969_g = gv_currentPlayers;
     auto1D25B969_var = -1;
     while (true) {
@@ -14620,6 +14641,7 @@ void gf_SequenceAfter2 () {
                 gv_preCultRole[gv_visitation[gv_cultConverter]][1] = gv_roles[gv_visitation[gv_cultConverter]][1];
                 gv_preCultRole[gv_visitation[gv_cultConverter]][0] = gv_roles[gv_visitation[gv_cultConverter]][0];
                 if ((((gv_roles[gv_visitation[gv_cultConverter]][1] == 1) && (gv_roles[gv_visitation[gv_cultConverter]][0] == 3) && (gv_roleOptions[1][3][3] == true)) || ((gv_roles[gv_visitation[gv_cultConverter]][1] == 3) && (gv_roles[gv_visitation[gv_cultConverter]][0] == 4) && (gv_roleOptions[3][4][2] == true))) && (gv_roleOptions[3][10][10] == false) && (gv_witchDoctorConverted == false)) {
+                    gv_bhFaction[gv_visitation[gv_cultConverter]] = 0;
                     gv_roles[gv_visitation[gv_cultConverter]][1] = 3;
                     gv_roles[gv_visitation[gv_cultConverter]][0] = 10;
                     gv_specialCasePlayer[gv_visitation[gv_cultConverter]][17] += 1;
@@ -14629,6 +14651,7 @@ void gf_SequenceAfter2 () {
                     gv_immuneChance[gv_visitation[gv_cultConverter]] = 0;
                 }
                 else {
+                    gv_bhFaction[gv_visitation[gv_cultConverter]] = 0;
                     gv_roles[gv_visitation[gv_cultConverter]][1] = 3;
                     gv_roles[gv_visitation[gv_cultConverter]][0] = 8;
                     gv_specialCasePlayer[gv_visitation[gv_cultConverter]][17] += 1;
@@ -17344,13 +17367,13 @@ void gf_RefreshRoleBox () {
     // Implementation
     lv_a = 1;
     for ( ; ( (auto8A495EC6_ai >= 0 && lv_a <= auto8A495EC6_ae) || (auto8A495EC6_ai < 0 && lv_a >= auto8A495EC6_ae) ) ; lv_a += auto8A495EC6_ai ) {
-        if ((!((((gv_roles[lv_a][1] == 1) && ((gv_roles[lv_a][0] == 7) || (gv_roles[lv_a][0] == 14))) || (gv_roles[lv_a][1] == 2) || (gv_roles[lv_a][1] == 5) || ((gv_roles[lv_a][1] == 3) && ((gv_roles[lv_a][0] == 8) || (gv_roles[lv_a][0] == 10))))))) {
+        if ((!((((gf_BHFaction(lv_a) == 1) && ((gv_roles[lv_a][0] == 7) || (gv_roles[lv_a][0] == 14))) || (gf_BHFaction(lv_a) == 2) || (gf_BHFaction(lv_a) == 5) || ((gf_BHFaction(lv_a) == 3) && ((gv_roles[lv_a][0] == 8) || (gv_roles[lv_a][0] == 10))))))) {
             DialogControlSetVisible(gv_roleBoxItem[4], PlayerGroupSingle(lv_a), false);
             DialogControlSetVisible(gv_roleBoxItem[5], PlayerGroupSingle(lv_a), false);
             DialogControlSetVisible(gv_roleBoxItem[6], PlayerGroupSingle(lv_a), false);
         }
 
-        if ((gv_fzPool[lv_a] != 0) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) {
+        if ((gv_fzPool[lv_a] != 0) && (gf_BHConverted(lv_a) == false) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) {
             lv_c = false;
             lv_b = 1;
             for ( ; ( (auto6E281872_ai >= 0 && lv_b <= auto6E281872_ae) || (auto6E281872_ai < 0 && lv_b >= auto6E281872_ae) ) ; lv_b += auto6E281872_ai ) {
@@ -17370,7 +17393,7 @@ void gf_RefreshRoleBox () {
                     gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/EBA9636D") + (gf_FZFaceName(lv_a) + StringExternal("Param/Value/032D8BB8"))));
                 }
                 else {
-                    if (((gv_roles[lv_b][1] == gv_fzPool[lv_a]) && (lv_b != gv_fzLeader[lv_a])) || (gf_GSAllyFor(lv_a, lv_b) == true)) {
+                    if (((gf_BHFaction(lv_b) == gv_fzPool[lv_a]) && (lv_b != gv_fzLeader[lv_a])) || (gf_GSAllyFor(lv_a, lv_b) == true)) {
                         if ((lv_c == false)) {
                             lv_c = true;
                             if ((gv_fzPool[lv_a] == 5)) {
@@ -17384,7 +17407,7 @@ void gf_RefreshRoleBox () {
 
                         if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) || (gv_bhFeignRole[lv_b] != 0)) {
                             gv_roleBoxText[lv_a][5] = ((gv_roleBoxText[lv_a][5] + StringExternal("Param/Value/87096889")) + TextWithColor(StringToText(gv_name[lv_b]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_b])));
-                            gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/EBA9636D") + (gf_DQSeenName(lv_b) + StringExternal("Param/Value/032D8BB8"))));
+                            gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/EBA9636D") + (gf_BHDeathName(lv_b) + StringExternal("Param/Value/032D8BB8"))));
                         }
                         else {
                             gv_roleBoxText[lv_a][5] = ((gv_roleBoxText[lv_a][5] + StringExternal("Param/Value/E98F2C17")) + StringToText(gv_name[lv_b]));
@@ -17403,11 +17426,11 @@ void gf_RefreshRoleBox () {
             DialogControlSetVisible(gv_roleBoxItem[6], PlayerGroupSingle(lv_a), true);
         }
 
-        if ((gv_roles[lv_a][1] == 1) && ((gv_roles[lv_a][0] == 7) || (gv_roles[lv_a][0] == 14))) {
+        if ((gf_BHFaction(lv_a) == 1) && ((gv_roles[lv_a][0] == 7) || (gv_roles[lv_a][0] == 14))) {
             lv_c = false;
             lv_b = 1;
             for ( ; ( (auto6E281872_ai >= 0 && lv_b <= auto6E281872_ae) || (auto6E281872_ai < 0 && lv_b >= auto6E281872_ae) ) ; lv_b += auto6E281872_ai ) {
-                if (((gv_roles[lv_b][1] == 1) && ((gv_roles[lv_b][0] == 7) || (gv_roles[lv_b][0] == 14))) || (gf_GSAllyFor(lv_a, lv_b) == true)) {
+                if (((gf_BHFaction(lv_b) == 1) && ((gv_roles[lv_b][0] == 7) || (gv_roles[lv_b][0] == 14))) || (gf_GSAllyFor(lv_a, lv_b) == true)) {
                     if ((lv_c == false)) {
                         lv_c = true;
                         gv_roleBoxText[lv_a][5] = StringExternal("Param/Value/2E21CFEE");
@@ -17416,7 +17439,7 @@ void gf_RefreshRoleBox () {
                     if ((gv_disguiser[lv_b] == 0)) {
                         if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true)) {
                             gv_roleBoxText[lv_a][5] = ((gv_roleBoxText[lv_a][5] + StringExternal("Param/Value/EE813B28")) + TextWithColor(StringToText(gv_name[lv_b]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_b])));
-                            gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/3E907493") + (gf_DQSeenName(lv_b) + StringExternal("Param/Value/020463A4"))));
+                            gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/3E907493") + (gf_BHDeathName(lv_b) + StringExternal("Param/Value/020463A4"))));
                         }
                         else {
                             gv_roleBoxText[lv_a][5] = ((gv_roleBoxText[lv_a][5] + StringExternal("Param/Value/4FA2AD69")) + StringToText(gv_name[lv_b]));
@@ -17426,7 +17449,7 @@ void gf_RefreshRoleBox () {
                     else {
                         if ((PlayerGroupHasPlayer(gv_alivePlayers, gv_disguiser[lv_b]) == true)) {
                             gv_roleBoxText[lv_a][5] = ((gv_roleBoxText[lv_a][5] + StringExternal("Param/Value/09E904ED")) + TextWithColor(StringToText(gv_name[gv_disguiser[lv_b]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_disguiser[lv_b]])));
-                            gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/1F566BA3") + (gf_DQSeenName(lv_b) + StringExternal("Param/Value/D470D669"))));
+                            gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/1F566BA3") + (gf_BHDeathName(lv_b) + StringExternal("Param/Value/D470D669"))));
                         }
                         else {
                             gv_roleBoxText[lv_a][5] = ((gv_roleBoxText[lv_a][5] + StringExternal("Param/Value/2DDCA064")) + StringToText(gv_name[gv_disguiser[lv_b]]));
@@ -17447,11 +17470,11 @@ void gf_RefreshRoleBox () {
             }
         }
 
-        if ((gv_roles[lv_a][1] == 2)) {
+        if ((gf_BHFaction(lv_a) == 2)) {
             lv_c = false;
             lv_b = 1;
             for ( ; ( (auto45325BA9_ai >= 0 && lv_b <= auto45325BA9_ae) || (auto45325BA9_ai < 0 && lv_b >= auto45325BA9_ae) ) ; lv_b += auto45325BA9_ai ) {
-                if ((gv_roles[lv_b][1] == 2) || (gf_GSAllyFor(lv_a, lv_b) == true)) {
+                if ((gf_BHFaction(lv_b) == 2) || (gf_GSAllyFor(lv_a, lv_b) == true)) {
                     if ((lv_c == false)) {
                         lv_c = true;
                         gv_roleBoxText[lv_a][5] = StringExternal("Param/Value/0399909A");
@@ -17459,11 +17482,11 @@ void gf_RefreshRoleBox () {
 
                     if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) || (gv_bhFeignRole[lv_b] != 0)) {
                         gv_roleBoxText[lv_a][5] = ((gv_roleBoxText[lv_a][5] + StringExternal("Param/Value/87096889")) + TextWithColor(StringToText(gv_name[lv_b]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_b])));
-                        if ((gv_roles[lv_b][1] == 3) && (gv_roles[lv_b][0] == 8)) {
+                        if ((gf_BHFaction(lv_b) == 3) && (gv_roles[lv_b][0] == 8)) {
                             gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/6DDEAD1B") + (gv_roleNameArray[gv_preCultRole[lv_b][1]][gv_preCultRole[lv_b][0]] + StringExternal("Param/Value/2926A427"))));
                         }
                         else {
-                            gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/EBA9636D") + (gf_DQSeenName(lv_b) + StringExternal("Param/Value/032D8BB8"))));
+                            gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/EBA9636D") + (gf_BHDeathName(lv_b) + StringExternal("Param/Value/032D8BB8"))));
                         }
                     }
                     else {
@@ -17472,7 +17495,7 @@ void gf_RefreshRoleBox () {
                     }
                 }
                 else {
-                    if ((gv_fzPool[lv_a] == 0) && (gv_roles[lv_b][1] == 1) && (gv_roles[lv_b][0] == 33) && (gv_fzPool[lv_b] == 2)) {
+                    if ((gv_fzPool[lv_a] == 0) && (gf_BHFaction(lv_b) == 1) && (gv_roles[lv_b][0] == 33) && (gv_fzPool[lv_b] == 2)) {
                         if ((lv_c == false)) {
                             lv_c = true;
                             gv_roleBoxText[lv_a][5] = StringExternal("Param/Value/0399909A");
@@ -17480,7 +17503,7 @@ void gf_RefreshRoleBox () {
 
                         if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) || (gv_bhFeignRole[lv_b] != 0)) {
                             gv_roleBoxText[lv_a][5] = ((gv_roleBoxText[lv_a][5] + StringExternal("Param/Value/87096889")) + TextWithColor(StringToText(gv_name[lv_b]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_b])));
-                            gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/EBA9636D") + (gf_DQSeenName(lv_b) + StringExternal("Param/Value/032D8BB8"))));
+                            gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/EBA9636D") + (gf_BHDeathName(lv_b) + StringExternal("Param/Value/032D8BB8"))));
                         }
                         else {
                             gv_roleBoxText[lv_a][5] = ((gv_roleBoxText[lv_a][5] + StringExternal("Param/Value/E98F2C17")) + StringToText(gv_name[lv_b]));
@@ -17503,11 +17526,11 @@ void gf_RefreshRoleBox () {
             }
         }
 
-        if ((gv_roles[lv_a][1] == 5)) {
+        if ((gf_BHFaction(lv_a) == 5)) {
             lv_c = false;
             lv_b = 1;
             for ( ; ( (autoBE115661_ai >= 0 && lv_b <= autoBE115661_ae) || (autoBE115661_ai < 0 && lv_b >= autoBE115661_ae) ) ; lv_b += autoBE115661_ai ) {
-                if ((gv_roles[lv_b][1] == 5) || (gf_GSAllyFor(lv_a, lv_b) == true)) {
+                if ((gf_BHFaction(lv_b) == 5) || (gf_GSAllyFor(lv_a, lv_b) == true)) {
                     if ((lv_c == false)) {
                         lv_c = true;
                         gv_roleBoxText[lv_a][5] = StringExternal("Param/Value/3531C18D");
@@ -17515,11 +17538,11 @@ void gf_RefreshRoleBox () {
 
                     if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) || (gv_bhFeignRole[lv_b] != 0)) {
                         gv_roleBoxText[lv_a][5] = ((gv_roleBoxText[lv_a][5] + StringExternal("Param/Value/6DD56AEC")) + TextWithColor(StringToText(gv_name[lv_b]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_b])));
-                        if ((gv_roles[lv_b][1] == 3) && (gv_roles[lv_b][0] == 8)) {
+                        if ((gf_BHFaction(lv_b) == 3) && (gv_roles[lv_b][0] == 8)) {
                             gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/D310E8DD") + (gv_roleNameArray[gv_preCultRole[lv_b][1]][gv_preCultRole[lv_b][0]] + StringExternal("Param/Value/68C6884F"))));
                         }
                         else {
-                            gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/47492F5C") + (gf_DQSeenName(lv_b) + StringExternal("Param/Value/3F78B205"))));
+                            gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/47492F5C") + (gf_BHDeathName(lv_b) + StringExternal("Param/Value/3F78B205"))));
                         }
                     }
                     else {
@@ -17528,7 +17551,7 @@ void gf_RefreshRoleBox () {
                     }
                 }
                 else {
-                    if ((gv_fzPool[lv_a] == 0) && (gv_roles[lv_b][1] == 1) && (gv_roles[lv_b][0] == 33) && (gv_fzPool[lv_b] == 5)) {
+                    if ((gv_fzPool[lv_a] == 0) && (gf_BHFaction(lv_b) == 1) && (gv_roles[lv_b][0] == 33) && (gv_fzPool[lv_b] == 5)) {
                         if ((lv_c == false)) {
                             lv_c = true;
                             gv_roleBoxText[lv_a][5] = StringExternal("Param/Value/3531C18D");
@@ -17536,7 +17559,7 @@ void gf_RefreshRoleBox () {
 
                         if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) || (gv_bhFeignRole[lv_b] != 0)) {
                             gv_roleBoxText[lv_a][5] = ((gv_roleBoxText[lv_a][5] + StringExternal("Param/Value/6DD56AEC")) + TextWithColor(StringToText(gv_name[lv_b]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_b])));
-                            gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/47492F5C") + (gf_DQSeenName(lv_b) + StringExternal("Param/Value/3F78B205"))));
+                            gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/47492F5C") + (gf_BHDeathName(lv_b) + StringExternal("Param/Value/3F78B205"))));
                         }
                         else {
                             gv_roleBoxText[lv_a][5] = ((gv_roleBoxText[lv_a][5] + StringExternal("Param/Value/418FC635")) + StringToText(gv_name[lv_b]));
@@ -17559,11 +17582,11 @@ void gf_RefreshRoleBox () {
             }
         }
 
-        if ((gv_roles[lv_a][1] == 3) && ((gv_roles[lv_a][0] == 8) || (gv_roles[lv_a][0] == 10))) {
+        if ((gf_BHFaction(lv_a) == 3) && ((gv_roles[lv_a][0] == 8) || (gv_roles[lv_a][0] == 10))) {
             lv_c = false;
             lv_b = 1;
             for ( ; ( (autoFBC53929_ai >= 0 && lv_b <= autoFBC53929_ae) || (autoFBC53929_ai < 0 && lv_b >= autoFBC53929_ae) ) ; lv_b += autoFBC53929_ai ) {
-                if (((gv_roles[lv_b][1] == 3) && ((gv_roles[lv_b][0] == 8) || (gv_roles[lv_b][0] == 10))) || (gf_GSAllyFor(lv_a, lv_b) == true)) {
+                if (((gf_BHFaction(lv_b) == 3) && ((gv_roles[lv_b][0] == 8) || (gv_roles[lv_b][0] == 10))) || (gf_GSAllyFor(lv_a, lv_b) == true)) {
                     if ((lv_c == false)) {
                         lv_c = true;
                         gv_roleBoxText[lv_a][5] = StringExternal("Param/Value/6ECE87CB");
@@ -17572,7 +17595,7 @@ void gf_RefreshRoleBox () {
                     if (((gv_disguiser[lv_b] == 0) || ((gv_roles[gv_disguiser[lv_b]][1] == 3) && ((gv_roles[gv_disguiser[lv_b]][0] == 8) || (gv_roles[gv_disguiser[lv_b]][0] == 10))))) {
                         if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true)) {
                             gv_roleBoxText[lv_a][5] = ((gv_roleBoxText[lv_a][5] + StringExternal("Param/Value/09EC516B")) + TextWithColor(StringToText(gv_name[lv_b]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_b])));
-                            gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/5A8F87A3") + (gf_DQSeenName(lv_b) + StringExternal("Param/Value/4DF54014"))));
+                            gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/5A8F87A3") + (gf_BHDeathName(lv_b) + StringExternal("Param/Value/4DF54014"))));
                         }
                         else {
                             gv_roleBoxText[lv_a][5] = ((gv_roleBoxText[lv_a][5] + StringExternal("Param/Value/27D29C71")) + StringToText(gv_name[lv_b]));
@@ -17582,7 +17605,7 @@ void gf_RefreshRoleBox () {
                     else {
                         if ((PlayerGroupHasPlayer(gv_alivePlayers, gv_disguiser[lv_b]) == true)) {
                             gv_roleBoxText[lv_a][5] = ((gv_roleBoxText[lv_a][5] + StringExternal("Param/Value/62F18E17")) + TextWithColor(StringToText(gv_name[gv_disguiser[lv_b]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_disguiser[lv_b]])));
-                            gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/8987D82E") + (gf_DQSeenName(lv_b) + StringExternal("Param/Value/05525ACD"))));
+                            gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/8987D82E") + (gf_BHDeathName(lv_b) + StringExternal("Param/Value/05525ACD"))));
                         }
                         else {
                             gv_roleBoxText[lv_a][5] = ((gv_roleBoxText[lv_a][5] + StringExternal("Param/Value/E270B503")) + StringToText(gv_name[gv_disguiser[lv_b]]));
@@ -17603,14 +17626,14 @@ void gf_RefreshRoleBox () {
             }
         }
 
-        if ((gv_xrGang == true) && (gf_XRNeutralFatal(gv_roles[lv_a][1], gv_roles[lv_a][0]) == true)) {
+        if ((gv_xrGang == true) && (gf_XRNeutralFatal(gf_BHFaction(lv_a), gv_roles[lv_a][0]) == true)) {
             gv_roleBoxText[lv_a][5] = (StringExternal("Param/Value/0399909A") + StringExternal("Param/Value/XRGANGWIN"));
             lv_b = 1;
             for ( ; ( (autoXRALLY_ai >= 0 && lv_b <= autoXRALLY_ae) || (autoXRALLY_ai < 0 && lv_b >= autoXRALLY_ae) ) ; lv_b += autoXRALLY_ai ) {
-                if (((PlayerGroupHasPlayer(gv_currentPlayers, lv_b) == true) && (gv_roles[lv_b][1] == gv_roles[lv_a][1]) && (gv_roles[lv_b][0] == gv_roles[lv_a][0])) || (gf_GSAllyFor(lv_a, lv_b) == true)) {
+                if (((PlayerGroupHasPlayer(gv_currentPlayers, lv_b) == true) && (gf_BHFaction(lv_b) == gf_BHFaction(lv_a)) && (gv_roles[lv_b][0] == gv_roles[lv_a][0])) || (gf_GSAllyFor(lv_a, lv_b) == true)) {
                     if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) || (gv_bhFeignRole[lv_b] != 0)) {
                         gv_roleBoxText[lv_a][5] = ((gv_roleBoxText[lv_a][5] + StringExternal("Param/Value/87096889")) + TextWithColor(StringToText(gv_name[lv_b]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_b])));
-                        gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/EBA9636D") + (gv_roleNameArray[gv_roles[lv_b][1]][gv_roles[lv_b][0]] + StringExternal("Param/Value/032D8BB8"))));
+                        gv_roleBoxText[lv_a][5] = (gv_roleBoxText[lv_a][5] + (StringExternal("Param/Value/EBA9636D") + (gv_roleNameArray[gf_BHFaction(lv_b)][gv_roles[lv_b][0]] + StringExternal("Param/Value/032D8BB8"))));
                     }
                     else {
                         gv_roleBoxText[lv_a][5] = ((gv_roleBoxText[lv_a][5] + StringExternal("Param/Value/E98F2C17")) + StringToText(gv_name[lv_b]));
@@ -21915,18 +21938,18 @@ bool auto_gf_EExecution_TriggerFunc (bool testConds, bool runActions) {
 
     }
     else {
-        gv_deadBoxText[0] = (gv_deadBoxText[0] + StringExternal("Param/Value/D2D2C519") + StringToText(gv_number[lp_player]) + StringExternal("Param/Value/AA0AD62F") + TextWithColor(StringToText(gv_name[lp_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_player])) + StringExternal("Param/Value/AB968A17") + gf_DQSeenName(lp_player) + StringExternal("Param/Value/2A9DEC96"));
+        gv_deadBoxText[0] = (gv_deadBoxText[0] + StringExternal("Param/Value/D2D2C519") + StringToText(gv_number[lp_player]) + StringExternal("Param/Value/AA0AD62F") + TextWithColor(StringToText(gv_name[lp_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_player])) + StringExternal("Param/Value/AB968A17") + gf_BHDeathName(lp_player) + StringExternal("Param/Value/2A9DEC96"));
         if ((gv_marshalled == false)) {
-            gv_deadBoxText[1] = (gv_deadBoxText[1] + StringExternal("Param/Value/6D541F39") + StringToText(gv_number[lp_player]) + StringExternal("Param/Value/7F4B0843") + TextWithColor(StringToText(gv_name[lp_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_player])) + StringExternal("Param/Value/B049500D") + gf_DQSeenName(lp_player) + StringExternal("Param/Value/B711BC7F") + StringExternal("Param/Value/1AA47327") + StringExternal("Param/Value/20899479") + IntToText(gv_dayNumber) + StringExternal("Param/Value/5434DC52"));
+            gv_deadBoxText[1] = (gv_deadBoxText[1] + StringExternal("Param/Value/6D541F39") + StringToText(gv_number[lp_player]) + StringExternal("Param/Value/7F4B0843") + TextWithColor(StringToText(gv_name[lp_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_player])) + StringExternal("Param/Value/B049500D") + gf_BHDeathName(lp_player) + StringExternal("Param/Value/B711BC7F") + StringExternal("Param/Value/1AA47327") + StringExternal("Param/Value/20899479") + IntToText(gv_dayNumber) + StringExternal("Param/Value/5434DC52"));
             libNtve_gf_SetDialogItemTooltip(gv_deadBoxItem[3], gv_deadBoxText[1], PlayerGroupAll());
             auto5CD74377_g = gv_currentPlayers;
             auto5CD74377_var = -1;
             while (true) {
                 auto5CD74377_var = PlayerGroupNextPlayer(auto5CD74377_g, auto5CD74377_var);
                 if (auto5CD74377_var < 0) { break; }
-                gf_ELAddMessage((StringExternal("Param/Value/CDDF9F0F") + TextWithColor(StringToText(gv_name[lp_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_player])) + StringExternal("Param/Value/89D9EF6A") + gf_DQSeenName(lp_player) + StringExternal("Param/Value/A5FF2358")), auto5CD74377_var, Color(25.10, 0.00, 50.20), lv_a, 0);
+                gf_ELAddMessage((StringExternal("Param/Value/CDDF9F0F") + TextWithColor(StringToText(gv_name[lp_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_player])) + StringExternal("Param/Value/89D9EF6A") + gf_BHDeathName(lp_player) + StringExternal("Param/Value/A5FF2358")), auto5CD74377_var, Color(25.10, 0.00, 50.20), lv_a, 0);
             }
-            UIDisplayMessage(PlayerGroupAll(), c_messageAreaDirective, (StringExternal("Param/Value/5F8DB049") + TextWithColor(StringToText(gv_name[lp_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_player])) + StringExternal("Param/Value/05CCB497") + gf_DQSeenName(lp_player) + StringExternal("Param/Value/B745A03C")));
+            UIDisplayMessage(PlayerGroupAll(), c_messageAreaDirective, (StringExternal("Param/Value/5F8DB049") + TextWithColor(StringToText(gv_name[lp_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_player])) + StringExternal("Param/Value/05CCB497") + gf_BHDeathName(lp_player) + StringExternal("Param/Value/B745A03C")));
             libNtve_gf_SetDialogItemText(gv_deadBoxItem[3], gv_deadBoxText[0], PlayerGroupAll());
             if ((gf_BHWillAny(lp_player) == true)) {
                 Wait(1.0, c_timeGame);
@@ -22208,16 +22231,16 @@ bool auto_gf_EExecution_TriggerFunc (bool testConds, bool runActions) {
                     autoAA7E58B2_ae = (gv_executionCount - 1);
                     lv_a = 0;
                     for ( ; ( (autoAA7E58B2_ai >= 0 && lv_a <= autoAA7E58B2_ae) || (autoAA7E58B2_ai < 0 && lv_a >= autoAA7E58B2_ae) ) ; lv_a += autoAA7E58B2_ai ) {
-                        gv_deadBoxText[1] = (gv_deadBoxText[1] + StringExternal("Param/Value/69186534") + StringToText(gv_number[gv_executionList[lv_a]]) + StringExternal("Param/Value/588BC70D") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/886ECFF2") + gf_DQSeenName(gv_executionList[lv_a]) + StringExternal("Param/Value/81D361B6") + StringExternal("Param/Value/C07C0C8F") + StringExternal("Param/Value/DA20D167") + IntToText(gv_dayNumber) + StringExternal("Param/Value/B31515CD"));
+                        gv_deadBoxText[1] = (gv_deadBoxText[1] + StringExternal("Param/Value/69186534") + StringToText(gv_number[gv_executionList[lv_a]]) + StringExternal("Param/Value/588BC70D") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/886ECFF2") + gf_BHDeathName(gv_executionList[lv_a]) + StringExternal("Param/Value/81D361B6") + StringExternal("Param/Value/C07C0C8F") + StringExternal("Param/Value/DA20D167") + IntToText(gv_dayNumber) + StringExternal("Param/Value/B31515CD"));
                         libNtve_gf_SetDialogItemTooltip(gv_deadBoxItem[3], gv_deadBoxText[1], PlayerGroupAll());
                         auto911EC0F6_g = gv_currentPlayers;
                         auto911EC0F6_var = -1;
                         while (true) {
                             auto911EC0F6_var = PlayerGroupNextPlayer(auto911EC0F6_g, auto911EC0F6_var);
                             if (auto911EC0F6_var < 0) { break; }
-                            gf_ELAddMessage((StringExternal("Param/Value/095A893A") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/EBA71EA0") + gf_DQSeenName(gv_executionList[lv_a]) + StringExternal("Param/Value/FA49A348")), auto911EC0F6_var, Color(25.10, 0.00, 50.20), lv_a, 0);
+                            gf_ELAddMessage((StringExternal("Param/Value/095A893A") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/EBA71EA0") + gf_BHDeathName(gv_executionList[lv_a]) + StringExternal("Param/Value/FA49A348")), auto911EC0F6_var, Color(25.10, 0.00, 50.20), lv_a, 0);
                         }
-                        UIDisplayMessage(PlayerGroupAll(), c_messageAreaDirective, (StringExternal("Param/Value/19352ABB") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/A3CBB333") + gf_DQSeenName(gv_executionList[lv_a]) + StringExternal("Param/Value/4A56C361")));
+                        UIDisplayMessage(PlayerGroupAll(), c_messageAreaDirective, (StringExternal("Param/Value/19352ABB") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/A3CBB333") + gf_BHDeathName(gv_executionList[lv_a]) + StringExternal("Param/Value/4A56C361")));
                         if ((gf_BHWillAny(gv_executionList[lv_a]) == true)) {
                             Wait(1.0, c_timeGame);
                             autoBCBBD245_g = gv_currentPlayers;
@@ -39299,7 +39322,7 @@ void gf_RTRoleCard (int lp_player) {
         gv_roles[lp_player][1] = 1;
         gv_roles[lp_player][0] = 6;
     }
-    if ((lv_savedPool == 0) && (lp_player >= 1) && (gv_roles[lp_player][1] == 1) && (gv_roles[lp_player][0] == 33) && (gv_fzPool[lp_player] != 0) && (PlayerGroupHasPlayer(gv_alivePlayers, lp_player) == true)) {
+    if ((lv_savedPool == 0) && (lp_player >= 1) && (gv_roles[lp_player][1] == 1) && (gv_roles[lp_player][0] == 33) && (gv_fzPool[lp_player] != 0) && (gf_BHConverted(lp_player) == false) && (PlayerGroupHasPlayer(gv_alivePlayers, lp_player) == true)) {
         lv_savedPool = gv_roles[lp_player][1];
         lv_savedRole = gv_roles[lp_player][0];
         gv_roles[lp_player][1] = gv_fzPool[lp_player];
@@ -39327,6 +39350,8 @@ void gf_RTRoleCard (int lp_player) {
         gv_roles[lp_player][1] = lv_savedPool;
         gv_roles[lp_player][0] = lv_savedRole;
     }
+
+    gf_BHFactionCard(lp_player);
 }
 
 void gf_RTTownRoleText (int lp_player) {
@@ -63659,12 +63684,12 @@ void gf_BHPlayerChat (int lp_player, string lp_message) {
                         gf_CBSystemMessage((StringExternal("Param/Value/73BBA5BD") + TextWithColor(StringToText(gv_name[lp_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_player])) + StringExternal("Param/Value/65D609E0") + StringToText(lv_s) + StringExternal("Param/Value/10A3F960")), lp_player, lp_player, 0, SoundLink("Silent", -1), Color(39.22, 39.22, 39.22));
                         lv_a = 1;
                         for ( ; ( (auto782D82DB_ai >= 0 && lv_a <= auto782D82DB_ae) || (auto782D82DB_ai < 0 && lv_a >= auto782D82DB_ae) ) ; lv_a += auto782D82DB_ai ) {
-                            if ((gv_roles[lv_a][1] == 2) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gv_jailed[lv_a] == 0) && (gv_roles[gv_jailed[lp_player]][1] == 2) && (gv_roles[gv_jailed[lp_player]][0] == 9) && (gv_jailing[lv_a] != lp_player)) {
+                            if ((gf_BHFaction(lv_a) == 2) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gv_jailed[lv_a] == 0) && (gv_roles[gv_jailed[lp_player]][1] == 2) && (gv_roles[gv_jailed[lp_player]][0] == 9) && (gv_jailing[lv_a] != lp_player)) {
                                 lv_s = lp_message;
                                 gf_CBSystemMessage((StringExternal("Param/Value/BF857929") + TextWithColor(StringToText(gv_name[lp_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_player])) + StringExternal("Param/Value/EB1554E5") + StringToText(lv_s) + StringExternal("Param/Value/E6F180D0")), lv_a, lp_player, 0, SoundLink("UI_ChatMessageReceived232", -1), Color(39.22, 39.22, 39.22));
                             }
 
-                            if ((gv_roles[lv_a][1] == 5) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gv_jailed[lv_a] == 0) && (gv_roles[gv_jailed[lp_player]][1] == 5) && (gv_roles[gv_jailed[lp_player]][0] == 9) && (gv_jailing[lv_a] != lp_player)) {
+                            if ((gf_BHFaction(lv_a) == 5) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gv_jailed[lv_a] == 0) && (gv_roles[gv_jailed[lp_player]][1] == 5) && (gv_roles[gv_jailed[lp_player]][0] == 9) && (gv_jailing[lv_a] != lp_player)) {
                                 lv_s = lp_message;
                                 gf_CBSystemMessage((StringExternal("Param/Value/84C5E743") + TextWithColor(StringToText(gv_name[lp_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_player])) + StringExternal("Param/Value/831ADD18") + StringToText(lv_s) + StringExternal("Param/Value/5023779F")), lv_a, lp_player, 0, SoundLink("UI_ChatMessageReceived232", -1), Color(39.22, 39.22, 39.22));
                             }
@@ -63687,12 +63712,12 @@ void gf_BHPlayerChat (int lp_player, string lp_message) {
                             gf_CBSystemMessage((StringExternal("Param/Value/5DF7A6FB") + TextWithColor(StringExternal("Param/Value/0075EAC1"), Color(100.00, 100.00, 100.00)) + StringExternal("Param/Value/554D6A48") + StringToText(lv_s) + StringExternal("Param/Value/393CDEF7")), gv_jailing[lp_player], gv_jailing[lp_player], 0, SoundLink("UI_ChatMessageReceived232", -1), Color(0.00, 0.00, 0.00));
                             lv_a = 1;
                             for ( ; ( (auto054016F1_ai >= 0 && lv_a <= auto054016F1_ae) || (auto054016F1_ai < 0 && lv_a >= auto054016F1_ae) ) ; lv_a += auto054016F1_ai ) {
-                                if ((gv_roles[lv_a][1] == 2) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gv_jailed[lv_a] == 0) && (gv_roles[lp_player][1] == 2) && (gv_roles[lp_player][0] == 9) && (gv_jailing[lv_a] != gv_jailing[lp_player])) {
+                                if ((gf_BHFaction(lv_a) == 2) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gv_jailed[lv_a] == 0) && (gv_roles[lp_player][1] == 2) && (gv_roles[lp_player][0] == 9) && (gv_jailing[lv_a] != gv_jailing[lp_player])) {
                                     lv_s = lp_message;
                                     gf_CBSystemMessage((StringExternal("Param/Value/491FEBF3") + TextWithColor((StringExternal("Param/Value/B279EC61") + StringToText(gv_name[lp_player]) + StringExternal("Param/Value/AB68A3B0")), Color(100.00, 100.00, 100.00)) + StringExternal("Param/Value/4C9B45DE") + StringToText(lv_s) + StringExternal("Param/Value/4BC7153E")), lv_a, lp_player, 0, SoundLink("UI_ChatMessageReceived232", -1), Color(0.00, 0.00, 0.00));
                                 }
 
-                                if ((gv_roles[lv_a][1] == 5) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gv_jailed[lv_a] == 0) && (gv_roles[lp_player][1] == 5) && (gv_roles[lp_player][0] == 9) && (gv_jailing[lv_a] != gv_jailing[lp_player])) {
+                                if ((gf_BHFaction(lv_a) == 5) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gv_jailed[lv_a] == 0) && (gv_roles[lp_player][1] == 5) && (gv_roles[lp_player][0] == 9) && (gv_jailing[lv_a] != gv_jailing[lp_player])) {
                                     lv_s = lp_message;
                                     gf_CBSystemMessage((StringExternal("Param/Value/71DDED60") + TextWithColor((StringExternal("Param/Value/81CE39F0") + StringToText(gv_name[lp_player]) + StringExternal("Param/Value/807DAF9A")), Color(100.00, 100.00, 100.00)) + StringExternal("Param/Value/BBB892F1") + StringToText(lv_s) + StringExternal("Param/Value/3869331E")), lv_a, lp_player, 0, SoundLink("UI_ChatMessageReceived232", -1), Color(0.00, 0.00, 0.00));
                                 }
@@ -71002,16 +71027,16 @@ bool gt_DaySequence_Func (bool testConds, bool runActions) {
                         auto8FD49C83_ae = (gv_executionCount - 1);
                         lv_a = 0;
                         for ( ; ( (auto8FD49C83_ai >= 0 && lv_a <= auto8FD49C83_ae) || (auto8FD49C83_ai < 0 && lv_a >= auto8FD49C83_ae) ) ; lv_a += auto8FD49C83_ai ) {
-                            gv_deadBoxText[1] = (gv_deadBoxText[1] + StringExternal("Param/Value/D6B4BB06") + StringToText(gv_number[gv_executionList[lv_a]]) + StringExternal("Param/Value/B56AF897") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/4579A5F4") + gf_DQSeenName(gv_executionList[lv_a]) + StringExternal("Param/Value/37710C90") + StringExternal("Param/Value/74E965C9") + StringExternal("Param/Value/85C87962") + IntToText(gv_dayNumber) + StringExternal("Param/Value/D9349E57"));
+                            gv_deadBoxText[1] = (gv_deadBoxText[1] + StringExternal("Param/Value/D6B4BB06") + StringToText(gv_number[gv_executionList[lv_a]]) + StringExternal("Param/Value/B56AF897") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/4579A5F4") + gf_BHDeathName(gv_executionList[lv_a]) + StringExternal("Param/Value/37710C90") + StringExternal("Param/Value/74E965C9") + StringExternal("Param/Value/85C87962") + IntToText(gv_dayNumber) + StringExternal("Param/Value/D9349E57"));
                             libNtve_gf_SetDialogItemTooltip(gv_deadBoxItem[3], gv_deadBoxText[1], PlayerGroupAll());
                             auto16DEF60A_g = gv_currentPlayers;
                             auto16DEF60A_var = -1;
                             while (true) {
                                 auto16DEF60A_var = PlayerGroupNextPlayer(auto16DEF60A_g, auto16DEF60A_var);
                                 if (auto16DEF60A_var < 0) { break; }
-                                gf_ELAddMessage((StringExternal("Param/Value/96126402") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/536ECE7D") + gf_DQSeenName(gv_executionList[lv_a]) + StringExternal("Param/Value/17F39EFC")), auto16DEF60A_var, Color(25.10, 0.00, 50.20), lv_a, 0);
+                                gf_ELAddMessage((StringExternal("Param/Value/96126402") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/536ECE7D") + gf_BHDeathName(gv_executionList[lv_a]) + StringExternal("Param/Value/17F39EFC")), auto16DEF60A_var, Color(25.10, 0.00, 50.20), lv_a, 0);
                             }
-                            UIDisplayMessage(PlayerGroupAll(), c_messageAreaDirective, (StringExternal("Param/Value/A2BB73A9") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/33A67199") + gf_DQSeenName(gv_executionList[lv_a]) + StringExternal("Param/Value/13B76712")));
+                            UIDisplayMessage(PlayerGroupAll(), c_messageAreaDirective, (StringExternal("Param/Value/A2BB73A9") + TextWithColor(StringToText(gv_name[gv_executionList[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_executionList[lv_a]])) + StringExternal("Param/Value/33A67199") + gf_BHDeathName(gv_executionList[lv_a]) + StringExternal("Param/Value/13B76712")));
                             if ((gf_BHWillAny(gv_executionList[lv_a]) == true)) {
                                 Wait(1.0, c_timeGame);
                                 autoEE334CD3_g = gv_currentPlayers;
@@ -85608,6 +85633,7 @@ void SH_InitTriggers () {
     gt_LogarithmicZ2232_Init();
     gt_LogarithmicZ2233_Init();
     gt_BHRevealRoles_Init();
+    gt_BHFaction_Init();
     gt_LogarithmicZ2234_Init();
     gt_LogarithmicZ22322_Init();
     gt_LogarithmicZ22328_Init();
@@ -92771,12 +92797,12 @@ else {
     gf_CBSystemMessage(StringExternal("Param/Value/D903D005"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
 }
 if ((gv_immune[gv_visitation[lv_a]][2] == false)) {
-    if (((gv_roles[gv_visitation[lv_a]][1] == 2) || (gv_roles[gv_visitation[lv_a]][1] == 5) || (gv_framed[gv_visitation[lv_a]][1] == 2) || (gv_framed[gv_visitation[lv_a]][1] == 5)) && (gv_roleOptions[1][2][0] == true)) {
-        if (((gv_roles[gv_visitation[lv_a]][1] == 2) || (gv_framed[gv_visitation[lv_a]][1] == 2))) {
+    if (((gf_BHFaction(gv_visitation[lv_a]) == 2) || (gf_BHFaction(gv_visitation[lv_a]) == 5) || (gv_framed[gv_visitation[lv_a]][1] == 2) || (gv_framed[gv_visitation[lv_a]][1] == 5)) && (gv_roleOptions[1][2][0] == true)) {
+        if (((gf_BHFaction(gv_visitation[lv_a]) == 2) || (gv_framed[gv_visitation[lv_a]][1] == 2))) {
             gf_CBSystemMessage(StringExternal("Param/Value/BD797B72"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
         }
 
-        if (((gv_roles[gv_visitation[lv_a]][1] == 5) || (gv_framed[gv_visitation[lv_a]][1] == 5))) {
+        if (((gf_BHFaction(gv_visitation[lv_a]) == 5) || (gv_framed[gv_visitation[lv_a]][1] == 5))) {
             gf_CBSystemMessage(StringExternal("Param/Value/361742C1"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
         }
 
@@ -93957,12 +93983,13 @@ void gf_SKG_3_shenjiguan (int lv_a) {
     // Implementation
 gv_seqAfter2Wait[3] = true;
 if ((gv_audited[gv_visitation[lv_a]] == false)) {
-    if (((gv_immune[gv_visitation[lv_a]][0] == false) || (gv_roleOptions[3][11][2] == false)) && (gv_guarded[gv_visitation[lv_a]] == 0) && ((gv_roles[gv_visitation[lv_a]][1] != 2) || (gv_roleOptions[3][11][0] == true)) && ((gv_roles[gv_visitation[lv_a]][1] != 5) || (gv_roleOptions[3][11][1] == true)) && ((gv_roles[gv_visitation[lv_a]][1] != 3) || (gv_roles[gv_visitation[lv_a]][0] != 8)) && ((gv_roles[gv_visitation[lv_a]][1] != 3) || (gv_roles[gv_visitation[lv_a]][0] != 10)) && (PlayerGroupHasPlayer(gv_alivePlayers, gv_visitation[lv_a]) == true)) {
+    if (((gv_immune[gv_visitation[lv_a]][0] == false) || (gv_roleOptions[3][11][2] == false)) && (gv_guarded[gv_visitation[lv_a]] == 0) && ((gf_BHFaction(gv_visitation[lv_a]) != 2) || (gv_roleOptions[3][11][0] == true)) && ((gf_BHFaction(gv_visitation[lv_a]) != 5) || (gv_roleOptions[3][11][1] == true)) && ((gf_BHFaction(gv_visitation[lv_a]) != 3) || (gv_roles[gv_visitation[lv_a]][0] != 8)) && ((gf_BHFaction(gv_visitation[lv_a]) != 3) || (gv_roles[gv_visitation[lv_a]][0] != 10)) && (PlayerGroupHasPlayer(gv_alivePlayers, gv_visitation[lv_a]) == true)) {
         if ((gv_visitation[lv_a] == lv_a)) {
             gv_specialCasePlayer[gv_visitation[lv_a]][22] += 1;
             gf_CBSystemMessage(StringExternal("Param/Value/06DED390"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
             gf_CBSystemMessage((StringExternal("Param/Value/73EAAEEB") + gv_roleNameArray[3][2] + StringExternal("Param/Value/A02FB697")), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 100.00));
             gv_audited[lv_a] = true;
+            gv_bhFaction[gv_visitation[lv_a]] = 0;
             gv_roles[gv_visitation[lv_a]][1] = 3;
             gv_roles[gv_visitation[lv_a]][0] = 2;
             lv_c = gv_roleOptions[gv_roles[lv_a][1]][gv_roles[lv_a][0]][10];
@@ -93987,7 +94014,7 @@ if ((gv_audited[gv_visitation[lv_a]] == false)) {
                 gf_CBSystemMessage(StringExternal("Param/Value/74702515"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
             }
 
-            if ((gv_roleOptions[3][11][0] == true) && (gv_roles[gv_visitation[lv_a]][1] == 2)) {
+            if ((gv_roleOptions[3][11][0] == true) && (gf_BHFaction(gv_visitation[lv_a]) == 2)) {
                 if ((gv_isAMan[gv_visitation[lv_a]] == true)) {
                     gf_CBSystemMessage((StringExternal("Param/Value/84C0768F") + TextWithColor(StringToText(gv_name[gv_visitation[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_visitation[lv_a]])) + StringExternal("Param/Value/AA6E7AD8")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
                 }
@@ -93998,6 +94025,7 @@ if ((gv_audited[gv_visitation[lv_a]] == false)) {
                 gf_CBSystemMessage((StringExternal("Param/Value/222A7D72") + gv_roleNameArray[2][1] + StringExternal("Param/Value/17B85CAB")), gv_visitation[lv_a], gv_visitation[lv_a], 0, SoundLink("Silent", -1), Color(0.00, 0.00, 100.00));
                 gv_audited[gv_visitation[lv_a]] = true;
                 gf_BHCrime(lv_a, 7);
+                gv_bhFaction[gv_visitation[lv_a]] = 0;
                 gv_roles[gv_visitation[lv_a]][1] = 2;
                 gv_roles[gv_visitation[lv_a]][0] = 1;
                 gv_immuneChance[gv_visitation[lv_a]] = 0;
@@ -94009,7 +94037,7 @@ if ((gv_audited[gv_visitation[lv_a]] == false)) {
                 gv_seqAfter2Z[4] = true;
             }
             else {
-                if ((gv_roleOptions[3][11][1] == true) && (gv_roles[gv_visitation[lv_a]][1] == 5)) {
+                if ((gv_roleOptions[3][11][1] == true) && (gf_BHFaction(gv_visitation[lv_a]) == 5)) {
                     if ((gv_isAMan[gv_visitation[lv_a]] == true)) {
                         gf_CBSystemMessage((StringExternal("Param/Value/689BC2CA") + TextWithColor(StringToText(gv_name[gv_visitation[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_visitation[lv_a]])) + StringExternal("Param/Value/5C509E38")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
                     }
@@ -94019,6 +94047,8 @@ if ((gv_audited[gv_visitation[lv_a]] == false)) {
                     gf_CBSystemMessage((StringExternal("Param/Value/17671CEE")), gv_visitation[lv_a], gv_visitation[lv_a], 0, SoundLink("Silent", -1), Color(0.00, 0.00, 100.00));
                     gf_CBSystemMessage((StringExternal("Param/Value/19274A7E") + gv_roleNameArray[5][1] + StringExternal("Param/Value/3BA3BA4A")), gv_visitation[lv_a], gv_visitation[lv_a], 0, SoundLink("Silent", -1), Color(0.00, 0.00, 100.00));
                     gv_audited[gv_visitation[lv_a]] = true;
+                    gv_bhFaction[gv_visitation[lv_a]] = 0;
+                    gv_roles[gv_visitation[lv_a]][1] = 5;
                     gv_roles[gv_visitation[lv_a]][0] = 1;
                     lv_c = gv_roleOptions[gv_roles[lv_a][1]][gv_roles[lv_a][0]][10];
                     gv_roleOptions[gv_roles[lv_a][1]][gv_roles[lv_a][0]][10] = true;
@@ -94030,7 +94060,7 @@ if ((gv_audited[gv_visitation[lv_a]] == false)) {
                     gv_seqAfter2Z[4] = true;
                 }
                 else {
-                    if ((gv_roles[gv_visitation[lv_a]][1] == 3)) {
+                    if ((gf_BHFaction(gv_visitation[lv_a]) == 3)) {
                         if ((gv_isAMan[gv_visitation[lv_a]] == true)) {
                             gf_CBSystemMessage((StringExternal("Param/Value/94A8849F") + TextWithColor(StringToText(gv_name[gv_visitation[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_visitation[lv_a]])) + StringExternal("Param/Value/CF877B3B")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
                         }
@@ -94047,6 +94077,7 @@ if ((gv_audited[gv_visitation[lv_a]] == false)) {
                         gf_CBSystemMessage((StringExternal("Param/Value/3B09362E")), gv_visitation[lv_a], gv_visitation[lv_a], 0, SoundLink("Silent", -1), Color(0.00, 0.00, 100.00));
                         gv_audited[gv_visitation[lv_a]] = true;
                         gf_BHCrime(lv_a, 7);
+                        gv_bhFaction[gv_visitation[lv_a]] = 0;
                         gv_roles[gv_visitation[lv_a]][1] = 3;
                         gv_roles[gv_visitation[lv_a]][0] = 2;
                         gv_immuneChance[gv_visitation[lv_a]] = 2;
@@ -94070,6 +94101,7 @@ if ((gv_audited[gv_visitation[lv_a]] == false)) {
                         gf_CBSystemMessage((StringExternal("Param/Value/36A2D5DD") + gv_roleNameArray[1][1] + StringExternal("Param/Value/3F6504FD")), gv_visitation[lv_a], gv_visitation[lv_a], 0, SoundLink("Silent", -1), Color(0.00, 0.00, 100.00));
                         gv_audited[gv_visitation[lv_a]] = true;
                         gf_BHCrime(lv_a, 7);
+                        gv_bhFaction[gv_visitation[lv_a]] = 0;
                         gv_roles[gv_visitation[lv_a]][1] = 1;
                         gv_roles[gv_visitation[lv_a]][0] = 1;
                         lv_c = gv_roleOptions[gv_roles[lv_a][1]][gv_roles[lv_a][0]][10];
@@ -94117,7 +94149,7 @@ void gf_SKG_1_gongjihuizhanglao (int lv_a) {
     const int auto6D3730F4_ai = 1;
     // Implementation
 gv_seqAfter2Wait[3] = true;
-if ((gv_roles[gv_visitation[lv_a]][1] == 1) && (gv_roles[gv_visitation[lv_a]][0] == 1) && (PlayerGroupHasPlayer(gv_alivePlayers, gv_visitation[lv_a]) == true)) {
+if ((gf_BHFaction(gv_visitation[lv_a]) == 1) && (gv_roles[gv_visitation[lv_a]][0] == 1) && (PlayerGroupHasPlayer(gv_alivePlayers, gv_visitation[lv_a]) == true)) {
     if ((PlayerGroupCount(gv_players) > 9)) {
         gv_specialCasePlayer[lv_a][3] -= 99;
     }
@@ -94139,7 +94171,7 @@ if ((gv_roles[gv_visitation[lv_a]][1] == 1) && (gv_roles[gv_visitation[lv_a]][0]
     gf_CBSystemMessage((StringExternal("Param/Value/A4DE5D81") + gv_roleNameArray[1][7] + StringExternal("Param/Value/682D086C")), gv_visitation[lv_a], gv_visitation[lv_a], 0, SoundLink("Silent", -1), Color(0.00, 0.00, 100.00));
     lv_b = 1;
     for ( ; ( (auto6D3730F4_ai >= 0 && lv_b <= auto6D3730F4_ae) || (auto6D3730F4_ai < 0 && lv_b >= auto6D3730F4_ae) ) ; lv_b += auto6D3730F4_ai ) {
-        if ((lv_b != lv_a) && (gv_roles[lv_b][1] == 1) && (gv_roles[lv_b][0] == 7) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true)) {
+        if ((lv_b != lv_a) && (gf_BHFaction(lv_b) == 1) && (gv_roles[lv_b][0] == 7) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true)) {
             gf_CBSystemMessage((StringExternal("Param/Value/DA81F38E") + TextWithColor(StringToText(gv_name[gv_visitation[lv_a]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_visitation[lv_a]])) + StringExternal("Param/Value/4599C938")), lv_b, lv_b, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
         }
 
@@ -94156,7 +94188,7 @@ if ((gv_roles[gv_visitation[lv_a]][1] == 1) && (gv_roles[gv_visitation[lv_a]][0]
 }
 else {
     gf_CBSystemMessage(StringExternal("Param/Value/2EA1C3A4"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
-    if (((gv_roles[gv_visitation[lv_a]][1] == 2) || (gv_roles[gv_visitation[lv_a]][1] == 5)) && (PlayerGroupHasPlayer(gv_alivePlayers, gv_visitation[lv_a]) == true)) {
+    if (((gf_BHFaction(gv_visitation[lv_a]) == 2) || (gf_BHFaction(gv_visitation[lv_a]) == 5)) && (PlayerGroupHasPlayer(gv_alivePlayers, gv_visitation[lv_a]) == true)) {
         gf_CBSystemMessage((StringExternal("Param/Value/2FE18046") + TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a])) + StringExternal("Param/Value/00837A24")), gv_visitation[lv_a], gv_visitation[lv_a], 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
     }
 
@@ -94215,7 +94247,7 @@ else {
 
 }
 gv_seqAfter2Wait[3] = true;
-if ((gv_roles[gv_visitation[lv_a]][1] == 1) && (PlayerGroupHasPlayer(gv_alivePlayers, gv_visitation[lv_a]) == true) && (gv_visitation[lv_a] != lv_a)) {
+if ((gf_BHFaction(gv_visitation[lv_a]) == 1) && (PlayerGroupHasPlayer(gv_alivePlayers, gv_visitation[lv_a]) == true) && (gv_visitation[lv_a] != lv_a)) {
     if ((gv_roles[gv_visitation[lv_a]][0] == 6)) {
         gv_zmOneShot[gv_visitation[lv_a]] = false;
         if ((gv_roleOptions[1][6][1] == true)) {
@@ -94273,7 +94305,7 @@ if ((gv_roles[gv_visitation[lv_a]][1] == 1) && (PlayerGroupHasPlayer(gv_alivePla
     }
 }
 else {
-    if ((gv_roles[gv_visitation[lv_a]][1] == 3) && (PlayerGroupHasPlayer(gv_alivePlayers, gv_visitation[lv_a]) == true) && (gv_roleOptions[1][23][1] == true) && ((gv_roles[gv_visitation[lv_a]][0] == 2) || (gv_roles[gv_visitation[lv_a]][0] == 3) || (gv_roles[gv_visitation[lv_a]][0] == 6) || (gv_roles[gv_visitation[lv_a]][0] == 7))) {
+    if ((gf_BHFaction(gv_visitation[lv_a]) == 3) && (PlayerGroupHasPlayer(gv_alivePlayers, gv_visitation[lv_a]) == true) && (gv_roleOptions[1][23][1] == true) && ((gv_roles[gv_visitation[lv_a]][0] == 2) || (gv_roles[gv_visitation[lv_a]][0] == 3) || (gv_roles[gv_visitation[lv_a]][0] == 6) || (gv_roles[gv_visitation[lv_a]][0] == 7))) {
         gv_shots[lv_a] -= 1;
         gf_CBSystemMessage((StringExternal("Param/Value/E756D021") + StringExternal("Param/Value/FBA13CA3")), gv_visitation[lv_a], lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
         gv_zmOneShot[gv_visitation[lv_a]] = false;
@@ -94302,7 +94334,7 @@ else {
     }
     else {
         gv_shots[lv_a] -= 1;
-        if (((gv_roles[gv_visitation[lv_a]][1] == 2) || (gv_roles[gv_visitation[lv_a]][1] == 3) || (gv_roles[gv_visitation[lv_a]][1] == 5)) && (PlayerGroupHasPlayer(gv_alivePlayers, gv_visitation[lv_a]) == true)) {
+        if (((gf_BHFaction(gv_visitation[lv_a]) == 2) || (gf_BHFaction(gv_visitation[lv_a]) == 3) || (gf_BHFaction(gv_visitation[lv_a]) == 5)) && (PlayerGroupHasPlayer(gv_alivePlayers, gv_visitation[lv_a]) == true)) {
             gf_CBSystemMessage((StringExternal("Param/Value/B742F2C5")), gv_visitation[lv_a], gv_visitation[lv_a], 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
         }
 
@@ -94358,6 +94390,7 @@ if ((gv_damage[gv_visitation[lv_a]] > 0) && (gv_healing[gv_visitation[lv_a]] == 
 
             gv_preCultRole[gv_visitation[lv_a]][1] = gv_roles[gv_visitation[lv_a]][1];
             gv_preCultRole[gv_visitation[lv_a]][0] = gv_roles[gv_visitation[lv_a]][0];
+            gv_bhFaction[gv_visitation[lv_a]] = 0;
             gv_roles[gv_visitation[lv_a]][1] = 3;
             gv_roles[gv_visitation[lv_a]][0] = 8;
             gv_immune[gv_visitation[lv_a]][0] = false;
@@ -94584,7 +94617,7 @@ void gf_SKG_3_shiyizhe (int lv_a, int lv_h) {
     const int auto5575AA97_ae = 15;
     const int auto5575AA97_ai = 1;
     // Implementation
-gf_CBSystemMessage((StringExternal("Param/Value/5F610A0E") + gf_DQSeenName(lv_h) + StringExternal("Param/Value/72E09ACF")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+gf_CBSystemMessage((StringExternal("Param/Value/5F610A0E") + gf_BHDeathName(lv_h) + StringExternal("Param/Value/72E09ACF")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
 if ((gv_roles[lv_a][0] == 2) && (gv_roles[lv_a][1] == 3)) {
     gv_immuneChance[lv_a] = 2;
 }
@@ -94597,30 +94630,30 @@ if ((gv_roles[lv_h][1] == 3) && (gv_roles[lv_h][0] == 7) && (PlayerGroupCount(gv
 else {
     gv_specialCasePlayer[lv_a][17] += 1;
 }
-if ((gv_roles[lv_h][1] == 1) && ((gv_roles[lv_h][0] == 7) || (gv_roles[lv_h][0] == 14))) {
+if ((gf_BHFaction(lv_h) == 1) && ((gv_roles[lv_h][0] == 7) || (gv_roles[lv_h][0] == 14))) {
     lv_b = 1;
     for ( ; ( (auto2B5F74E5_ai >= 0 && lv_b <= auto2B5F74E5_ae) || (auto2B5F74E5_ai < 0 && lv_b >= auto2B5F74E5_ae) ) ; lv_b += auto2B5F74E5_ai ) {
-        if ((gv_roles[lv_b][1] == 1) && ((gv_roles[lv_b][0] == 7) || (gv_roles[lv_b][0] == 14)) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true)) {
+        if ((gf_BHFaction(lv_b) == 1) && ((gv_roles[lv_b][0] == 7) || (gv_roles[lv_b][0] == 14)) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true)) {
             gf_CBSystemMessage((StringExternal("Param/Value/3E7D9AA5") + TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a])) + StringExternal("Param/Value/AD32A35D")), lv_b, lv_b, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
         }
 
     }
 }
 
-if ((gv_roles[lv_h][1] == 2)) {
+if ((gf_BHFaction(lv_h) == 2)) {
     lv_b = 1;
     for ( ; ( (auto04A745AA_ai >= 0 && lv_b <= auto04A745AA_ae) || (auto04A745AA_ai < 0 && lv_b >= auto04A745AA_ae) ) ; lv_b += auto04A745AA_ai ) {
-        if ((gv_roles[lv_b][1] == 2) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true)) {
+        if ((gf_BHFaction(lv_b) == 2) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true)) {
             gf_CBSystemMessage((StringExternal("Param/Value/B6985398") + TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a])) + StringExternal("Param/Value/F6CA17ED")), lv_b, lv_b, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
         }
 
     }
 }
 
-if ((gv_roles[lv_h][1] == 5)) {
+if ((gf_BHFaction(lv_h) == 5)) {
     lv_b = 1;
     for ( ; ( (auto891FB2F5_ai >= 0 && lv_b <= auto891FB2F5_ae) || (auto891FB2F5_ai < 0 && lv_b >= auto891FB2F5_ae) ) ; lv_b += auto891FB2F5_ai ) {
-        if ((gv_roles[lv_b][1] == 5) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true)) {
+        if ((gf_BHFaction(lv_b) == 5) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true)) {
             gf_CBSystemMessage((StringExternal("Param/Value/B47B1919") + TextWithColor(StringToText(gv_name[lv_a]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a])) + StringExternal("Param/Value/E9D9F441")), lv_b, lv_b, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
         }
 
@@ -94635,6 +94668,11 @@ if ((gv_roles[lv_h][1] == 3) && (gv_roles[lv_h][0] == 8)) {
         }
 
     }
+}
+
+gv_bhFaction[lv_a] = 0;
+if ((gf_BHConverted(lv_h) == true)) {
+    gv_bhFaction[lv_a] = gf_BHFaction(lv_h);
 }
 
 gv_roles[lv_a][1] = gv_roles[lv_h][1];
@@ -95751,23 +95789,23 @@ void gf_HLGangPick (int lv_source, int lv_target) {
 }
 
 int gf_HLTier (int lp_who, int lp_pool) {
-    if ((gv_roles[lp_who][1] == lp_pool)) {
+    if ((gf_BHFaction(lp_who) == lp_pool)) {
         return 0;
     }
 
-    if ((lp_pool == 1) && (gv_roles[lp_who][1] == 2)) {
+    if ((lp_pool == 1) && (gf_BHFaction(lp_who) == 2)) {
         return 1;
     }
 
-    if ((lp_pool != 1) && (gv_roles[lp_who][1] == 1)) {
+    if ((lp_pool != 1) && (gf_BHFaction(lp_who) == 1)) {
         return 1;
     }
 
-    if ((gv_roles[lp_who][1] == 2) || (gv_roles[lp_who][1] == 5)) {
+    if ((gf_BHFaction(lp_who) == 2) || (gf_BHFaction(lp_who) == 5)) {
         return 2;
     }
 
-    if ((gv_roles[lp_who][1] == 3)) {
+    if ((gf_BHFaction(lp_who) == 3)) {
         return 3;
     }
 
@@ -95950,7 +95988,7 @@ void gf_HLResolveOne (int lp_owner, int lp_slot) {
     lv_guard = gv_guarded[lv_victim];
     if ((lv_guard != 0) && (lv_guard != lv_victim) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_guard) == true) && (gv_diedAtNight[lv_guard] == false)) {
         // 黑手党/三合会陷阱连拦截者也不误伤本阵营；城镇护林人保持原有规则。
-        if ((lv_pool != 1) && (gv_roles[lv_guard][1] == lv_pool)) {
+        if ((lv_pool != 1) && (gf_BHFaction(lv_guard) == lv_pool)) {
             return;
         }
 
@@ -96010,7 +96048,7 @@ void gf_HLForesterNight () {
 
             gv_hlHouse[lv_a][lv_free] = gv_visitation[lv_a];
             gv_hlLeft[lv_a][lv_free] = 2;
-            gv_hlFaction[lv_a][lv_free] = gv_roles[lv_a][1];
+            gv_hlFaction[lv_a][lv_free] = gf_BHFaction(lv_a);
             if ((gf_HLGang(lv_a) == true)) {
                 gv_hlNextNight[lv_a] = (gv_dayNumber + 2);
             }
@@ -97279,6 +97317,7 @@ for ( ; ( (auto8E99DB40_ai >= 0 && lv_e <= auto8E99DB40_ae) || (auto8E99DB40_ai 
     }
 }
 if ((PlayerGroupCount(lv_p) < 1)) {
+    gv_bhFaction[lv_a] = 0;
     gv_roles[lv_a][1] = 3;
     gv_roles[lv_a][0] = 3;
     gv_roleOptions[gv_roles[lv_a][1]][gv_roles[lv_a][0]][10] = true;
@@ -99504,6 +99543,7 @@ void gf_ESGanranzheKill (int lp_target, int lp_killer) {
     }
 
     if ((lv_pass == true)) {
+        gv_bhFaction[lp_target] = 0;
         gv_roles[lp_target][1] = 3;
         gv_roles[lp_target][0] = 22;
         gv_grParent[lp_target] = lp_killer;
@@ -99651,7 +99691,7 @@ text gf_DQSeenName (int lp_player) {
 int gf_DQClassify (int lp_player) {
     int lv_pool;
 
-    lv_pool = gv_roles[lp_player][1];
+    lv_pool = gf_BHFaction(lp_player);
     if ((lv_pool == 1)) {
         return 1;
     }
@@ -99938,7 +99978,7 @@ void gf_ESQiziBomb (int lp_killer, int lp_target) {
         lv_done[lv_b] = false;
         lv_kill[lv_b] = false;
         lv_flash[lv_b] = false;
-        if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) && (lv_b != lp_killer) && (gf_QiziAtHouse(lv_b, lp_target) == true) && (gv_roles[lv_b][1] != gv_roles[lp_killer][1])) {
+        if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) && (lv_b != lp_killer) && (gf_QiziAtHouse(lv_b, lp_target) == true) && (gf_BHFaction(lv_b) != gf_BHFaction(lp_killer))) {
             lv_n += 1;
         }
     }
@@ -99969,7 +100009,7 @@ void gf_ESQiziBomb (int lp_killer, int lp_target) {
 
     lv_b = 1;
     for ( ; ( (autoQZLOC_ai >= 0 && lv_b <= autoQZLOC_ae) || (autoQZLOC_ai < 0 && lv_b >= autoQZLOC_ae) ) ; lv_b += autoQZLOC_ai ) {
-        if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) && (lv_b != lp_killer) && (gf_QiziAtHouse(lv_b, lp_target) == true) && (gv_roles[lv_b][1] != gv_roles[lp_killer][1]) && (lv_done[lv_b] == false)) {
+        if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) && (lv_b != lp_killer) && (gf_QiziAtHouse(lv_b, lp_target) == true) && (gf_BHFaction(lv_b) != gf_BHFaction(lp_killer)) && (lv_done[lv_b] == false)) {
             lv_flash[lv_b] = true;
             if ((gv_guarded[lv_b] != 0) && (gv_guarded[lv_b] != lp_killer)) {
                 lv_g = gv_guarded[lv_b];
@@ -102174,15 +102214,27 @@ void gf_BHSaveSlotBuild () {
 
 int gf_LMCat (int lp_player) {
     if ((gv_lmWin[lp_player][1] != 0)) {
+        if ((gv_lmFaction[lp_player] != 0)) {
+            return gv_lmFaction[lp_player];
+        }
+
         return gv_lmWin[lp_player][1];
     }
-    return gv_roles[lp_player][1];
+    return gf_BHFaction(lp_player);
 }
 
 int gf_LMRole (int lp_player) {
     if ((gv_lmWin[lp_player][1] != 0)) {
+        if ((gv_lmFaction[lp_player] != 0)) {
+            return 0; // faction membership is NOT a same-number mafia/triad profession
+        }
+
         return gv_lmWin[lp_player][0];
     }
+    if ((gf_BHConverted(lp_player) == true)) {
+        return 0;
+    }
+
     return gv_roles[lp_player][0];
 }
 
@@ -102194,10 +102246,10 @@ void gf_LMJoin (int lp_player) {
     lv_pool = gv_roles[lp_player][1];
     lv_role = gv_roles[lp_player][0];
     lv_ch = 0;
-    if ((lv_pool == 2)) {
+    if ((gf_BHFaction(lp_player) == 2)) {
         lv_ch = 1;
     }
-    else if ((lv_pool == 5)) {
+    else if ((gf_BHFaction(lp_player) == 5)) {
         lv_ch = 4;
     }
     else if ((lv_pool == 1) && ((lv_role == 7) || (lv_role == 14))) {
@@ -102284,6 +102336,10 @@ void gf_LMSwap (int lp_cat, int lp_dead) {
         return;
     }
 
+    if ((gf_BHConverted(lp_dead) == true) && (gv_bhFeignRole[lp_dead] != 0)) {
+        return;
+    }
+
     lv_pool = gv_roles[lp_dead][1];
     lv_role = gv_roles[lp_dead][0];
     lv_shots = gv_shots[lp_dead];
@@ -102291,6 +102347,15 @@ void gf_LMSwap (int lp_cat, int lp_dead) {
     lv_goal = gv_goalTarget[lp_dead];
     lv_strikes = gv_txStrikes[lp_dead];
 
+    // Keep profession snapshot separate from its converted victory team.
+    gv_lmFaction[lp_dead] = 0;
+    if ((gf_BHConverted(lp_dead) == true)) {
+        gv_lmFaction[lp_dead] = gf_BHFaction(lp_dead);
+    }
+
+    gv_bhFaction[lp_cat] = gv_lmFaction[lp_dead];
+    gv_bhFaction[lp_dead] = 0;
+    gv_lmFaction[lp_cat] = 0;
     gv_lmWin[lp_dead][1] = lv_pool;
     gv_lmWin[lp_dead][0] = lv_role;
     gv_lmWin[lp_cat][1] = 0;
@@ -103029,7 +103094,7 @@ void gf_BHMafiaShow (int lp_victim, bool lp_landed, bool lp_triad) {
 }
 
 void gf_BHLeaderResolve (int lp_killer, int lp_victim) {
-    if ((gv_roles[lp_victim][0] == 8) && (gv_roles[lp_victim][1] == gv_roles[lp_killer][1])) {
+    if ((gv_roles[lp_victim][0] == 8) && ((gv_roles[lp_victim][1] == 2) || (gv_roles[lp_victim][1] == 5)) && (gf_BHFaction(lp_victim) == gf_BHFaction(lp_killer))) {
         gf_CBSystemMessage(StringExternal("Param/Value/BZNO8"), lp_killer, lp_killer, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
         return;
     }
@@ -103079,7 +103144,7 @@ void gf_BHLeaderResolve (int lp_killer, int lp_victim) {
     }
 
     gf_BHMafiaShow(lp_victim, true, (gv_roles[lp_killer][1] == 5));
-    if ((gv_roles[lp_victim][1] == gv_roles[lp_killer][1])) {
+    if ((gf_BHFaction(lp_victim) == gf_BHFaction(lp_killer))) {
         gf_BHFeign(lp_killer, lp_victim);
     }
     else {
@@ -103243,6 +103308,10 @@ void gf_BHFeignDayMute () {
 text gf_BHDeadFace (int lp_player) {
     if ((gv_bhFeignRole[lp_player] != 0)) {
         return gv_roleNameArray[1][gv_bhFeignRole[lp_player]];
+    }
+
+    if ((gf_BHConverted(lp_player) == true) && (gv_pretenderFramed[lp_player] == lp_player) && (gv_e8AFACE999B7E98089E68BA9E79A84E8A792E889B2[lp_player] == gv_roles[lp_player][0])) {
+        return gf_BHRoleName(lp_player);
     }
 
     return gv_roleNameArray[gv_roles[gv_pretenderFramed[lp_player]][1]][gv_e8AFACE999B7E98089E68BA9E79A84E8A792E889B2[gv_pretenderFramed[lp_player]]];
@@ -103944,6 +104013,10 @@ void gf_FZBind () {
 }
 
 bool gf_FZChatHidden (int lp_speaker, int lp_listener) {
+    if ((gf_BHConverted(lp_speaker) == true) || (gf_BHConverted(lp_listener) == true)) {
+        return false;
+    }
+
     if ((gv_channel[lp_speaker] != 1) && (gv_channel[lp_speaker] != 4)) {
         return false;
     }
@@ -103960,16 +104033,20 @@ bool gf_FZLooksLike (int lp_pool, int lp_who) {
     if ((lp_who < 1) || (lp_who > 15)) {
         return false;
     }
-    if ((gv_roles[lp_who][1] == lp_pool)) {
+    if ((gf_BHFaction(lp_who) == lp_pool)) {
         return true;
     }
-    if ((gv_roles[lp_who][1] == 1) && (gv_roles[lp_who][0] == 33) && (gv_fzPool[lp_who] == lp_pool)) {
+    if ((gf_BHFaction(lp_who) == 1) && (gv_roles[lp_who][0] == 33) && (gv_fzPool[lp_who] == lp_pool)) {
         return true;
     }
     return false;
 }
 
 text gf_FZFaceName (int lp_player) {
+    if ((gf_BHConverted(lp_player) == true)) {
+        return gf_BHRoleName(lp_player);
+    }
+
     if ((lp_player >= 1) && (gv_roles[lp_player][1] == 1) && (gv_roles[lp_player][0] == 33) && (gv_fzPool[lp_player] != 0) && (PlayerGroupHasPlayer(gv_alivePlayers, lp_player) == true)) {
         return gv_roleNameArray[gv_fzPool[lp_player]][gv_fzRole[lp_player]];
     }
@@ -103991,6 +104068,7 @@ void gf_FZRefreshActions () {
 
 void gf_RAFengziActions (int lp_player, bool lp_talk) {
     int lv_pool;
+    int lv_facePool;
     int lv_role;
     int lv_lead;
     int lv_lp;
@@ -104007,6 +104085,11 @@ void gf_RAFengziActions (int lp_player, bool lp_talk) {
         gf_RANoActions(lp_player);
         return;
     }
+    lv_facePool = gv_fzPool[lp_player];
+    if ((gf_BHConverted(lp_player) == true)) {
+        lv_facePool = gf_BHFaction(lp_player);
+    }
+
     lv_pool = gv_roles[lp_player][1];
     lv_role = gv_roles[lp_player][0];
     lv_o0 = gv_variableOptions[lp_player][0];
@@ -104029,7 +104112,7 @@ void gf_RAFengziActions (int lp_player, bool lp_talk) {
         gv_variableOptions[lp_player][1] = 0;
         gv_variableOptions[lp_player][2] = 0;
     }
-    gv_roles[lp_player][1] = gv_fzPool[lp_player];
+    gv_roles[lp_player][1] = lv_facePool;
     gv_roles[lp_player][0] = gv_fzRole[lp_player];
     if ((gv_fzRole[lp_player] == 19)) {
         lv_im = gv_immune[lp_player][0];
@@ -104051,7 +104134,7 @@ void gf_RAFengziActions (int lp_player, bool lp_talk) {
                 DialogControlSetVisible(gv_actionDialogItem[lv_a][6], PlayerGroupSingle(lp_player), false);
                 DialogControlSetPosition(gv_actionDialogItem[lv_a][5], PlayerGroupSingle(lp_player), c_anchorTopRight, 60, (15 + (30 * (gv_playerSpot[lv_a] - 1))));
             }
-            if ((gv_fzPool[lp_player] == 5)) {
+            if ((lv_facePool == 5)) {
                 gf_RADragonHeadActions(lp_player);
             }
             else {
@@ -104076,6 +104159,8 @@ void gf_RAFengziActions (int lp_player, bool lp_talk) {
 
 void gf_FZClick (int lv_source, int lv_target) {
     bool lv_mate;
+    bool lv_converted;
+    int lv_team;
     int lv_a;
     int lv_sp;
     int lv_sr;
@@ -104087,10 +104172,19 @@ void gf_FZClick (int lv_source, int lv_target) {
     if ((gv_fzPool[lv_source] == 0)) {
         return;
     }
+    lv_converted = gf_BHConverted(lv_source);
+    lv_team = gv_fzPool[lv_source];
+    if ((lv_converted == true)) {
+        lv_team = gf_BHFaction(lv_source);
+        if ((lv_target != lv_source) && (gf_BHFaction(lv_target) == lv_team) && (gv_fzRole[lv_source] != 17)) {
+            return;
+        }
+    }
+
     if ((gv_fzRole[lv_source] == 19)) {
         lv_sp = gv_roles[lv_source][1];
         lv_sr = gv_roles[lv_source][0];
-        gv_roles[lv_source][1] = gv_fzPool[lv_source];
+        gv_roles[lv_source][1] = lv_team;
         gv_roles[lv_source][0] = gv_fzRole[lv_source];
         gf_YSPick(lv_source, lv_target);
         gv_roles[lv_source][1] = lv_sp;
@@ -104105,7 +104199,7 @@ void gf_FZClick (int lv_source, int lv_target) {
         return;
     }
     lv_mate = false;
-    if ((gv_roles[lv_target][1] == gv_fzPool[lv_source]) && (lv_target != gv_fzLeader[lv_source])) {
+    if ((((lv_converted == true) && (gf_BHFaction(lv_target) == lv_team)) || ((lv_converted == false) && (gv_roles[lv_target][1] == lv_team))) && ((lv_converted == true) || (lv_target != gv_fzLeader[lv_source]))) {
         lv_mate = true;
     }
     if ((lv_mate == true) && (gv_fzRole[lv_source] != 17)) {
@@ -104117,12 +104211,12 @@ void gf_FZClick (int lv_source, int lv_target) {
     lv_hostTold = false;
     lv_a = 1;
     for ( ; ( (autoFZCK_ai >= 0 && lv_a <= autoFZCK_ae) || (autoFZCK_ai < 0 && lv_a >= autoFZCK_ae) ) ; lv_a += autoFZCK_ai ) {
-        if ((gv_roles[lv_a][1] == gv_fzPool[lv_source]) && (lv_a != lv_source) && ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) || (gv_bhFeignRole[lv_a] != 0))) {
+        if ((((lv_converted == true) && (gf_BHFaction(lv_a) == lv_team)) || ((lv_converted == false) && (gv_roles[lv_a][1] == lv_team))) && (lv_a != lv_source) && ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) || (gv_bhFeignRole[lv_a] != 0))) {
             if ((PlayerStatus(lv_a) == c_playerStatusActive)) {
                 gf_CBSystemMessage(lv_msg, lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
             }
             else {
-                if ((lv_hostTold == false) && (gv_host != lv_source) && (PlayerStatus(gv_host) == c_playerStatusActive) && ((gv_roles[gv_host][1] != gv_fzPool[lv_source]) || ((PlayerGroupHasPlayer(gv_alivePlayers, gv_host) == false) && (gv_bhFeignRole[gv_host] == 0)))) {
+                if ((lv_converted == false) && (lv_hostTold == false) && (gv_host != lv_source) && (PlayerStatus(gv_host) == c_playerStatusActive) && ((gv_roles[gv_host][1] != gv_fzPool[lv_source]) || ((PlayerGroupHasPlayer(gv_alivePlayers, gv_host) == false) && (gv_bhFeignRole[gv_host] == 0)))) {
                     gf_CBSystemMessage(lv_msg, gv_host, gv_host, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
                     lv_hostTold = true;
                 }
@@ -104750,7 +104844,7 @@ void gf_JSCause (int lp_player, bool lp_self) {
 void gf_JSGrave (int lp_player) {
     text lv_cause;
 
-    gv_deadBoxText[0] = (gv_deadBoxText[0] + StringExternal("Param/Value/D2D2C519") + StringToText(gv_number[lp_player]) + StringExternal("Param/Value/AA0AD62F") + TextWithColor(StringToText(gv_name[lp_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_player])) + StringExternal("Param/Value/AB968A17") + gf_DQSeenName(lp_player) + StringExternal("Param/Value/2A9DEC96"));
+    gv_deadBoxText[0] = (gv_deadBoxText[0] + StringExternal("Param/Value/D2D2C519") + StringToText(gv_number[lp_player]) + StringExternal("Param/Value/AA0AD62F") + TextWithColor(StringToText(gv_name[lp_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_player])) + StringExternal("Param/Value/AB968A17") + gf_BHDeathName(lp_player) + StringExternal("Param/Value/2A9DEC96"));
     libNtve_gf_SetDialogItemText(gv_deadBoxItem[3], gv_deadBoxText[0], PlayerGroupAll());
     if ((gv_deathText[lp_player] == null)) {
         lv_cause = StringToText("");
@@ -104763,7 +104857,7 @@ void gf_JSGrave (int lp_player) {
         gv_deadBoxText[1] = (gv_deadBoxText[1] + StringExternal("Param/Value/4D667E99") + StringToText(gv_number[lp_player]) + StringExternal("Param/Value/F99B5F86") + TextWithColor(StringToText(gv_name[lp_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_player])) + StringExternal("Param/Value/FBA3141C") + lv_cause + StringExternal("Param/Value/BC141813") + IntToText(gv_dayNumber) + StringExternal("Param/Value/099B9521"));
     }
     else {
-        gv_deadBoxText[1] = (gv_deadBoxText[1] + StringExternal("Param/Value/20FDC18C") + StringToText(gv_number[lp_player]) + StringExternal("Param/Value/CAABD424") + TextWithColor(StringToText(gv_name[lp_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_player])) + StringExternal("Param/Value/7125D0A2") + gf_DQSeenName(lp_player) + StringExternal("Param/Value/C9919C94") + lv_cause + StringExternal("Param/Value/9EC71430") + IntToText(gv_dayNumber) + StringExternal("Param/Value/7B7E1185"));
+        gv_deadBoxText[1] = (gv_deadBoxText[1] + StringExternal("Param/Value/20FDC18C") + StringToText(gv_number[lp_player]) + StringExternal("Param/Value/CAABD424") + TextWithColor(StringToText(gv_name[lp_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_player])) + StringExternal("Param/Value/7125D0A2") + gf_BHDeathName(lp_player) + StringExternal("Param/Value/C9919C94") + lv_cause + StringExternal("Param/Value/9EC71430") + IntToText(gv_dayNumber) + StringExternal("Param/Value/7B7E1185"));
     }
 
     libNtve_gf_SetDialogItemTooltip(gv_deadBoxItem[3], gv_deadBoxText[1], PlayerGroupAll());
@@ -105239,15 +105333,15 @@ void gf_YLTellFaction (int lv_who, int lv_target) {
     text lv_line;
 
     lv_line = (StringExternal("Param/Value/YLSEE1") + TextWithColor(StringToText((gv_number[lv_target] + "." + gv_name[lv_target])), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_target])));
-    if ((gv_roles[lv_target][1] == 1)) {
+    if ((gf_BHFaction(lv_target) == 1)) {
         gf_BHNotify((lv_line + StringExternal("Param/Value/YLFACT1")), lv_who, SoundLink("UI_TipSelect", -1));
     }
     else {
-        if ((gv_roles[lv_target][1] == 2)) {
+        if ((gf_BHFaction(lv_target) == 2)) {
             gf_BHNotify((lv_line + StringExternal("Param/Value/YLFACT2")), lv_who, SoundLink("UI_TipSelect", -1));
         }
         else {
-            if ((gv_roles[lv_target][1] == 5)) {
+            if ((gf_BHFaction(lv_target) == 5)) {
                 gf_BHNotify((lv_line + StringExternal("Param/Value/YLFACT5")), lv_who, SoundLink("UI_TipSelect", -1));
             }
             else {
@@ -106206,6 +106300,8 @@ bool gf_XRTryRebirth (int lp_player, bool lp_remake) {
     gv_roles[lp_player][0] = 2;
     gv_lmWin[lp_player][0] = 0;
     gv_lmWin[lp_player][1] = 0;
+    gv_bhFaction[lp_player] = 0;
+    gv_lmFaction[lp_player] = 0;
     gv_diedAtNight[lp_player] = false;
     gv_action[lp_player][0] = 0;
     gv_action[lp_player][1] = 0;
@@ -106491,7 +106587,7 @@ void gf_RAJijiuActions (int lp_player) {
         if ((PlayerGroupHasPlayer(gv_players, lv_a) == true) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == false)) {
             DialogControlSetVisible(gv_actionDialogItem[lv_a][0], PlayerGroupSingle(lp_player), true);
             libNtve_gf_SetDialogItemText(gv_actionDialogItem[lv_a][0], (StringExternal("Param/Value/436DEAD1") + TextWithColor(StringToText(gv_name[lv_a]), Color((25.0 + (ColorGetComponent(libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a]), c_colorComponentRed) / 2.0)), (25.0 + (ColorGetComponent(libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a]), c_colorComponentGreen) / 2.0)), (25.0 + (ColorGetComponent(libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_a]), c_colorComponentBlue) / 2.0)))) + StringExternal("Param/Value/E8332671")), PlayerGroupSingle(lp_player));
-            if ((PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (lv_a != lp_player) && (gv_roles[lv_a][1] == 1)) {
+            if ((PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (lv_a != lp_player) && (gf_BHFaction(lv_a) == 1)) {
                 libNtve_gf_SetDialogItemText(gv_actionDialogItem[lv_a][5], StringExternal("Param/Value/JJBTN"), PlayerGroupSingle(lp_player));
                 libNtve_gf_SetDialogItemColor(gv_actionDialogItem[lv_a][5], Color(0.00, 80.00, 40.00), PlayerGroupSingle(lp_player));
                 DialogControlSetSize(gv_actionDialogItem[lv_a][5], PlayerGroupSingle(lp_player), 120, 30);
@@ -106539,7 +106635,7 @@ void gf_SKA_1_jijiuzhuanjia (int lv_source, int lv_target) {
         return;
     }
 
-    if ((lv_target != lv_source) && (gv_roles[lv_target][1] != 1)) {
+    if ((lv_target != lv_source) && (gf_BHFaction(lv_target) != 1)) {
         return;
     }
 
@@ -106647,7 +106743,7 @@ void gf_JJRevive (int lp_medic, int lp_who) {
     const int autoJJV_ai = 1;
 
     // 按复活时的实际角色池判定，不能复活非城镇，也不消耗次数。
-    if ((gv_roles[lp_who][1] != 1)) {
+    if ((gf_BHFaction(lp_who) != 1)) {
         return;
     }
 
@@ -109182,24 +109278,24 @@ bool gf_GSBaseAlly (int lp_viewer, int lp_member) {
     }
 
     // 疯子只知道自己的伪装阵营，不能因共生体暴露被隔离的领袖。
-    if ((gv_fzPool[lp_viewer] != 0) && (PlayerGroupHasPlayer(gv_alivePlayers, lp_viewer) == true)) {
-        return ((lp_member == lp_viewer) || ((gv_roles[lp_member][1] == gv_fzPool[lp_viewer]) && (lp_member != gv_fzLeader[lp_viewer])));
+    if ((gv_fzPool[lp_viewer] != 0) && (gf_BHConverted(lp_viewer) == false) && (PlayerGroupHasPlayer(gv_alivePlayers, lp_viewer) == true)) {
+        return ((lp_member == lp_viewer) || ((gf_BHFaction(lp_member) == gv_fzPool[lp_viewer]) && (lp_member != gv_fzLeader[lp_viewer])));
     }
 
-    if ((gv_roles[lp_viewer][1] == 1) && ((gv_roles[lp_viewer][0] == 7) || (gv_roles[lp_viewer][0] == 14))) {
-        return ((gv_roles[lp_member][1] == 1) && ((gv_roles[lp_member][0] == 7) || (gv_roles[lp_member][0] == 14)));
+    if ((gf_BHFaction(lp_viewer) == 1) && ((gv_roles[lp_viewer][0] == 7) || (gv_roles[lp_viewer][0] == 14))) {
+        return ((gf_BHFaction(lp_member) == 1) && ((gv_roles[lp_member][0] == 7) || (gv_roles[lp_member][0] == 14)));
     }
 
-    if ((gv_roles[lp_viewer][1] == 2) || (gv_roles[lp_viewer][1] == 5)) {
-        return ((gv_roles[lp_member][1] == gv_roles[lp_viewer][1]) || ((gv_fzPool[lp_viewer] == 0) && (gv_roles[lp_member][1] == 1) && (gv_roles[lp_member][0] == 33) && (gv_fzPool[lp_member] == gv_roles[lp_viewer][1])));
+    if ((gf_BHFaction(lp_viewer) == 2) || (gf_BHFaction(lp_viewer) == 5)) {
+        return ((gf_BHFaction(lp_member) == gf_BHFaction(lp_viewer)) || ((gv_fzPool[lp_viewer] == 0) && (gf_BHFaction(lp_member) == 1) && (gv_roles[lp_member][0] == 33) && (gv_fzPool[lp_member] == gf_BHFaction(lp_viewer))));
     }
 
-    if ((gv_roles[lp_viewer][1] == 3) && ((gv_roles[lp_viewer][0] == 8) || (gv_roles[lp_viewer][0] == 10))) {
-        return ((gv_roles[lp_member][1] == 3) && ((gv_roles[lp_member][0] == 8) || (gv_roles[lp_member][0] == 10)));
+    if ((gf_BHFaction(lp_viewer) == 3) && ((gv_roles[lp_viewer][0] == 8) || (gv_roles[lp_viewer][0] == 10))) {
+        return ((gf_BHFaction(lp_member) == 3) && ((gv_roles[lp_member][0] == 8) || (gv_roles[lp_member][0] == 10)));
     }
 
-    if ((gv_xrGang == true) && (gf_XRNeutralFatal(gv_roles[lp_viewer][1], gv_roles[lp_viewer][0]) == true)) {
-        return ((PlayerGroupHasPlayer(gv_currentPlayers, lp_member) == true) && (gv_roles[lp_member][1] == gv_roles[lp_viewer][1]) && (gv_roles[lp_member][0] == gv_roles[lp_viewer][0]));
+    if ((gv_xrGang == true) && (gf_XRNeutralFatal(gf_BHFaction(lp_viewer), gv_roles[lp_viewer][0]) == true)) {
+        return ((PlayerGroupHasPlayer(gv_currentPlayers, lp_member) == true) && (gf_BHFaction(lp_member) == gf_BHFaction(lp_viewer)) && (gv_roles[lp_member][0] == gv_roles[lp_viewer][0]));
     }
 
     return false;
@@ -109244,5 +109340,217 @@ void gf_GSRefreshAllies () {
         }
 
         lv_sym += 1;
+    }
+}
+
+// shw306: profession stays in gv_roles; only these helpers read the alignment override.
+bool gf_BHConverted (int lp_player) {
+    if ((lp_player < 1) || (lp_player > 15)) {
+        return false;
+    }
+
+    return ((gv_roles[lp_player][1] == 1) && ((gv_bhFaction[lp_player] == 2) || (gv_bhFaction[lp_player] == 5)));
+}
+
+int gf_BHFaction (int lp_player) {
+    if ((lp_player < 1) || (lp_player > 15)) {
+        return 0;
+    }
+
+    if ((gf_BHConverted(lp_player) == true)) {
+        return gv_bhFaction[lp_player];
+    }
+
+    return gv_roles[lp_player][1];
+}
+
+text gf_BHRoleName (int lp_player) {
+    if ((lp_player < 1) || (lp_player > 15)) {
+        return null;
+    }
+
+    if ((gf_BHConverted(lp_player) == true)) {
+        if ((gf_BHFaction(lp_player) == 2)) {
+            return TextWithColor(StringExternal(("Param/Value/BHFROLE" + IntToString(gv_roles[lp_player][0]))), Color(100.00, 0.00, 0.00));
+        }
+
+        return TextWithColor(StringExternal(("Param/Value/BHFROLE" + IntToString(gv_roles[lp_player][0]))), Color(20.00, 40.00, 100.00));
+    }
+
+    return gv_roleNameArray[gv_roles[lp_player][1]][gv_roles[lp_player][0]];
+}
+
+void gf_BHFactionCard (int lp_player) {
+    if ((gf_BHConverted(lp_player) == false)) {
+        return;
+    }
+
+    if ((gf_BHFaction(lp_player) == 2)) {
+        gv_roleBoxText[lp_player][0] = (StringExternal("Param/Value/1447EB27") + StringExternal("Param/Value/BHFKEEP"));
+        gv_roleBoxText[lp_player][3] = StringExternal("Param/Value/BHFGOAL2");
+    }
+    else {
+        gv_roleBoxText[lp_player][0] = (StringExternal("Param/Value/C49DA5F4") + StringExternal("Param/Value/BHFKEEP"));
+        gv_roleBoxText[lp_player][3] = StringExternal("Param/Value/BHFGOAL5");
+    }
+
+    gv_roleBoxText[lp_player][6] = gf_RTMakeWinList(gf_BHFaction(lp_player), 0);
+}
+
+void gf_BHRefreshFactionChat () {
+    int lv_a;
+    int lv_ch;
+
+    if ((gv_isNight == false) || (gv_bhFactionChatOpen == false) || (gv_gameOver == true) || (gv_nightProcessingPhase == true)) {
+        return;
+    }
+
+    lv_a = 1;
+    while ((lv_a <= 15)) {
+        if ((gf_BHConverted(lv_a) == true)) {
+            // Never retain the former Mason/FZ team channel behind a jail/private guard.
+            gf_CBAssignUnassignChatChannel(lv_a, 0, ge_Clear_DoNotClear);
+            if ((gf_GSChatReady(lv_a) == true)) {
+                lv_ch = 1;
+                if ((gf_BHFaction(lv_a) == 5)) {
+                    lv_ch = 4;
+                }
+
+                gf_CBAssignUnassignChatChannel(lv_a, lv_ch, ge_Clear_DoNotClear);
+                gf_CBAllowDisallowChatting(lv_a, ge_Allow_Allow);
+            }
+        }
+
+        lv_a += 1;
+    }
+}
+
+bool gf_BHConvertFaction (int lp_player, int lp_faction) {
+    if ((lp_player < 1) || (lp_player > 15) || ((lp_faction != 2) && (lp_faction != 5))) {
+        return false;
+    }
+
+    if ((gv_gameStarted == false) || (gv_gameOver == true) || (gv_nightProcessingPhase == true) || ((gv_isNight == true) && (gv_bhFactionChatOpen == false))) {
+        return false;
+    }
+
+    if ((PlayerGroupHasPlayer(gv_currentPlayers, lp_player) == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lp_player) == false) || (gv_bhFeignRole[lp_player] != 0)) {
+        return false;
+    }
+
+    if ((gv_roles[lp_player][1] != 1) || (gf_BHFaction(lp_player) != 1) || (gv_roles[lp_player][0] < 1) || (gv_roles[lp_player][0] > 35) || (gv_roles[lp_player][0] == 28) || (gv_roles[lp_player][0] == 29)) {
+        return false;
+    }
+
+    gv_bhFaction[lp_player] = lp_faction;
+    // Do not run role setup: shots, cooldown, action and visitation must survive conversion.
+    if ((gv_roles[lp_player][0] == 33)) {
+        // Render the real FZ profession; never leave a stale disguised leader card.
+        gf_RTRoleCard(lp_player);
+    }
+    else {
+        gf_BHFactionCard(lp_player);
+    }
+    gf_RefreshRoleBox();
+    gf_BHRefreshFactionChat();
+    gf_GSRefreshChat();
+    if ((lp_faction == 2)) {
+        gf_CBSystemMessage(StringExternal("Param/Value/BHFJOIN2"), lp_player, lp_player, 0, SoundLink("UI_TipPanelHighlight", -1), Color(0,0,0));
+    }
+    else {
+        gf_CBSystemMessage(StringExternal("Param/Value/BHFJOIN5"), lp_player, lp_player, 0, SoundLink("UI_TipPanelHighlight", -1), Color(0,0,0));
+    }
+
+    return true;
+}
+
+bool gt_BHFaction_Func (bool testConds, bool runActions) {
+    int lv_player;
+    int lv_faction;
+    int lv_seat;
+    int lv_a;
+    string lv_first;
+    string lv_team;
+
+    // This test command is deliberately unavailable in EVERY non-solo package.
+    if ((c_bhSoloBuild == false) || (gv_gameStarted == false) || (gv_gameOver == true)) {
+        return false;
+    }
+
+    if ((runActions == false)) {
+        return true;
+    }
+
+    if ((StringWord(EventChatMessage(false), 1) != "-faction")) {
+        return false;
+    }
+
+    lv_first = StringWord(EventChatMessage(false), 2);
+    lv_team = StringWord(EventChatMessage(false), 3);
+    lv_player = EventPlayer();
+    if ((lv_team == "")) {
+        lv_team = lv_first;
+    }
+    else {
+        lv_player = 0;
+        lv_seat = StringToInt(lv_first);
+        if ((lv_seat >= 1) && (lv_seat <= 15) && (IntToString(lv_seat) == lv_first)) {
+            lv_a = 1;
+            while ((lv_a <= 15)) {
+                if ((gv_playerSpot[lv_a] == lv_seat) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true)) {
+                    lv_player = lv_a;
+                }
+
+                lv_a += 1;
+            }
+        }
+    }
+
+    lv_faction = 0;
+    if (((lv_team == "mafia") || (lv_team == "2"))) {
+        lv_faction = 2;
+    }
+
+    if (((lv_team == "triad") || (lv_team == "5"))) {
+        lv_faction = 5;
+    }
+
+    if ((lv_faction == 0) || (StringWord(EventChatMessage(false), 4) != "")) {
+        gf_CBSystemMessage(StringExternal("Param/Value/BHFUSAGE"), EventPlayer(), 0, 0, SoundLink("Silent", -1), Color(0,0,0));
+        return false;
+    }
+
+    if ((gf_BHConvertFaction(lv_player, lv_faction) == false)) {
+        gf_CBSystemMessage(StringExternal("Param/Value/BHFREJECT"), EventPlayer(), 0, 0, SoundLink("Silent", -1), Color(0,0,0));
+        return false;
+    }
+
+    gf_CBSystemMessage((StringExternal("Param/Value/BHFDONE") + IntToText(gv_playerSpot[lv_player]) + StringToText(". ") + TextWithColor(StringToText(gv_name[lv_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_player])) + StringToText(" — ") + gf_BHRoleName(lv_player)), EventPlayer(), 0, 0, SoundLink("Silent", -1), Color(0,0,0));
+    return true;
+}
+
+void gt_BHFaction_Init () {
+    gt_BHFaction = TriggerCreate("gt_BHFaction_Func");
+    TriggerAddEventChatMessage(gt_BHFaction, c_playerAny, "-faction", false);
+}
+
+// Display-only: never call this from a profession investigation.
+text gf_BHDeathName (int lp_player) {
+    if ((gf_BHConverted(lp_player) == true)) {
+        return gf_BHRoleName(lp_player);
+    }
+
+    return gf_DQSeenName(lp_player);
+}
+
+void gf_BHFactionReset () {
+    int lv_a;
+
+    gv_bhFactionChatOpen = false;
+    lv_a = 1;
+    while ((lv_a <= 15)) {
+        gv_bhFaction[lv_a] = 0;
+        gv_lmFaction[lv_a] = 0;
+        lv_a += 1;
     }
 }

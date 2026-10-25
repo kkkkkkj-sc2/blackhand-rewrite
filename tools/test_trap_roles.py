@@ -35,6 +35,7 @@ def function(source: str, name: str) -> str:
 
 def harness(source: str, baseline: str | None) -> str:
     names = [
+        'gf_BHConverted', 'gf_BHFaction',
         'gf_HLGang', 'gf_HLCanPlace', 'gf_HLGangSetup', 'gf_HLGangPick',
         'gf_RANoActions', 'gf_RAForesterActions', 'gf_SKA2_1_hulinren',
         'gf_SKP_1_hulinren_0', 'gf_BHVisit', 'gf_BHVisitAction', 'gf_BHWentTo',
