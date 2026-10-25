@@ -745,7 +745,34 @@ MUST_HAVE_KEYS = [
     'Param/Value/YSBTN1', 'Param/Value/YSBTN2',
     'Param/Value/FENGNAME', 'Param/Value/FENGDESC', 'Param/Value/FENGTAG',
     'Param/Value/FENGBOX1', 'Param/Value/FENGBOX2', 'Param/Value/FENGBOX4',
-    'Param/Value/FENGCRIME', 'Param/Value/FENGATK',]
+    'Param/Value/FENGCRIME', 'Param/Value/FENGATK',
+    # 男爵(2/22) / 泰斗(5/22)
+    'Param/Value/NJNAME',
+    'Param/Value/NJDESC',
+    'Param/Value/NJTAG',
+    'Param/Value/NJBOX1',
+    'Param/Value/NJBOX2',
+    'Param/Value/NJBOX4',
+    'Param/Value/NJCRIME',
+    'Param/Value/TDNAME',
+    'Param/Value/TDDESC',
+    'Param/Value/TDTAG',
+    'Param/Value/TDBOX1',
+    'Param/Value/TDBOX2',
+    'Param/Value/TDBOX4',
+    'Param/Value/TDCRIME',
+    'Param/Value/BRUSAGE',
+    'Param/Value/BRSELECT',
+    'Param/Value/BRLIMIT',
+    'Param/Value/BRINVALID',
+    'Param/Value/BRRESULT',
+    'Param/Value/BRBUTTON',
+    'Param/Value/BRTOOLTIP',
+    'Param/Value/BRFIRST',
+    'Param/Value/BRLEADMAFIA',
+    'Param/Value/BRLEADTRIAD',
+    'Param/Value/BRINVSTRONG',
+]
 
 
 def parse_strings_file(path: Path) -> dict:

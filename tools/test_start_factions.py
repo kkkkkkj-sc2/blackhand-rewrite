@@ -189,10 +189,10 @@ int main() {
     scenario("pure mafia leader random", mafiaLeaderRandom, mafiaLeaderRandom, false);
     scenario("pure triad leader random", triadLeaderRandom, triadLeaderRandom, false);
 
-    // Fixed leaders (2/17/18/19) have always been classified by their actual
-    // pool. Role 3 is an ordinary crime role, retained as another control.
+    // Fixed leaders (2/17/18/19/22) are classified by their actual pool.
+    // Role 3 is an ordinary crime role, retained as another control.
     for (int pool : {2, 5}) {
-        for (int role : {2, 3, 17, 18, 19}) {
+        for (int role : {2, 3, 17, 18, 19, 22}) {
             const string label = (role == 3 ? "fixed crime role(" : "fixed leader(")
                                  + std::to_string(pool) + "," + std::to_string(role) + ")";
             bothOrders("town + " + label, town, {pool, role}, true);

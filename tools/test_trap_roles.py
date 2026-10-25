@@ -64,7 +64,7 @@ def harness(source: str, baseline: str | None) -> str:
         start = weighting.index(f'            if ((lv_a == {pool}) && (lv_b >= 1) && (lv_b <= gv_mafiaTriadMax))')
         parts.append(weighting[start:balanced_end(weighting, weighting.index('{', start))])
 
-    bodies += ['void cumulative () { int lv_a; int lv_b; for(lv_a=2; lv_a<=5; lv_a+=3) { for(lv_b=1; lv_b<=20; lv_b+=1) {\n' + '\n'.join(parts) + '\n}}}']
+    bodies += ['void cumulative () { int lv_a; int lv_b; for(lv_a=2; lv_a<=5; lv_a+=3) { for(lv_b=1; lv_b<=22; lv_b+=1) {\n' + '\n'.join(parts) + '\n}}}']
     matrix = function(source, 'gf_OSRandomizeMatrix')
     parts = []
     for pool in (2, 5):
@@ -262,16 +262,18 @@ int main() {
         assert(!trapFits(general,pool,20));
     }
     // Actual cumulative/mapping blocks: role20 has a nonempty interval only when weighted;
-    // old 17–19 leaders do not leak into ordinary random draws after widening the bound.
-    reset(); gv_townMax=34; gv_mafiaTriadMax=20; gv_finalWeights[1][34]=10.0;
+    // Leaders17–19/22 stay excluded; ordinary lawyer21 remains weighted.
+    reset(); gv_townMax=34; gv_mafiaTriadMax=22; gv_finalWeights[1][34]=10.0;
     for(int pool: {2,5}) {
-        for(int r=1; r<=20; ++r) gv_roleWeights[pool][r]=1.0;
+        for(int r=1; r<=22; ++r) gv_roleWeights[pool][r]=1.0;
         gv_roleWeights[pool][20]=0.0;
     }
     cumulative();
-    assert(gv_finalWeights[2][20]==26.0 && gv_finalWeights[5][20]==42.0);
+    assert(gv_finalWeights[2][20]==26.0 && gv_finalWeights[5][20]==43.0);
     for(int pool: {2,5}) {
         assert(gv_finalWeights[pool][19]==gv_finalWeights[pool][16]);
+        assert(gv_finalWeights[pool][21]==gv_finalWeights[pool][20]+1.0);
+        assert(gv_finalWeights[pool][22]==gv_finalWeights[pool][21]);
         gv_roles[1][1]=0; gv_roles[1][0]=0; gv_rolesArray[1]=pool==2?3:15;
         pickTrap(1,1,gv_finalWeights[pool][20]); assert(!gv_roles[1][1]);
     }
@@ -346,7 +348,7 @@ def static_wiring(source: str) -> None:
 
     for name in ['gf_OSGenerateChances', 'gf_OSRandomize']:
         body = function(source, name)
-        assert body.count('if (((lv_b >= 17) && (lv_b <= 19)))') == 2
+        assert body.count('if ((((lv_b >= 17) && (lv_b <= 19)) || (lv_b == 22)))') == 2
 
     print('PASS: setup/click/prep/random wiring, old leader separation')
 

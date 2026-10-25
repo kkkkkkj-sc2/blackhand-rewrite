@@ -5,9 +5,14 @@ Only tools/test_egun.py's extraction/array-syntax translation and the allies
 harness's engine PREFIX are reused. No copied membership or identity algorithm
 is the oracle: fixtures specify observable rosters, color, and channel results.
 The unconverted reference is a complete historical production RefreshRoleBox.
+FZBind and the actual FZ render/click functions are executed too. Once Baron
+integration is present, --require-baron enforces the FZ22 extension and actual
+Town A/B events; BRDraw/BRClick are explicit NEW integration boundary doubles,
+whose internal recruitment/permission logic belongs to test_baron_leaders.
 This is a C++/UBSan regression, not an SC2 compiler or rendering test.
 """
 from pathlib import Path
+import argparse
 import re
 import shutil
 import subprocess
@@ -28,7 +33,9 @@ NAMES = (
     'gf_GSActive', 'gf_GSChatPeer', 'gf_GSChatRoot', 'gf_GSGRPartner',
     'gf_GSChatXR', 'gf_GSEffectiveChannel', 'gf_FZChatHidden',
     'gf_GSChatHidden', 'gf_GSChatRecipient', 'gf_FZClick', 'gf_RAFengziActions',
+    'gf_FZBind',
 )
+BARON_NAMES = ('gf_BRFake', 'gt_ASActionButtonATown_Func', 'gt_ASActionButtonBTown_Func')
 
 
 def git(*args):
@@ -121,6 +128,25 @@ def check_wiring(source, old):
     print('PASS source wiring: night order, death contexts, profession-only investigation, private card', flush=True)
 
 
+def check_baron_wiring(source):
+    render = mask(function(source, 'gf_RAFengziActions'))
+    assert re.search(r'gv_roles\[lp_player\]\[0\]\s*=\s*gv_fzRole\[lp_player\]\s*;\s*'
+                     r'if\s*\(\(gv_fzRole\[lp_player\]\s*==\s*22\)\)\s*\{\s*'
+                     r'gf_BRDraw\(lp_player\);', render), '22 draw must see temporary profession'
+    assert 'gf_BRSetup' not in render, 'FZ must never receive real setup/immunity'
+    click = mask(function(source, 'gf_FZClick'))
+    assert re.search(r'gf_BRFake\(lv_source\)\s*==\s*true\)\s*&&\s*'
+                     r'\(gv_ysClickSlot\s*==\s*1\)\)\s*\{\s*'
+                     r'gf_BRClick\(lv_source,\s*lv_target,\s*true\);\s*return;', click), 'recruit path must return before fake attack'
+    assert click.count('gf_BRClick(') == 1, 'one fake recruit boundary per click'
+    for slot, name in ((5, 'gt_ASActionButtonATown_Func'), (6, 'gt_ASActionButtonBTown_Func')):
+        event = mask(function(source, name))
+        assert event.count('gf_FZClick(') == 1, ('exactly one FZ dispatch', name)
+        assert re.search(r'gv_actionDialogItem\[lv_a\]\[' + str(slot) + r'\]\s*==\s*EventDialogControl\(\)', event)
+        assert not re.search(r'gv_actionDialogItem\[lv_a\]\[' + str(11 - slot) + r'\]\s*==\s*EventDialogControl\(\)', event), 'A/B must never match the same control'
+    print('PASS Baron/FZ wiring: temporary identity, no setup, B-only recruit and disjoint A/B controls', flush=True)
+
+
 def prefix():
     code = ALLY_PREFIX
     for name in NAMES:
@@ -205,6 +231,26 @@ void DialogControlSetPosition(int item,int p,int anchor,int,int) {
     assert(item>=100 && item<=211 && p>=1 && p<=15 && anchor==c_anchorTopRight);
 }
 void gf_YSPick(int p,int) { ++ysPicks; picks.push_back(actionSnapshot("pick",p)); }
+#ifdef BH_BARON
+int gv_ysClickSlot, eventPlayer=2, eventControl;
+bool gv_uITemp[16], eventVisible=true;
+const int c_timeGame=0;
+int EventPlayer() { return eventPlayer; }
+int EventDialogControl() { return eventControl; }
+bool DialogControlIsVisible(int item,int p) {
+    assert(item==eventControl && p==eventPlayer); return eventVisible;
+}
+void Wait(double duration,int clock) { assert(duration==0 && clock==c_timeGame); }
+// Explicit NEW integration boundaries: the Baron suite owns BRDraw/BRClick's
+// internal selection/eligibility/permissions. Here we record only dispatch,
+// arguments and temporary identity. No recruit algorithm is copied into a stub.
+struct BRCall { int player,target; bool recruit; ActionRender identity; };
+std::vector<BRCall> brCalls;
+void gf_BRDraw(int p) { drawAction("brdraw",p); }
+void gf_BRClick(int p,int target,bool recruit) {
+    brCalls.push_back({p,target,recruit,actionSnapshot("brclick",p)});
+}
+#endif
 '''
 
 
@@ -216,6 +262,9 @@ void reset() {
     gv_gameOver=gv_nightProcessingPhase=false; gv_host=15;
     gsRefreshes=fakeRenders=ysPicks=0;
     channelWrites.clear(); messages.clear(); actionRenders.clear(); picks.clear();
+#ifdef BH_BARON
+    gv_ysClickSlot=0; eventPlayer=2; eventControl=0; eventVisible=true; brCalls.clear();
+#endif
     for(int pool=0;pool<9;++pool) for(int id=0;id<40;++id)
         gv_roleNameArray[pool][id]="ROLE("+std::to_string(pool)+","+std::to_string(id)+")";
     for(int p=0;p<=15;++p) {
@@ -527,19 +576,157 @@ void unchanged_cases() {
     }
     std::cout<<"PASS unchanged: 192 seeded legacy roster/UI snapshots against production reference\n";
 }
+#ifdef BH_BARON
+void fz_baron_binding_cases() {
+    for(int pool: {2,5}) for(int id: {2,17,18,19,22}) for(int status: {0,1,2}) {
+        reset(); role(2,1,33); role(3,pool,id);
+        alive[3]=status==0; gv_bhFeignRole[3]=status==1?17:0;
+        gf_FZBind();
+        check(gv_fzLeader[2]==(status==2?0:3));
+        check(gv_fzPool[2]==(status==2?0:pool));
+        check(gv_fzRole[2]==(status==2?0:id));
+        check(gv_roles[2][1]==1 && gv_roles[2][0]==33);
+        check(gv_roles[3][1]==pool && gv_roles[3][0]==id);
+        check(gv_immune[2][0]==false);
+    }
+    for(int pool: {1,2,3,5}) for(int id: {1,20,21,22,33}) {
+        reset(); role(2,1,33); role(3,pool,id); gf_FZBind();
+        bool binds=(pool==2 || pool==5) && id==22;
+        check(gv_fzLeader[2]==(binds?3:0));
+        check(gf_BRFake(2)==binds);
+        check(!gf_BRFake(3));
+    }
+    reset(); role(2,1,33); role(3,5,22); role(4,2,22); role(5,2,19); gf_FZBind();
+    check(gv_fzPool[2]==2 && gv_fzRole[2]==19 && gv_fzLeader[2]==5);
+    reset(); role(2,1,33); role(3,2,19); role(4,5,22); role(5,2,22); gf_FZBind();
+    check(gv_fzPool[2]==2 && gv_fzRole[2]==22 && gv_fzLeader[2]==5);
+    check(!gf_BRFake(-1) && !gf_BRFake(0) && !gf_BRFake(16));
+    for(int rawPool: {1,2,3,5}) for(int rawRole: {1,22,33})
+    for(int facePool: {0,1,2,3,5}) for(int faceRole: {0,19,22}) {
+        reset(); role(2,rawPool,rawRole); gv_fzPool[2]=facePool; gv_fzRole[2]=faceRole;
+        check(gf_BRFake(2)==(rawPool==1 && rawRole==33 && (facePool==2 || facePool==5) && faceRole==22));
+    }
+    std::cout<<"PASS FZBind: 22 in both pools, alive/feign gates, priority, invalid and nonleader rejection\n";
+}
+void fz_baron_render_cases() {
+    for(int converted: {0,1}) for(int fakeTeam: {2,5}) for(bool talk: {false,true})
+    for(int leader: {0,3}) for(bool immune: {false,true}) {
+        reset(); role(2,1,33); gv_fzPool[2]=fakeTeam; gv_fzRole[2]=22; gv_fzLeader[2]=leader;
+        int expectedTeam=converted?(fakeTeam==2?5:2):fakeTeam;
+        if(converted) gv_bhFaction[2]=expectedTeam;
+        role(3,fakeTeam,22);
+        for(int option=0;option<3;++option) gv_variableOptions[3][option]=23+option;
+        gv_action[2][0]=4; gv_action[2][1]=7;
+        for(int bit=0;bit<5;++bit) gv_immune[2][bit]=immune;
+        gf_RAFengziActions(2,talk);
+        check(actionRenders.size()==1 && fakeRenders==1 && brCalls.empty());
+        auto seen=actionRenders[0];
+        check(seen.kind=="brdraw" && seen.player==2 && seen.pool==expectedTeam && seen.role==22);
+        check(seen.option0==(leader?23:1) && seen.option1==(leader?24:0) && seen.option2==(leader?25:0));
+        check(seen.leaderPool==(leader?1:0) && seen.leaderRole==(leader?1:0));
+        check(gv_roles[2][1]==1 && gv_roles[2][0]==33 && gv_roles[3][1]==fakeTeam && gv_roles[3][0]==22);
+        check(gv_variableOptions[2][0]==10 && gv_variableOptions[2][1]==11 && gv_variableOptions[2][2]==12);
+        check(gv_variableOptions[3][0]==23 && gv_variableOptions[3][1]==24 && gv_variableOptions[3][2]==25);
+        check(gv_action[2][0]==4 && gv_action[2][1]==7);
+        check(gv_fzPool[2]==fakeTeam && gv_fzRole[2]==22 && gv_fzLeader[2]==leader);
+        check(gv_bhFaction[2]==(converted?expectedTeam:0));
+        for(int bit=0;bit<5;++bit) check(gv_immune[2][bit]==immune);
+    }
+    std::cout<<"PASS FZ22 render: actual temporary dispatch, inherited options, full restoration, no immunity\n";
+}
+void fz_baron_click_cases() {
+    for(int pool: {2,5}) for(int converted: {0,1}) for(int target=1;target<=15;++target) {
+        reset(); role(2,1,33); role(3,pool,22); gv_fzPool[2]=pool; gv_fzRole[2]=22; gv_fzLeader[2]=3;
+        if(converted) gv_bhFaction[2]=pool==2?5:2;
+        gv_action[2][0]=7; gv_action[2][1]=8; gv_ysClickSlot=1;
+        gf_FZClick(2,target);
+        check(brCalls.size()==1 && messages.empty() && fakeRenders==0 && ysPicks==0);
+        auto call=brCalls[0];
+        check(call.player==2 && call.target==target && call.recruit);
+        check(call.identity.pool==1 && call.identity.role==33);
+        check(gv_roles[2][1]==1 && gv_roles[2][0]==33 && gv_action[2][0]==7 && gv_action[2][1]==8);
+        check(!gv_immune[2][0] && gv_bhFaction[2]==(converted?(pool==2?5:2):0));
+    }
+    for(int pool: {2,5}) for(int converted: {0,1}) for(int target: {2,3,4,9}) {
+        reset(); role(2,1,33); gv_fzPool[2]=pool; gv_fzRole[2]=22; gv_fzLeader[2]=3;
+        int team=converted?(pool==2?5:2):pool;
+        if(converted) gv_bhFaction[2]=team;
+        role(3,pool,22); role(4,team,1); gv_action[2][0]=7; gv_ysClickSlot=0;
+        gf_FZClick(2,target);
+        check(brCalls.empty() && ysPicks==0);
+        bool rejected=target==4 || (converted && target==3 && pool==team);
+        check(gv_action[2][0]==(target==2?0:rejected?7:target));
+        if(target==9) {
+            int own=0,attack=0;
+            for(auto& message: messages) {
+                own+=message.second==2 && message.first.find("{Param/Value/BZWILL}")!=string::npos;
+                attack+=message.first.find("{Param/Value/FENGATK}")!=string::npos;
+            }
+            check(own==1 && attack>=1);
+        }
+        check(gv_roles[2][1]==1 && gv_roles[2][0]==33 && !gv_immune[2][0]);
+    }
+    std::cout<<"PASS FZ22 click: B invokes BR boundary exactly once; A retains fake attack/cancel/messages\n";
+}
+void fz_baron_event_cases() {
+    for(int pool: {2,5}) for(int fake: {19,22}) for(int slot: {5,6}) for(int guard=0;guard<5;++guard) {
+        reset(); role(2,1,33); role(3,pool,fake); gv_fzPool[2]=pool; gv_fzRole[2]=fake; gv_fzLeader[2]=3;
+        eventControl=gv_actionDialogItem[9][slot]; gv_action[2][0]=7;
+        if(guard==1) alive[2]=false;
+        if(guard==2) gv_isNight=false;
+        if(guard==3) eventVisible=false;
+        bool run=guard!=4;
+        bool result=slot==5?gt_ASActionButtonATown_Func(true,run):gt_ASActionButtonBTown_Func(true,run);
+        check(result==(guard==0 || guard==4));
+        if(guard) {
+            check(brCalls.empty() && picks.empty() && messages.empty() && gv_action[2][0]==7);
+        } else if(fake==19) {
+            check(picks.size()==1 && brCalls.empty() && messages.empty());
+            check(picks[0].pool==pool && picks[0].role==19 && gv_ysClickSlot==slot-5);
+        } else if(slot==6) {
+            check(brCalls.size()==1 && picks.empty() && messages.empty() && gv_action[2][0]==7);
+            check(brCalls[0].player==2 && brCalls[0].target==9 && brCalls[0].recruit);
+        } else {
+            check(brCalls.empty() && picks.empty() && gv_action[2][0]==9 && gv_ysClickSlot==0);
+            int own=0;
+            for(auto& message: messages) own+=message.second==2 && message.first.find("{Param/Value/BZWILL}")!=string::npos;
+            check(own==1);
+        }
+        check(gv_roles[2][1]==1 && gv_roles[2][0]==33 && !gv_immune[2][0]);
+    }
+    std::cout<<"PASS FZ22 actual Town A/B events: independent slots, single dispatch and original guards\n";
+}
+#endif
 int main() {
     identity_cases(); conversion_card_cases(); fz_action_render_cases(); fz_notification_cases();
     channel_cases(); roster_cases(); unchanged_cases();
-    std::cout<<"PASS "<<checks<<" faction identity/UI/channel/ally assertions\n";
+    std::cout<<"PASS "<<checks<<" original faction identity/UI/channel/ally assertions\n";
+#ifdef BH_BARON
+    fz_baron_binding_cases(); fz_baron_render_cases(); fz_baron_click_cases(); fz_baron_event_cases();
+    std::cout<<"PASS "<<checks<<" total faction identity/FZ22 integration assertions\n";
+#endif
 }
 '''
 
 
 def main():
-    source = SCRIPT.read_text()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--script', type=Path, default=SCRIPT)
+    parser.add_argument('--require-baron', action='store_true',
+                        help='fail unless the integrated FZ22 source is present')
+    args = parser.parse_args()
+    source = args.script.read_text()
     old, baseline = reference()
     check_wiring(source, old)
+    has_baron = bool(re.search(r'^bool gf_BRFake\s*\([^;]*\)\s*\{', mask(source), re.M))
+    assert has_baron or not args.require_baron, 'FZ22 source not integrated yet'
     names = list(NAMES)
+    if has_baron:
+        check_baron_wiring(source)
+        names.extend(BARON_NAMES)
+    else:
+        print('SKIP FZ22 extension: BRFake not yet integrated (use --require-baron after integration)', flush=True)
+
     bodies = [function(source, name) for name in names]
     # Pull any newly factored name helper from production too, never stub it.
     cursor = 0
@@ -552,7 +739,16 @@ def main():
         cursor += 1
 
     prototypes = '\n'.join(body.split('{', 1)[0].strip() + ';' for body in bodies)
-    code = translate(prefix() + '\n' + prototypes + '\n' + '\n\n'.join(bodies)
+    boundaries = ''
+    if has_baron:
+        # The actual Town event functions retain every other profession branch.
+        # Those unreachable, non-FZ handlers are explicit assertion doubles.
+        handlers = sorted(set(re.findall(r'\b(gf_SK[AB]_1_\w+)\s*\(', '\n'.join(bodies))))
+        boundaries = '\n'.join(f'void {name}(int,int) {{ assert(false && "non-FZ action boundary"); }}'
+                               for name in handlers)
+
+    code = translate(('#define BH_BARON 1\n' if has_baron else '') + prefix()
+                     + '\n' + boundaries + '\n' + prototypes + '\n' + '\n\n'.join(bodies)
                      + '\n' + baseline + '\n' + CASES)
     compiler = shutil.which('g++') or shutil.which('clang++')
     assert compiler, 'a C++ compiler is required'
