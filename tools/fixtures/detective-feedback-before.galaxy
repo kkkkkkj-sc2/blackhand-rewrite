@@ -1,0 +1,263 @@
+// Actual production feedback bodies before shared-helper repair.
+// Source SHA256: 22a6934968c369c99bd1da724483d19166dedd30b8c3d0ddf2dce5fa29b18c2f
+
+text gf_BHDetName (int lp_who) {
+    return (StringToText(gv_number[lp_who]) + StringExternal("Param/Value/C1652170") + TextWithColor(StringToText(gv_name[lp_who]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_who])));
+}
+
+void gf_SKF_1_zhentan (int lv_a) {
+    int lv_who;
+    int lv_go;
+    int lv_plan;
+
+    lv_who = gv_visitation[lv_a];
+    if ((gv_jailed[lv_who] != 0)) {
+        gf_CBSystemMessage(StringExternal("Param/Value/276B0C60"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+    }
+    else {
+        if ((gv_roleblocked[lv_who] != 0)) {
+            gf_CBSystemMessage(StringExternal("Param/Value/DTBLOCK"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+            gf_CBSystemMessage(StringExternal("Param/Value/DTBECAUSE"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+            gf_CBSystemMessage(StringExternal("Param/Value/DTWHYB"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+        }
+        else {
+            if ((gv_immune[lv_who][2] == true) && (gv_roleOptions[1][15][0] == false)) {
+                gf_CBSystemMessage(StringExternal("Param/Value/DTNONE"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                gf_CBSystemMessage(StringExternal("Param/Value/DTBECAUSE"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                gf_CBSystemMessage(StringExternal("Param/Value/DTWHY5"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+            }
+            else {
+                lv_go = gv_visitation[lv_who];
+                lv_plan = gv_action[lv_who][0];
+                if ((gv_visitation2[lv_who] != 0) && (gv_visitation2[lv_who] != lv_go)) {
+                    gf_CBSystemMessage((StringExternal("Param/Value/DTDBL1") + gf_BHDetName(lv_go) + StringExternal("Param/Value/DTTHEN") + gf_BHDetName(gv_visitation2[lv_who]) + StringExternal("Param/Value/DTEND")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                    gf_CBSystemMessage(StringExternal("Param/Value/DTBECAUSE"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                    gf_CBSystemMessage(StringExternal("Param/Value/DTWHY4"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                }
+                else {
+                    if ((gv_bhVisitMoved[lv_who] == true) && (lv_go != lv_plan)) {
+                        if ((lv_go == 0)) {
+                            gf_CBSystemMessage((StringExternal("Param/Value/DTPLAN") + gf_BHDetName(lv_plan) + StringExternal("Param/Value/DTSTAY")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                        }
+                        else {
+                            if ((lv_plan == 0)) {
+                                gf_CBSystemMessage((StringExternal("Param/Value/DTNOPLAN") + gf_BHDetName(lv_go) + StringExternal("Param/Value/DTEND")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                            }
+                            else {
+                                gf_CBSystemMessage((StringExternal("Param/Value/DTPLAN") + gf_BHDetName(lv_plan) + StringExternal("Param/Value/DTBUT") + gf_BHDetName(lv_go) + StringExternal("Param/Value/DTEND")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                            }
+                        }
+                        gf_CBSystemMessage(StringExternal("Param/Value/DTBECAUSE"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                        gf_CBSystemMessage(StringExternal("Param/Value/DTWHY3"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                    }
+                    else {
+                        if ((lv_go == lv_who) && (lv_go != 0)) {
+                            gf_CBSystemMessage(StringExternal("Param/Value/DTSELF"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                            gf_CBSystemMessage(StringExternal("Param/Value/DTBECAUSE"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                            gf_CBSystemMessage(StringExternal("Param/Value/DTWHY2"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                        }
+                        else {
+                            if ((lv_go != 0)) {
+                                gf_CBSystemMessage((StringExternal("Param/Value/E5532DC0") + gf_BHDetName(lv_go) + StringExternal("Param/Value/EF7F1D1F")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                            }
+                            else {
+                                gf_CBSystemMessage(StringExternal("Param/Value/DTNONE"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                                gf_CBSystemMessage(StringExternal("Param/Value/DTBECAUSE"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                                gf_CBSystemMessage(StringExternal("Param/Value/DTWHY5"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    gv_seqAfterWait[2] = true;
+}
+
+void gf_SKF_1_fushou (int lv_a) {
+    // Variable Declarations
+    int lv_b;
+    const int auto14832DC9_ae = 15;
+    const int auto14832DC9_ai = 1;
+    // Implementation
+if ((gv_e6B395E5B888E58FA0E5B182[lv_a] > 5) && ((gv_e6B395E5B888E58FA0E5B182[lv_a] > 4) || (gv_roleOptions[1][21][3] == true))) {
+    lv_b = 1;
+    for ( ; ( (auto14832DC9_ai >= 0 && lv_b <= auto14832DC9_ae) || (auto14832DC9_ai < 0 && lv_b >= auto14832DC9_ae) ) ; lv_b += auto14832DC9_ai ) {
+        if ((PlayerGroupHasPlayer(gv_players, lv_b) == true)) {
+            gf_CBSystemMessage((StringExternal("Param/Value/0F4AA2D5") + TextWithColor(StringToText(gv_name[lv_b]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_b])) + StringExternal("Param/Value/64CFFC1E") + gf_DQSeenName(lv_b) + StringExternal("Param/Value/DA7B8DCC")), lv_a, 0, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+        }
+
+    }
+    gf_BHVisitNone(lv_a);
+    gv_specialCasePlayer[lv_a][63] = 1;
+}
+
+if ((gv_e6B395E5B888E58FA0E5B182[lv_a] > 4) && (gv_visitation[lv_a] != 0)) {
+    gf_CBSystemMessage((StringExternal("Param/Value/CC77A9F6") + gf_DQSeenName(gv_visitation[lv_a]) + StringExternal("Param/Value/233FB215")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+}
+
+if ((gv_visitation[lv_a] != 0) && (gv_e6B395E5B888E68A80E883BD[lv_a][3] == false)) {
+    if (((gv_visitation[gv_visitation[lv_a]] == 0) || (gv_visitation[gv_visitation[lv_a]] == gv_visitation[lv_a]) || (gv_immune[gv_visitation[lv_a]][2] == true))) {
+        gf_CBSystemMessage((StringExternal("Param/Value/E338915A")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+    }
+    else {
+        gf_CBSystemMessage((StringExternal("Param/Value/BBABB1F7")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+    }
+}
+
+}
+
+void gf_SKF_2_mitan (int lv_a) {
+    // Variable Declarations
+    int lv_b;
+    bool lv_c;
+    const int autoB51992E6_ae = 15;
+    const int autoB51992E6_ai = 1;
+    // Implementation
+if ((gv_jailed[gv_visitation[lv_a]] != 0)) {
+    gf_CBSystemMessage(StringExternal("Param/Value/EA91D8D0"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+}
+else {
+    if ((gv_roleblocked[gv_visitation[lv_a]] != 0)) {
+        gf_CBSystemMessage((StringExternal("Param/Value/3906C65C") + StringToText(gv_number[gv_action[gv_visitation[lv_a]][0]]) + StringExternal("Param/Value/4FA18884") + TextWithColor(StringToText(gv_name[gv_action[gv_visitation[lv_a]][0]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_action[gv_visitation[lv_a]][0]])) + StringExternal("Param/Value/BCBA786D")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+    }
+    else {
+        if ((gv_visitation[gv_visitation[lv_a]] == 0)) {
+            if (((gv_action[gv_visitation[lv_a]][0] == 0) || (gv_immune[gv_visitation[lv_a]][2] == true))) {
+                gf_CBSystemMessage(StringExternal("Param/Value/316E5093"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+            }
+            else {
+                gf_CBSystemMessage(StringExternal("Param/Value/9E389E58"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+            }
+        }
+        else {
+            if ((gv_visitation[gv_visitation[lv_a]] == gv_visitation[lv_a])) {
+                if ((gv_visitation[gv_visitation[lv_a]] == gv_action[gv_visitation[lv_a]][0])) {
+                    gf_CBSystemMessage(StringExternal("Param/Value/9AF253D8"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                }
+                else {
+                    gf_CBSystemMessage(StringExternal("Param/Value/A240F192"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                }
+            }
+            else {
+                if ((gv_visitation[gv_visitation[lv_a]] == gv_action[gv_visitation[lv_a]][0])) {
+                    gf_CBSystemMessage((StringExternal("Param/Value/DA1992DA") + StringToText(gv_number[gv_visitation[gv_visitation[lv_a]]]) + StringExternal("Param/Value/11346E09") + TextWithColor(StringToText(gv_name[gv_visitation[gv_visitation[lv_a]]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_visitation[gv_visitation[lv_a]]])) + StringExternal("Param/Value/F6792685")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                }
+                else {
+                    gf_CBSystemMessage((StringExternal("Param/Value/D881AB31") + StringToText(gv_number[gv_action[gv_visitation[lv_a]][0]]) + StringExternal("Param/Value/7CC3D773") + TextWithColor(StringToText(gv_name[gv_action[gv_visitation[lv_a]][0]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_action[gv_visitation[lv_a]][0]])) + StringExternal("Param/Value/2081FDB3")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                    gf_CBSystemMessage((StringExternal("Param/Value/064C713E") + StringToText(gv_number[gv_visitation[gv_visitation[lv_a]]]) + StringExternal("Param/Value/FCD6000B") + TextWithColor(StringToText(gv_name[gv_visitation[gv_visitation[lv_a]]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_visitation[gv_visitation[lv_a]]])) + StringExternal("Param/Value/2B4F6DCD")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                }
+            }
+        }
+    }
+}
+lv_c = false;
+lv_b = 1;
+for ( ; ( (autoB51992E6_ai >= 0 && lv_b <= autoB51992E6_ae) || (autoB51992E6_ai < 0 && lv_b >= autoB51992E6_ae) ) ; lv_b += autoB51992E6_ai ) {
+    if ((gf_BHWentTo(lv_b, gv_visitation[lv_a]) == true) && (gv_immune[lv_b][2] == false) && (lv_b != lv_a)) {
+        lv_c = true;
+        gf_CBSystemMessage((StringExternal("Param/Value/B34CDE3A") + StringToText(gv_number[lv_b]) + StringExternal("Param/Value/61F7A5F3") + TextWithColor(StringToText(gv_name[lv_b]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_b])) + StringExternal("Param/Value/AA577C99")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+    }
+
+}
+if ((lv_c == false)) {
+    gf_CBSystemMessage(StringExternal("Param/Value/AB89B69A"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+}
+
+if ((gv_roleOptions[2][10][1] == true)) {
+    gv_cooldown[lv_a] = 2;
+}
+
+if ((gv_roleOptions[2][10][2] == true)) {
+    gv_cooldown[lv_a] = 3;
+}
+
+TriggerExecute(gt_E78AAFE7BDAAE8AEB0E5BD95, false, true);
+if ((gv_immune[gv_visitation[lv_a]][2] == true)) {
+    gf_CBSystemMessage((StringExternal("Param/Value/D10BE040") + StringExternal("Param/Value/53631705") + gv_e78AAFE7BDAAE8AEB0E5BD95[0] + StringExternal("Param/Value/33E8771B")), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+}
+else {
+    gf_CBSystemMessage((StringExternal("Param/Value/A9434ADE") + StringExternal("Param/Value/2AD32D53") + gv_e78AAFE7BDAAE8AEB0E5BD95[gv_visitation[lv_a]] + StringExternal("Param/Value/CCEEBDBE")), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+}
+gv_seqAfterWait[2] = true;
+}
+
+void gf_SKF_5_xianfeng (int lv_a) {
+    // Variable Declarations
+    int lv_b;
+    bool lv_c;
+    const int auto8C070C7F_ae = 15;
+    const int auto8C070C7F_ai = 1;
+    // Implementation
+if ((gv_jailed[gv_visitation[lv_a]] != 0)) {
+    gf_CBSystemMessage(StringExternal("Param/Value/81B36023"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+}
+else {
+    if ((gv_roleblocked[gv_visitation[lv_a]] != 0)) {
+        gf_CBSystemMessage((StringExternal("Param/Value/A2B85FDA") + StringToText(gv_number[gv_action[gv_visitation[lv_a]][0]]) + StringExternal("Param/Value/C819AE94") + TextWithColor(StringToText(gv_name[gv_action[gv_visitation[lv_a]][0]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_action[gv_visitation[lv_a]][0]])) + StringExternal("Param/Value/DD7A651C")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+    }
+    else {
+        if ((gv_visitation[gv_visitation[lv_a]] == 0)) {
+            if ((gv_action[gv_visitation[lv_a]][0] == 0) && (gv_immune[gv_visitation[lv_a]][2] == true)) {
+                gf_CBSystemMessage(StringExternal("Param/Value/589B7A89"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+            }
+            else {
+                gf_CBSystemMessage(StringExternal("Param/Value/3C49BE72"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+            }
+        }
+        else {
+            if ((gv_visitation[gv_visitation[lv_a]] == gv_visitation[lv_a])) {
+                if (((gv_visitation[gv_visitation[lv_a]] == gv_action[gv_visitation[lv_a]][0]) || (gv_action[gv_visitation[lv_a]][0] == 0))) {
+                    gf_CBSystemMessage(StringExternal("Param/Value/2287CFC7"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                }
+                else {
+                    gf_CBSystemMessage(StringExternal("Param/Value/34D05A28"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                }
+            }
+            else {
+                if ((gv_visitation[gv_visitation[lv_a]] == gv_action[gv_visitation[lv_a]][0])) {
+                    gf_CBSystemMessage((StringExternal("Param/Value/57EC3259") + StringToText(gv_number[gv_visitation[gv_visitation[lv_a]]]) + StringExternal("Param/Value/A8BB1739") + TextWithColor(StringToText(gv_name[gv_visitation[gv_visitation[lv_a]]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_visitation[gv_visitation[lv_a]]])) + StringExternal("Param/Value/4374193E")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                }
+                else {
+                    gf_CBSystemMessage((StringExternal("Param/Value/65E3235B") + StringToText(gv_number[gv_action[gv_visitation[lv_a]][0]]) + StringExternal("Param/Value/3CF367B0") + TextWithColor(StringToText(gv_name[gv_action[gv_visitation[lv_a]][0]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_action[gv_visitation[lv_a]][0]])) + StringExternal("Param/Value/C985731D")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                    gf_CBSystemMessage((StringExternal("Param/Value/96ADD386") + StringToText(gv_number[gv_visitation[gv_visitation[lv_a]]]) + StringExternal("Param/Value/8B6EF43B") + TextWithColor(StringToText(gv_name[gv_visitation[gv_visitation[lv_a]]]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[gv_visitation[gv_visitation[lv_a]]])) + StringExternal("Param/Value/D350E178")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                }
+            }
+        }
+    }
+}
+lv_c = false;
+lv_b = 1;
+for ( ; ( (auto8C070C7F_ai >= 0 && lv_b <= auto8C070C7F_ae) || (auto8C070C7F_ai < 0 && lv_b >= auto8C070C7F_ae) ) ; lv_b += auto8C070C7F_ai ) {
+    if ((gf_BHWentTo(lv_b, gv_visitation[lv_a]) == true) && (gv_immune[lv_b][2] == false) && (lv_b != lv_a)) {
+        lv_c = true;
+        gf_CBSystemMessage((StringExternal("Param/Value/72E64164") + StringToText(gv_number[lv_b]) + StringExternal("Param/Value/3D4C6616") + TextWithColor(StringToText(gv_name[lv_b]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_b])) + StringExternal("Param/Value/96DA582F")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+    }
+
+}
+if ((lv_c == false)) {
+    gf_CBSystemMessage(StringExternal("Param/Value/3B4C962D"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+}
+
+if ((gv_roleOptions[5][10][1] == true)) {
+    gv_cooldown[lv_a] = 2;
+}
+
+if ((gv_roleOptions[5][10][2] == true)) {
+    gv_cooldown[lv_a] = 3;
+}
+
+TriggerExecute(gt_E78AAFE7BDAAE8AEB0E5BD95, false, true);
+if ((gv_immune[gv_visitation[lv_a]][2] == true)) {
+    gf_CBSystemMessage((StringExternal("Param/Value/77255986") + StringExternal("Param/Value/46DE2DA2") + gv_e78AAFE7BDAAE8AEB0E5BD95[0] + StringExternal("Param/Value/C5D04CC3")), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+}
+else {
+    gf_CBSystemMessage((StringExternal("Param/Value/8E1519AF") + StringExternal("Param/Value/A7617D07") + gv_e78AAFE7BDAAE8AEB0E5BD95[gv_visitation[lv_a]] + StringExternal("Param/Value/D812AF52")), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+}
+gv_seqAfterWait[2] = true;
+}
+
+// GUARD if ((gv_diedAtNight[lv_a] == false) && (gv_roles[lv_a][1] == 1) && (gv_roles[lv_a][0] == 21)) {
+// GUARD if ((gv_visitation[lv_a] != 0) && (gv_diedAtNight[lv_a] == false) && (((gv_roles[lv_a][1] == 1) && (gv_roles[lv_a][0] == 15)) || ((gv_roles[lv_a][1] == 1) && (gv_roles[lv_a][0] == 21) && (gv_e6B395E5B888E68A80E883BD[lv_a][3] == true)))) {
+// GUARD if ((gv_visitation[lv_a] != 0) && (gv_diedAtNight[lv_a] == false) && (gv_roles[lv_a][1] == 2) && (gv_roles[lv_a][0] == 10) && (gv_cooldown[lv_a] == 0)) {
+// GUARD if ((gv_visitation[lv_a] != 0) && (gv_diedAtNight[lv_a] == false) && (gv_roles[lv_a][1] == 5) && (gv_roles[lv_a][0] == 10) && (gv_cooldown[lv_a] == 0)) {
