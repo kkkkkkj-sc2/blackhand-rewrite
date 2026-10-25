@@ -8,7 +8,7 @@ complete Mafia/Triad night setup dispatchers and every called SKM/SKT block.
 Native boundaries are EXPLICIT: RA* action-panel leaves, leader-mask UI, BRDraw,
 YSDraw, channel APIs and engine rendering are recording presentation doubles.
 Real setup control flow, variableOptions, shots, cooldown, identity, option
-selection, lawyer/trap initialization, BR first-night gate and YS night gate run.
+selection, lawyer/trap initialization, BR first-day gate and YS night gate run.
 The old hostile-learning attack is a recording call boundary, NOT a simulated
 SC2 combat/defense resolver. No native attack, engine compilation, full timing,
 rendering, multiplayer, global succession, bank or first-win payout claim.
@@ -33,7 +33,7 @@ from test_egun import SCRIPT, function, mask
 LEGACY_SHA256 = '05be17591c361f07c9c1758e5b0498751dcde60fccd90eb702954a7fa36faea5'
 EXTRA = ('gf_RSMafiaSetup2', 'gf_RSTriadSetup', 'gf_HLGangSetup',
          'gf_RALawyerActions', 'gf_LSIs', 'gf_BRCanSelect', 'gf_BRIs',
-         'gf_BRFake', 'gf_BRSetup', 'gf_YSButtons')
+         'gf_BRFake', 'gf_BRFirstDay', 'gf_BRSetup', 'gf_YSButtons')
 LEAVES = (
     'gf_BHLeaderSetup', 'gf_BRDraw', 'gf_YSDraw',
     'gf_RAAdministratorActions', 'gf_RAAgentActions', 'gf_RABeguilerActions',
@@ -95,7 +95,7 @@ template<class... T> void libNtve_gf_SetDialogItemText(T...) {}
     declarations += '\n'.join(
         f'void {name}(int p) {{ panelCalls.emplace_back("{name}",p); }}'
         for name in LEAVES)
-    fixture_globals = ('gv_hlHouse', 'gv_hlLeft', 'gv_hlFaction', 'gv_brFrozen')
+    fixture_globals = ('gv_hlHouse', 'gv_hlLeft', 'gv_hlFaction')
     extra_globals = []
     for name in fixture_globals:
         match = re.search(r'^(\w+)((?:\[\d+\])*)\s+' + re.escape(name)
@@ -134,7 +134,7 @@ void nativeReset(int a,int t,int faction,int pool,int role,int options) {
     panelCalls.clear(); lethalCalls.clear(); waits=0; deathSounds=0;
     gv_roles[t][1]=pool;
     gv_gameStarted=true; gv_gameOver=false; gv_isNight=true;
-    gv_bhFactionChatOpen=true; gv_currentPlayers=PlayerGroupAll();
+    gv_currentPlayers=PlayerGroupAll();
     gv_dayNumber=3; gv_ysNights=3;
     // The other twelve players are not native setup candidates.
     gv_roles[2][1]=pool; gv_roles[2][0]=1;

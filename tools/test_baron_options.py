@@ -38,7 +38,7 @@ def integration(source: str) -> str:
     labels = dict(line.split('=', 1) for line in (ROOT / 'work/blackhand/strings-baron.txt').read_text().splitlines() if line.startswith('Param/Value/'))
     build = ast.parse((ROOT / 'tools/boot2_build.py').read_text())
     must_have = next(ast.literal_eval(node.value) for node in build.body if isinstance(node, ast.Assign) and any(isinstance(target, ast.Name) and target.id == 'MUST_HAVE_KEYS' for target in node.targets))
-    assert labels['Param/Value/BRBOXMAX'] == '<n/>- 本局首夜招募人数上限：'
+    assert labels['Param/Value/BRBOXMAX'] == '<n/>- 本局招募人数上限：'
     assert 'Param/Value/BRBOXMAX' in must_have
     assert labels['Param/Value/BRLIMIT'] == '招募人数上限：'
     assert '至多3' not in labels['Param/Value/BRUSAGE']

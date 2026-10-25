@@ -42,7 +42,7 @@ def harness(source: str) -> str:
         assert re.search(r'if \(\(gf_BHFaction\(lv_a\) == ' + str(pool) + r'\)\) \{\s*gv_rsConvX\[' + str(count) + r'\] \+= 1;', dispatcher)
 
     night = mask(function(source, 'auto_gf_NightTransition_TriggerFunc'))
-    assert night.index('gf_RSConversions();') < night.index('gf_RAActionsBase(lv_a);') < night.index('gf_RSTownSetup();')
+    assert night.index('gf_BRResolveRecruit();') < night.index('gv_isNight = true;') < night.index('gf_RSConversions();') < night.index('gf_RAActionsBase(lv_a);') < night.index('gf_RSTownSetup();')
     assert 'gf_BHConvertedSuccession' not in mask(function(source, 'gf_BRResolveRecruit'))
     feign = mask(function(source, 'gf_BHFeign'))
     assert 'PlayerGroupRemove(gv_alivePlayers, lp_victim);' in feign
@@ -130,15 +130,15 @@ void successor(int p,int pool) {
 }
 void testRecruitThenSucceed() {
     for(int pool:{2,5}) for(bool leaderDies:{false,true}) {
-        succReset("actual first-night freeze/resolve pool="+std::to_string(pool)+" leaderDies="+std::to_string(leaderDies),pool);
+        succReset("actual first-day night-entry recruitment pool="+std::to_string(pool)+" leaderDies="+std::to_string(leaderDies),pool);
         role(1,pool,22); role(4,1,6); role(8,1,4); role(15,1,35);
         commandTargets({4,8,15});
         const string before=lifetime();
-        freeze(); gf_BRResolveRecruit();
+        commitAtNightEntry();
         CHECK(lifetime()==before);
         stillRecruited(4,pool); stillRecruited(8,pool,4); stillRecruited(15,pool,35);
         CHECK(successionCards.empty());
-        if(leaderDies) gv_alivePlayers &= ~(1u<<1); // death after successful dawn recruitment
+        if(leaderDies) gv_alivePlayers &= ~(1u<<1); // death after successful night-entry recruitment
         succRun();
         if(!leaderDies) {
             CHECK(gv_roles[1][0]==22); stillRecruited(4,pool);
@@ -224,7 +224,7 @@ void testTownStateAndGuild() {
             gv_action[8][0]=4; gv_action[8][1]=15;
             commandTargets({8});
             const string before=lifetime();
-            freeze(); gf_BRResolveRecruit();
+            commitAtNightEntry();
             CHECK(lifetime()==before && gv_votes[8]==3 && gv_immuneChance[8]==2);
             CHECK(gv_action[8][0]==4 && gv_action[8][1]==15);
             stillRecruited(8,pool,profession);

@@ -35,11 +35,17 @@ def main():
     assert entries['Param/Value/BHFJOIN2'] == '你转变为「<c val="D9A08F">黑手党</c>」阵营。'
     assert entries['Param/Value/BHFJOIN5'] == '你转变为「<c val="8FBFD1">三合会</c>」阵营。'
     assert entries['Param/Value/BRTOOLTIP'] == '招募'
-    assert entries['Param/Value/BRFIRST'] == '你的首要目标是扩充自己的势力。今晚你会尝试招募一些城镇角色加入黑手党。'
-    assert entries['Param/Value/BRFIRST5'] == '你的首要目标是扩充自己的势力。今晚你会尝试招募一些城镇角色加入三合会。'
+    assert entries['Param/Value/BRFIRST'] == '你的首要目标是扩充自己的势力。请在面板中选择招募目标，入夜时尝试将他们招募进黑手党。'
+    assert entries['Param/Value/BRFIRST5'] == '你的首要目标是扩充自己的势力。请在面板中选择招募目标，入夜时尝试将他们招募进三合会。'
+    for key in ('NJDESC', 'TDDESC', 'NJBOX2', 'TDBOX2', 'BRUSAGE'):
+        value = entries['Param/Value/' + key]
+        assert '白天' in value and '入夜时' in value, ('first-day selection/night-entry copy', key)
+        assert '首夜' not in value and '第一晚' not in value and '夜晚结束' not in value
+
     setup = function(source, 'gf_BRSetup')
-    assert 'BRUSAGE' not in setup
-    assert 'BRFIRST5' in setup and 'BRFIRST"' in setup
+    assert 'BRUSAGE' not in setup and 'BRFIRST' not in setup
+    panel = function(source, 'gf_BRPanelOpen')
+    assert 'BRFIRST5' in panel and 'BRFIRST"' in panel
     for key, value in entries.items():
         if key.startswith('Param/Value/BHFROLE'):
             assert '<c' not in value, 'profession text must not override its alignment palette'
