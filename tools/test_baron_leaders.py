@@ -378,7 +378,7 @@ void testFreezeAndResolve() {
             CHECK(hasMessage(p,pool==2?"BHFJOIN2":"BHFJOIN5"));
             CHECK(gv_roleBoxText[p][3]==StringExternal(pool==2?"Param/Value/BHFGOAL2":"Param/Value/BHFGOAL5") || p==8);
         }
-        CHECK(gf_BHRoleName(2).find(pool==2?"<c=100000000>":"<c=20040100>")==0);
+        CHECK(gf_BHRoleName(2).find(pool==2?"<c=85063056>":"<c=20040100>")==0);
         const string state=baronState(); clearEffects(); gf_BRResolveRecruit();
         CHECK(baronState()==state && events.empty());
     }

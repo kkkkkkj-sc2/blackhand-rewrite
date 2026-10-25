@@ -289,7 +289,7 @@ void reset() {
 }
 text expectedName(int id,int faction) {
     // Declarative output contract: the source supplies the logic and key lookup.
-    int color=faction==2?1000000:204100;
+    int color=faction==2?Color(85.10,62.75,56.08):Color(20.00,40.00,100.00);
     return "<color"+std::to_string(color)+">{Param/Value/BHFROLE"+std::to_string(id)+"}</color>";
 }
 bool sees(int viewer,int member) {
@@ -358,7 +358,7 @@ void identity_cases() {
     for(int p: {0,16,-1}) check(!gf_BHConverted(p) && gf_BHFaction(p)==0);
     reset(); role(2,1,4); auto before=gv_roleBoxText[2][3]; gf_BHFactionCard(2);
     check(gv_roleBoxText[2][3]==before && gf_BHDeathName(2)=="ROLE(1,4)");
-    std::cout<<"PASS identity: red/blue profession, own/death vs investigation, DQ/FZ, private card\n";
+    std::cout<<"PASS identity: soft Mafia/blue profession, own/death vs investigation, DQ/FZ, private card\n";
 }
 void conversion_card_cases() {
     for(int faction: {2,5}) for(int id: {4,33}) {

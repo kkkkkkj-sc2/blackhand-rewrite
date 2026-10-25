@@ -326,7 +326,7 @@ void testQueries() {
         bool converted=pool==1 && (faction==2 || faction==5);
         CHECK(gf_BHConverted(p)==converted); CHECK(gf_BHFaction(p)==(converted?faction:pool));
         CHECK(gf_LMCat(p)==(converted?faction:pool)); CHECK(gf_LMRole(p)==(converted?0:id));
-        string expected=converted?TextWithColor(StringExternal("Param/Value/BHFROLE"+std::to_string(id)),Color(faction==2?100:20,faction==2?0:40,faction==2?0:100)):gv_roleNameArray[pool][id];
+        string expected=converted?TextWithColor(StringExternal("Param/Value/BHFROLE"+std::to_string(id)),Color(faction==2?85.10:20.00,faction==2?62.75:40.00,faction==2?56.08:100.00)):gv_roleNameArray[pool][id];
         CHECK(gf_BHRoleName(p)==expected);
     }
     for(int invalid:{INT_MIN,-1,0,16,INT_MAX}) {

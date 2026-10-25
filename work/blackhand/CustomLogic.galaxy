@@ -109423,7 +109423,7 @@ text gf_BHRoleName (int lp_player) {
 
     if ((gf_BHConverted(lp_player) == true)) {
         if ((gf_BHFaction(lp_player) == 2)) {
-            return TextWithColor(StringExternal(("Param/Value/BHFROLE" + IntToString(gv_roles[lp_player][0]))), Color(100.00, 0.00, 0.00));
+            return TextWithColor(StringExternal(("Param/Value/BHFROLE" + IntToString(gv_roles[lp_player][0]))), Color(85.10, 62.75, 56.08));
         }
 
         return TextWithColor(StringExternal(("Param/Value/BHFROLE" + IntToString(gv_roles[lp_player][0]))), Color(20.00, 40.00, 100.00));
@@ -109771,7 +109771,7 @@ void gf_BRDraw (int lp_player) {
         lv_pool = gv_fzPool[lp_player];
     }
 
-    lv_color = Color(100.0, 0.0, 0.0);
+    lv_color = Color(78.82, 41.96, 47.06);
     if ((lv_pool == 5)) {
         lv_color = Color(20.0, 40.0, 100.0);
     }

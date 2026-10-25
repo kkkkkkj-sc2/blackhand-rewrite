@@ -1,9 +1,9 @@
 // 男爵(2/22) / 泰斗(5/22)：首夜独立招募名单，不以选人反馈隐藏阵营。
-Param/Value/NJNAME=<c val="FF0000">男爵</c>
+Param/Value/NJNAME=<c val="C96B78">男爵</c>
 Param/Value/TDNAME=<c val="3366FF">泰斗</c>
 Param/Value/NJDESC=一名初来咋到，渴望建立自己的势力的家族领袖。<n/><n/><c val="BBDDFF">每晚杀死一人。在首夜可以招募数个城镇成员为黑手党。</c><n/><n/>当该名角色在场时，所有的其他黑手党角色会被替换为随机的城镇角色。该角色可以在第一晚招募城镇成员为黑手党。被招募的角色保留自己的角色和能力，仅转变阵营。
 Param/Value/TDDESC=一名初来咋到，渴望建立自己的势力的帮派领袖。<n/><n/><c val="BBDDFF">每晚杀死一人。在首夜可以招募数个城镇成员为三合会。</c><n/><n/>当该名角色在场时，所有的其他三合会角色会被替换为随机的城镇角色。该角色可以在第一晚招募城镇成员为三合会。被招募的角色保留自己的角色和能力，仅转变阵营。
-Param/Value/NJTAG= (<c val="FF0000">领袖</c>)
+Param/Value/NJTAG= (<c val="C96B78">领袖</c>)
 Param/Value/TDTAG= (<c val="3366FF">领袖</c>)
 Param/Value/NJBOX1=每晚杀死一人。
 Param/Value/TDBOX1=每晚杀死一人。
