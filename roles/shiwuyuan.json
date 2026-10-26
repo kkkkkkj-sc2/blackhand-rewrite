@@ -1,0 +1,28 @@
+{
+  "pool": 3,
+  "role": 37,
+  "pinyin": "shiwuyuan",
+  "cn": "事务员",
+  "name_key": "GK37NAME",
+  "desc_key": "GK37DESC",
+  "investigator": [],
+  "crime_key": "GK37CRIME",
+  "options": [],
+  "flag10": false,
+  "guessable": true,
+  "help_preview": null,
+  "extra_def_lines": [
+    "gv_roleInvestigatorArray[3][37][0] = StringExternal(\"Param/Value/GK37INV1\");",
+    "gv_roleInvestigatorArray[3][37][1] = StringExternal(\"Param/Value/GK37INV2\");",
+    "gv_roleOptions[3][37][10] = false;",
+    "gv_roleWeights[3][37] = 0.0;"
+  ],
+  "interactions": {
+    "swap": {"text": "源码审查：gf_GKPrepareVisits经gf_BHVisitAction登记目标，gf_GKResolveEarly在交换、限制结算后读取最终gv_visitation，沿用女巫和司机的重定向。"},
+    "investigate": {"text": "源码审查：正常登记最终访问目标，gf_GKResolveEarly写入目标的次日gv_gkVoteDay；gf_BHVoteWeight先排除过客，再将有效当日票权固定为3，适用于送审及有罪/无罪且不恢复过客投票。公开过客职业、固定主题色；尚未SC2实机验证。"},
+    "restrict": {"text": "源码审查：gf_BHRestrictAllowed未给予限制免疫；gf_GKResolveEarly要求本人未受限制、本人及目标未被监禁，仅成功设置次日票权后消耗唯一一次机会。无自带夜间免疫，可被夜杀；尚未SC2实机验证。"},
+    "guessage": {"text": "源码审查：gf_ASGuessRole(4,35)已映射角色37，gf_ASE5AEA1E69FA5E98089E9A1B92的中立列表上界已为35；尚未SC2实机验证。", "in_guess_list": true}
+  },
+  "note": "中立·过客公开职业。限一次，夜访目标，使其次日送审及有罪/无罪票权固定3；不是+2，不保留原有更高票权，不使过客恢复投票。被限制不扣次。继承转世前真实阵营，不得再转阵营或角色，无投票/被送审资格，不计胜利/送审人数；城镇/黑手党/三合会随队胜负且死后可赢，任何中立归属仅存活至终局共胜、不触发或延迟胜利；原生默认中立存活目标，不开原阵营夜聊。普通随机权重0，自设可显式选择。角色号37不访问银行首胜数组。",
+  "review_status": "draft"
+}

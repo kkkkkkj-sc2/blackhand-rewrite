@@ -20,6 +20,19 @@ from test_egun import SCRIPT, function, mask, translate
 def harness(source: str) -> str:
     base = baron.harness(source)
     base = base.replace(function(base, 'main'), '')
+    # The recruitment initializer also registers the new passer event family.
+    # Keep that actual registration body; only the engine event APIs are doubles.
+    registration = function(source, 'gt_GKAbilities_Init')
+    declarations = []
+    for name in sorted(set(re.findall(r'\bgt_GK\w+', mask(registration))) - {'gt_GKAbilities_Init'}):
+        match = re.search(r'^trigger ' + re.escape(name) + r'(?:\s*=\s*[^;]+)?;', source, re.M)
+        assert match, ('missing actual trigger declaration', name)
+        declarations.append(match[0].replace('null', '0'))
+
+    prototype = 'void gt_BRRecruit_Init ();'
+    assert base.count(prototype) == 1
+    base = base.replace(prototype, '\n'.join(declarations) + '\nvoid gt_GKAbilities_Init ();\n' + prototype)
+    base += '\n' + translate(registration).replace('null', '0')
     skill = function(source, 'gf_SKK_1_shenchayuan')
     assert 'gv_roleOptions[1][26][0] = false;' in function(source, 'gf_DefaultRoleOptions')
     assignments = []

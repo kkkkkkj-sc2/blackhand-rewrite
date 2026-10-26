@@ -19,6 +19,7 @@ import subprocess
 import tempfile
 
 from test_egun import function, mask, translate
+from test_faction_conversion import with_guoke_dependencies, missing_actual_globals
 from test_gongshengti_allies import PREFIX as ALLY_PREFIX
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -115,7 +116,7 @@ def check_wiring(source, old):
     check_investigation_wiring(source)
 
     card = mask(function(source, 'gf_RTRoleCard'))
-    assert re.search(r'gf_BHFactionCard\s*\(\s*lp_player\s*\)\s*;\s*\}', card), 'card override must run last'
+    assert re.search(r'gf_BHFactionCard\s*\(\s*lp_player\s*\)\s*;\s*(?:gf_GKCard\(lp_player\);\s*)?\}', card), 'faction card override must precede only the passer card overlay'
     assert 'gf_BHConverted' in card, 'temporary FZ template must exclude actual converts'
     convert = mask(function(source, 'gf_BHConvertFaction'))
     assert re.search(r'if\s*\(\s*\(\s*gv_roles\[lp_player\]\[0\]\s*==\s*33\s*\)\s*\)\s*\{\s*'
@@ -134,7 +135,7 @@ def check_wiring(source, old):
 
 def check_baron_wiring(source):
     render = mask(function(source, 'gf_RAFengziActions'))
-    assert re.search(r'gv_roles\[lp_player\]\[0\]\s*=\s*gv_fzRole\[lp_player\]\s*;\s*'
+    assert re.search(r'gf_GKSetRoleField\(lp_player,\s*0,\s*gv_fzRole\[lp_player\]\);\s*'
                      r'if\s*\(\(gv_fzRole\[lp_player\]\s*==\s*22\)\)\s*\{\s*'
                      r'gf_BRDraw\(lp_player\);', render), '22 draw must see temporary profession'
     assert 'gf_BRSetup' not in render, 'FZ must never receive real setup/immunity'
@@ -733,6 +734,7 @@ def main():
     else:
         print('SKIP FZ22 extension: BRFake not yet integrated (use --require-baron after integration)', flush=True)
 
+    names = list(with_guoke_dependencies(source, names))
     bodies = [function(source, name) for name in names]
     # Pull any newly factored name helper from production too, never stub it.
     cursor = 0
@@ -753,7 +755,9 @@ def main():
         boundaries = '\n'.join(f'void {name}(int,int) {{ assert(false && "non-FZ action boundary"); }}'
                                for name in handlers)
 
-    code = translate(('#define BH_BARON 1\n' if has_baron else '') + prefix()
+    prelude = prefix()
+    prelude += '\n' + missing_actual_globals(source, bodies, prelude) + '\n'
+    code = translate(('#define BH_BARON 1\n' if has_baron else '') + prelude
                      + '\n' + boundaries + '\n' + prototypes + '\n' + '\n\n'.join(bodies)
                      + '\n' + baseline + '\n' + CASES)
     compiler = shutil.which('g++') or shutil.which('clang++')

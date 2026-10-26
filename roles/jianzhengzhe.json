@@ -1,0 +1,28 @@
+{
+  "pool": 3,
+  "role": 33,
+  "pinyin": "jianzhengzhe",
+  "cn": "见证者",
+  "name_key": "GK33NAME",
+  "desc_key": "GK33DESC",
+  "investigator": [],
+  "crime_key": "GK33CRIME",
+  "options": [],
+  "flag10": false,
+  "guessable": true,
+  "help_preview": null,
+  "extra_def_lines": [
+    "gv_roleInvestigatorArray[3][33][0] = StringExternal(\"Param/Value/GK33INV1\");",
+    "gv_roleInvestigatorArray[3][33][1] = StringExternal(\"Param/Value/GK33INV2\");",
+    "gv_roleOptions[3][33][10] = false;",
+    "gv_roleWeights[3][33] = 0.0;"
+  ],
+  "interactions": {
+    "swap": {"text": "源码审查：gf_GKPrepareVisits经gf_BHVisitAction登记目标，允许自选；gf_GKResolveEarly在交换、限制结算后读取最终gv_visitation，沿用女巫和司机的重定向。"},
+    "investigate": {"text": "源码审查：gf_GKWitnessSnapshot逐玩家调用gf_BHWentTo，识别两个访问槽且每人只计一次，排除见证者本人；其他玩家自访命中目标仍计数。gf_GKWitnessMorning向仍存活的见证者反馈。公开过客职业、固定主题色；尚未SC2实机验证。"},
+    "restrict": {"text": "源码审查：gf_BHRestrictAllowed未给予限制免疫；gf_GKResolveEarly要求本人未受限制、本人及目标未被监禁，否则不记录调查目标、不产生晨间反馈。无自带夜间免疫，可被夜杀；尚未SC2实机验证。"},
+    "guessage": {"text": "源码审查：gf_ASGuessRole(4,31)已映射角色33，gf_ASE5AEA1E69FA5E98089E9A1B92的中立列表上界已为35；尚未SC2实机验证。", "in_guess_list": true}
+  },
+  "note": "中立·过客公开职业。实际归属继承转世前真实阵营；不得再次转换阵营或角色，不投票、不能被票上台，排除所有胜利人数和送审人数。城镇/黑手党/三合会归属随队胜负且死后可赢；任何中立归属仅以存活至游戏结束共胜，不自行触发或延迟判胜。开局原生过客默认中立存活目标。无原阵营夜聊。普通随机权重0，自设可显式选择；转世五种不放回取四。角色号33不访问银行首胜数组。",
+  "review_status": "draft"
+}

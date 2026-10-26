@@ -14,6 +14,8 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+from test_faction_conversion import with_guoke_dependencies
+
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = ROOT / 'work/blackhand/CustomLogic.galaxy'
 
@@ -46,7 +48,9 @@ def audit(source: str) -> None:
             if 'gv_votes[' in line and not re.search(r'gv_votes\[.*?\]\s*=(?!=)', line):
                 owners.append(match.group(1))
 
-    assert sorted(owners) == ['gf_BHVoteWeight', 'gf_JSHeroDay', 'gf_JSHeroRestore'], owners
+    assert sorted(owners) == ['gf_BHVoteWeight', 'gf_JJRefreshAbilities', 'gf_JSHeroDay', 'gf_JSHeroRestore'], owners
+    refresh = function(source, 'gf_JJRefreshAbilities')
+    assert re.search(r'lv_votes = gv_votes\[lv_a\];\s*lv_shield = gv_immuneChance\[lv_a\];\s*gf_BHApprenticeNativeInit\(lv_a\);\s*gv_votes\[lv_a\] = lv_votes;', refresh), 'revival may only snapshot/restore the original vote count'
     for name in ['gt_DetectLeave_Func', 'gt_ADAntiAFKPeriod_Func']:
         body = function(source, name)
         assert body.count('gf_BHWithdrawVotes(lv_a);') == (2 if name == 'gt_DetectLeave_Func' else 1), name
@@ -74,6 +78,7 @@ def build_harness(source: str, *, extra_functions: tuple[str, ...] = (),
         'auto_gf_ASE692A4E7A5A8EFBC81_TriggerFunc',
     ]
     names.extend(extra_functions)
+    names = with_guoke_dependencies(source, names)
     bodies = [function(source, name) for name in names]
     tally = function(source, 'auto_gf_TrialVoteResults_TriggerFunc')
     a = tally.index('    lv_sg = 0;')

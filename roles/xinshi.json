@@ -1,0 +1,28 @@
+{
+  "pool": 3,
+  "role": 34,
+  "pinyin": "xinshi",
+  "cn": "信使",
+  "name_key": "GK34NAME",
+  "desc_key": "GK34DESC",
+  "investigator": [],
+  "crime_key": "GK34CRIME",
+  "options": [],
+  "flag10": false,
+  "guessable": true,
+  "help_preview": null,
+  "extra_def_lines": [
+    "gv_roleInvestigatorArray[3][34][0] = StringExternal(\"Param/Value/GK34INV1\");",
+    "gv_roleInvestigatorArray[3][34][1] = StringExternal(\"Param/Value/GK34INV2\");",
+    "gv_roleOptions[3][34][10] = false;",
+    "gv_roleWeights[3][34] = 0.0;"
+  ],
+  "interactions": {
+    "swap": {"text": "源码审查：gf_GKMailSet在白天验证两名不同活人后记录配对，gf_GKMailFreeze于入夜冻结双方关系；不读取夜间访问目标，不受女巫或司机重定向。"},
+    "investigate": {"text": "源码审查：配对与冻结不登记登门；gf_GKMailHidden隔离原夜聊，gf_GKMailPeer按直接配对边转发，不沿重叠关系传递。公开过客职业、固定主题色；尚未SC2实机验证。"},
+    "restrict": {"text": "源码审查：gf_BHRestrictAllowed未给予限制免疫，无自带夜间免疫、可被夜杀。gf_GKMailFreeze不检查信使存活、限制或监禁，故已成功记录的当日配对不因这些状态取消；配对成员的监禁、禁言和私聊优先级由gf_GKMailReady及gf_GKMailIntercept保留。尚未SC2实机验证。"},
+    "guessage": {"text": "源码审查：gf_ASGuessRole(4,32)已映射角色34，gf_ASE5AEA1E69FA5E98089E9A1B92的中立列表上界已为35；尚未SC2实机验证。", "in_guess_list": true}
+  },
+  "note": "中立·过客公开职业。每白天选两名活人，当晚专属聊天替代原夜聊，信使死亡不取消。重叠关系按边转发而非连通分量：A-B与A-C并存时，A话B/C听，B话C不听。继承转世前真实阵营，不得再转阵营或角色，无投票/被送审资格，不计胜利/送审人数；城镇/黑手党/三合会随队胜负且死后可赢，任何中立归属仅存活至终局共胜、不触发或延迟胜利；原生默认中立存活目标，不开原阵营夜聊。普通随机权重0，自设可显式选择。角色号34不访问银行首胜数组。",
+  "review_status": "draft"
+}

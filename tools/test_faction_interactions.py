@@ -47,10 +47,10 @@ def cleanup_sites(source: str) -> None:
                 'gf_SKC_3_chuxingzhe': 1, 'gf_ESGanranzheKill': 1}
     for name, count in expected.items():
         body = mask(function(source, name))
-        writes = list(re.finditer(r'gv_roles(\[[^;\n]+?\])\[1\]\s*=\s*[235];', body))
+        writes = list(re.finditer(r'(?:gv_roles\[([^;\n]+)\]\[1\]\s*=\s*[235]|gf_GKSetRoleField\(([^;\n]+),\s*1,\s*[235]\));', body))
         assert len(writes) == count, ('non-Town write sites changed; inspect each path', name, len(writes))
         for write in writes:
-            target = write[1]
+            target = '[' + (write[1] or write[2]) + ']'
             assert re.search(r'gv_bhFaction' + re.escape(target) + r'\s*=\s*0;\s*$', body[:write.start()]), ('override must be cleared immediately before this exact pool write', name, write[0])
             total += 1
 
@@ -60,7 +60,9 @@ def cleanup_sites(source: str) -> None:
 def harness(source: str) -> str:
     cleanup_sites(source)
     base = core.harness(source)
-    bodies = [function(source, name) for name in EXTRA]
+    names = tuple(name for name in core.with_guoke_dependencies(source, EXTRA)
+                  if not re.search(r'^\w+ ' + re.escape(name) + r'\s*\([^;{}]*\)\s*\{', base, re.M))
+    bodies = [function(source, name) for name in names]
     raw = '\n\n'.join(bodies)
     used = set(re.findall(r'\bgv_\w+', mask(raw))) | {'gv_location', 'gv_number'}
     existing = set(re.findall(r'\bgv_\w+\b', base))

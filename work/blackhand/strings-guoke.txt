@@ -1,0 +1,99 @@
+// 中立·过客：池3/33..37，公开职业与真实归属分离；单色主题固定，不使用渐变。
+// 各角色固定登记键：NAME/DESC/ABIL/TRAIT/WHITE/CARD/INV1/INV2/CRIME。
+Param/Value/GKTYPE=（中立·过客）
+Param/Value/GKCOMMON=<n/>- 你的职业与楼层对所有人公开，真实归属继承转世前的真实阵营。<n/>- 你不能再次转换阵营或角色。<n/>- 你不能投票，也不能被投票送上审判台。<n/>- 你不计入任何胜利人数或送审人数。<n/>- 你不参加原阵营夜聊，没有自带夜间无敌，也不免疫限制。<n/>- 职业主题色不会随真实归属改变。
+Param/Value/GKWINTEAM=归属城镇、黑手党或三合会时，与所属阵营同胜同负，即使你已死亡。
+Param/Value/GKWINTOWN=与城镇一同胜利，即使你已死亡；你不会自行触发或延迟胜利。
+Param/Value/GKWINMAFIA=与黑手党一同胜利，即使你已死亡；你不会自行触发或延迟胜利。
+Param/Value/GKWINTRIAD=与三合会一同胜利，即使你已死亡；你不会自行触发或延迟胜利。
+Param/Value/GKWINNEUTRAL=<n/>归属任何中立角色时，存活至游戏结束即可共胜；你不会自行触发或延迟胜利。开局直接获得过客职业时，默认使用此目标。
+Param/Value/GKANNOUNCE=一位过客
+Param/Value/GKDOT=.
+Param/Value/GKARRIVE=来到了城镇，他是个「
+Param/Value/GKROLEEND=」。
+Param/Value/GKSELECT=你选择了
+Param/Value/GKSELECTEND=作为今晚的行动目标。
+Param/Value/GKCANCEL=你取消了今晚的行动。
+Param/Value/GKBLOCKED=你的行动受到了限制，本次能力没有生效；若有次数限制，此次不消耗次数。
+Param/Value/GKUSED=你的能力次数已经用尽。
+Param/Value/GKINVALID=现在无法对这个目标使用能力。
+Param/Value/GKTEAMINFO=你的真实归属是：
+Param/Value/GKNEUTRALINFO=你的真实归属为中立；存活至游戏结束即可共胜。
+Param/Value/GKWIN=你作为过客一同获胜了！
+Param/Value/GKLOSE=你未能达成过客的共胜条件。
+Param/Value/GK33NAME=<c val="A8C5D6">见证者</c>
+Param/Value/GK33DESC=他总在街角的微光中停留，把每一个来去的身影悄悄记下。<n/><n/><c val="BBDDFF">每夜访问一名玩家，得知当晚访问其住处的独立玩家人数，不计你自己。</c>
+Param/Value/GK33ABIL=每夜访问一名玩家，得知当晚访问其住处的独立玩家人数，不计你自己。
+Param/Value/GK33TRAIT=<n/>- 你可以选择自己。<n/>- 同一玩家即使通过两个访问槽登门，也只计算一次。<n/>- 你的访问可被女巫或司机改变；被限制时无法获得结果。
+Param/Value/GK33WHITE=一个静静记住每个来客的旁观者。
+Param/Value/GK33CARD=<c val="A8C5D6">
+Param/Value/GK33INV1=你的目标把每个来去的身影都记在心里。
+Param/Value/GK33INV2=那暗示他会是个见证者。
+Param/Value/GK33CRIME=无
+Param/Value/GK33RESULT=你见证了目标当晚的来客：共有
+Param/Value/GK33RESULTEND=名独立玩家访问其住处（不计你自己）。
+Param/Value/GK33HINT=每夜选择一名玩家进行见证，你也可以选择自己。
+Param/Value/GK34NAME=<c val="D9C79F">信使</c>
+Param/Value/GK34DESC=一封没有署名的信，足以让两扇紧闭的门在夜里彼此敞开。<n/><n/><c val="BBDDFF">每个白天选择两名活人，让他们在当晚通过专属聊天交谈，替代原有夜聊。</c>
+Param/Value/GK34ABIL=每个白天选择两名活人，让他们在当晚通过专属聊天交谈，替代原有夜聊。
+Param/Value/GK34TRAIT=<n/>- 当晚的聊天关系不会因你的死亡而取消。<n/>- 重叠关系互不传递：若甲与乙、甲与丙各有联系，甲的话乙丙都能听见，乙的话丙听不见。<n/>- 传递消息不视为登门访问。
+Param/Value/GK34WHITE=一个替沉默的人们传递私语的送信人。
+Param/Value/GK34CARD=<c val="D9C79F">
+Param/Value/GK34INV1=你的目标身边留着尚未寄出的信。
+Param/Value/GK34INV2=那暗示他会是个信使。
+Param/Value/GK34CRIME=无
+Param/Value/GK34HINT=白天选择两名活人，建立仅供当晚使用的专属聊天。
+Param/Value/GK34LINK=一名信使为你建立了当晚的专属聊天；它替代你原有的夜聊。
+Param/Value/GK34LINKWITH=你今晚可以通过信使与这名玩家交谈：
+Param/Value/GK34CHAT=<c val="D9C79F">[信使]
+Param/Value/GK34CHATSEP=：
+Param/Value/GK34CHATEND=</c>
+Param/Value/GK34CANCEL=你取消了今天预选的信使聊天关系。
+Param/Value/GKMAILTITLE=信使频道配对
+Param/Value/GKMAILHINT=选择两名存活玩家（可包含自己），入夜后生效。关闭保留选择，清空取消两人。
+Param/Value/GKMAILCOUNT=已选择：
+Param/Value/GKMAILTIP=选择或取消这名玩家
+Param/Value/GKMAILCLEAR=清空
+Param/Value/GKMAILCLOSE=关闭
+Param/Value/GKMAILFULL=已选两人，请先取消一人或清空。
+Param/Value/GKMAILSET=信使配对已更新：
+Param/Value/GKMAILBAD=格式：-pair 楼层 楼层；须为两名不同的存活且在场玩家。
+Param/Value/GK35NAME=<c val="CBB6CF">傀儡</c>
+Param/Value/GK35DESC=丝线悬在无人看见的高处，而他选择替另一个人走向落幕。<n/><n/><c val="BBDDFF">白天预先开启替死，在有人将被公开处决时代其死亡。</c>
+Param/Value/GK35ABIL=白天预先开启替死，在有人将被公开处决时代其死亡。
+Param/Value/GK35TRAIT=<n/>- 你须在处决前通过白天指令或技能开启替死。<n/>- 若有多名有效的傀儡候选，只会随机选择其中一名替死。<n/>- 替死不是夜间登门行动。
+Param/Value/GK35WHITE=一个愿意代他人承受最后一幕的木偶。
+Param/Value/GK35CARD=<c val="CBB6CF">
+Param/Value/GK35INV1=你的目标身上缠着细细的丝线。
+Param/Value/GK35INV2=那暗示他会是个傀儡。
+Param/Value/GK35CRIME=无
+Param/Value/GK35HINT=白天通过指令或技能预先开启或关闭替死。
+Param/Value/GK35ON=你开启了替死，准备代替即将被公开处决的人死亡。
+Param/Value/GK35OFF=你关闭了替死。
+Param/Value/GK35SACRIFICE=一名傀儡代替被处决者承受了这次处决。
+Param/Value/GK35DEATH=他作为傀儡，代替另一名玩家承受了公开处决。
+Param/Value/GK35OWN=<s val="ModLeftSize16"><c val="CBB6CF">你代替另一名玩家承受了公开处决。</c></s>
+Param/Value/GK36NAME=<c val="AFD1C0">护魂侍</c>
+Param/Value/GK36DESC=他把仅存的微光藏在掌心，为另一颗尚未熄灭的灵魂留住退路。<n/><n/><c val="BBDDFF">限一次，夜间访问另一名活人，为其增加一次次数盾。</c>
+Param/Value/GK36ABIL=限一次，夜间访问另一名活人，为其增加一次次数盾。
+Param/Value/GK36TRAIT=<n/>- 你不能选择自己。<n/>- 次数盾不是永久夜间无敌。<n/>- 你的访问可被女巫或司机改变。<n/>- 被限制时不授予护盾，也不消耗次数。
+Param/Value/GK36WHITE=一个为他人的灵魂保留最后一层屏障的守护者。
+Param/Value/GK36CARD=<c val="AFD1C0">
+Param/Value/GK36INV1=你的目标掌心藏着一缕温和的微光。
+Param/Value/GK36INV2=那暗示他会是个护魂侍。
+Param/Value/GK36CRIME=无
+Param/Value/GK36HINT=你仅有一次机会，夜间选择另一名活人，赠予一次次数盾。
+Param/Value/GK36SUCCESS=你消耗了唯一一次机会，为目标增加了一次次数盾。
+Param/Value/GK36RECEIVE=一名护魂侍为你增加了一次次数盾。
+Param/Value/GK37NAME=<c val="D7B6AC">事务员</c>
+Param/Value/GK37DESC=他把一份盖好印章的文书放在桌上，明日的争论便多了几分分量。<n/><n/><c val="BBDDFF">限一次，夜间访问一名玩家，使其次日的票权固定为3。</c>
+Param/Value/GK37ABIL=限一次，夜间访问一名玩家，使其次日的票权固定为3。
+Param/Value/GK37TRAIT=<n/>- 效果同时适用于送审和有罪、无罪投票。<n/>- 票权固定为3，不是额外增加2，也不保留更高的原有票权。<n/>- 不能使过客恢复投票资格。<n/>- 你的访问可被女巫或司机改变；被限制不生效，也不消耗次数。
+Param/Value/GK37WHITE=一个以一纸公文改变投票分量的办事员。
+Param/Value/GK37CARD=<c val="D7B6AC">
+Param/Value/GK37INV1=你的目标带着一份盖好印章的文书。
+Param/Value/GK37INV2=那暗示他会是个事务员。
+Param/Value/GK37CRIME=无
+Param/Value/GK37HINT=你仅有一次机会，夜间选择一名玩家，使其次日票权固定为3。
+Param/Value/GK37SUCCESS=你消耗了唯一一次机会，使目标次日票权固定为3；这不会赋予过客投票资格。
+Param/Value/GK37RECEIVE=一名事务员使你今天的票权固定为3；送审和有罪、无罪投票均适用，过客仍不能投票。

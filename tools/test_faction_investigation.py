@@ -24,7 +24,7 @@ NAMES = (
     'gf_SKP_1_tanyuan', 'gf_SKP_1_lianbangtanyuan',
     'gt_E78AAFE7BDAAE8AEB0E5BD95_Func',
     'gf_SKF_1_tanyuan', 'gf_SKF_1_lianbangtanyuan',
-    'gf_BHSeenFaction', 'gf_BHDeathName',
+    'gf_BHSeenFaction', 'gf_BHDeathName', 'gf_GKIs',
 )
 # Exact original bodies, before the identity-color exception. Canonicalizing
 # ONLY the new name call must recover these; this protects ordinary group clues,

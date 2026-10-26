@@ -1,0 +1,28 @@
+{
+  "pool": 3,
+  "role": 36,
+  "pinyin": "huhunshi",
+  "cn": "护魂侍",
+  "name_key": "GK36NAME",
+  "desc_key": "GK36DESC",
+  "investigator": [],
+  "crime_key": "GK36CRIME",
+  "options": [],
+  "flag10": false,
+  "guessable": true,
+  "help_preview": null,
+  "extra_def_lines": [
+    "gv_roleInvestigatorArray[3][36][0] = StringExternal(\"Param/Value/GK36INV1\");",
+    "gv_roleInvestigatorArray[3][36][1] = StringExternal(\"Param/Value/GK36INV2\");",
+    "gv_roleOptions[3][36][10] = false;",
+    "gv_roleWeights[3][36] = 0.0;"
+  ],
+  "interactions": {
+    "swap": {"text": "源码审查：gf_GKPrepareVisits经gf_BHVisitAction登记目标，gf_GKResolveEarly读取交换后的最终访问目标；gf_GKNightSelectable拒绝自选，重定向回本人亦不授盾、不扣次。"},
+    "investigate": {"text": "源码审查：沿用统一访问记录；gf_GKResolveEarly为最终有效目标增加1点gv_immuneChance并置gv_gkUsed，不写永久无敌。公开过客职业、固定主题色；尚未SC2实机验证。"},
+    "restrict": {"text": "源码审查：gf_BHRestrictAllowed未给予限制免疫；gf_GKResolveEarly要求本人未受限制、本人及目标未被监禁，仅成功授盾后消耗唯一一次机会。无自带夜间免疫，可被夜杀；尚未SC2实机验证。"},
+    "guessage": {"text": "源码审查：gf_ASGuessRole(4,34)已映射角色36，gf_ASE5AEA1E69FA5E98089E9A1B92的中立列表上界已为35；尚未SC2实机验证。", "in_guess_list": true}
+  },
+  "note": "中立·过客公开职业。限一次，夜访另一名活人，为其增加一次次数盾；不能自选，被限制不扣次。继承转世前真实阵营，不得再转阵营或角色，无投票/被送审资格，不计胜利/送审人数；城镇/黑手党/三合会随队胜负且死后可赢，任何中立归属仅存活至终局共胜、不触发或延迟胜利；原生默认中立存活目标，不开原阵营夜聊。普通随机权重0，自设可显式选择。角色号36不访问银行首胜数组。",
+  "review_status": "draft"
+}

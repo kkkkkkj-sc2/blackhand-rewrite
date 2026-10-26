@@ -26,6 +26,7 @@ import tempfile
 from pathlib import Path
 
 from test_egun import SCRIPT, function, mask, translate
+from test_faction_conversion import with_guoke_dependencies
 
 NAMES = (
     'gf_SKG_1_xuetu', 'gf_SKP_1_xuetu', 'gf_SKA2_1_xuetu',
@@ -69,6 +70,7 @@ def harness(source: str) -> str:
                   'gf_SKO_2_bangjiazhe', 'gf_SKO_5_shenxun',
                   'gf_SKO_2_qipianzhe', 'gf_SKO_5_mihuo')
 
+    names = with_guoke_dependencies(source, names)
     bodies = [function(source, name) for name in names]
     guards = [
         immediate_guard(source, 'gf_SequencePrep', 'gf_SKP_1_xuetu',

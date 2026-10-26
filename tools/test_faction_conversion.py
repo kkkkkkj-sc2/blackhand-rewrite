@@ -31,7 +31,40 @@ NAMES = (
     'gf_CheckEnd', 'gf_SKF_1_jingzhang',
     'gf_ETTownWin', 'gf_ETMafiaWin', 'gf_ETTriadWin', 'gf_BHFactionReset',
     'gf_BHSpyActive', 'gf_BHSeenFaction', 'gf_BHInvestigatedRoleName', 'gf_BHPrivateRoleName',
+    'gf_GKIs', 'gf_GKSetRoleField', 'gf_GKAliveCount', 'gf_GKWon',
+    'gf_BHWithdrawVotes',
 )
+
+
+def with_guoke_dependencies(source: str, names) -> tuple[str, ...]:
+    """Extract new passer helpers verbatim, never silently stub gameplay guards."""
+    result = list(dict.fromkeys(names))
+    cursor = 0
+    while cursor < len(result):
+        body = function(source, result[cursor])
+        for called in sorted(set(re.findall(r'\b(gf_GK\w+)\s*\(', mask(body)))):
+            if called not in result:
+                result.append(called)
+
+        cursor += 1
+
+    return tuple(result)
+
+
+def missing_actual_globals(source: str, bodies, existing: str) -> str:
+    """Declare newly extracted dependencies using their production dimensions."""
+    used = set(re.findall(r'\bgv_\w+', mask('\n'.join(bodies))))
+    known = set(re.findall(r'\bgv_\w+', mask(existing)))
+    declarations = {}
+    for match in re.finditer(r'^(\w+)((?:\[\d+\])*)\s+(gv_\w+)\s*(?:=[^;]*)?;', source, re.M):
+        kind, dims, name = match.groups()
+        declarations[name] = f'{kind} {name}{dims};'
+
+    missing = used - known
+    assert not missing - declarations.keys(), ('missing production globals', missing - declarations.keys())
+    return '\n'.join(declarations[name] for name in sorted(missing))
+
+
 # Pre-conversion body: only the one real-identity name call may differ.
 # Group clues, framing, immunity and all original control flow remain exact.
 INVESTIGATOR_SHA256 = '8e2a4c5c121b49b6757fdafe4e045c7afbe862b8ee473ab719d893b0937b0ee2'
@@ -75,7 +108,7 @@ def integration(source: str) -> list[tuple[str, str]]:
 
     conversion = mask(function(source, 'gf_BHConvertFaction'))
     permitted = {
-        'gf_BHFaction', 'PlayerGroupHasPlayer', 'gf_BHFactionCard',
+        'gf_BHFaction', 'gf_GKIs', 'PlayerGroupHasPlayer', 'gf_BHFactionCard',
         'gf_RefreshRoleBox', 'gf_BHRefreshFactionChat', 'gf_GSRefreshChat',
         'gf_RTRoleCard',  # FZ needs its true profession rendered, never role setup.
         'gf_CBSystemMessage', 'StringExternal', 'SoundLink', 'Color',
@@ -331,7 +364,8 @@ void testQueries() {
         CHECK(gf_BHConverted(p)==converted); CHECK(gf_BHFaction(p)==(converted?faction:pool));
         CHECK(gf_BHSeenFaction(p)==(converted && id==8?1:(converted?faction:pool)));
         CHECK(gf_BHSpyActive(p)==(pool==1 && id==8 && !converted));
-        CHECK(gf_LMCat(p)==(converted?faction:pool)); CHECK(gf_LMRole(p)==(converted?0:id));
+        bool passer=pool==3 && id>=33 && id<=37;
+        CHECK(gf_LMCat(p)==(converted?faction:pool)); CHECK(gf_LMRole(p)==(converted || passer?0:id));
         string expected=converted?TextWithColor(StringExternal("Param/Value/BHFROLE"+std::to_string(id)),Color(faction==2?85.10:56.08,faction==2?62.75:74.90,faction==2?56.08:81.96)):gv_roleNameArray[pool][id];
         CHECK(gf_BHRoleName(p)==expected);
     }
@@ -584,8 +618,20 @@ void testCheckEnd() {
         CHECK(std::equal(flags.begin(),flags.end(),std::begin(gv_specialCaseFlag)));
     }
 }
+void testRoleSetterBoundary() {
+    reset("actual ordinary role setter");
+    role(1,1,6); gv_gameStarted=true;
+    gf_GKSetRoleField(1,1,2); gf_GKSetRoleField(1,0,1);
+    CHECK(gv_roles[1][1]==2 && gv_roles[1][0]==1);
+    role(1,3,33); gv_gkRole[1]=33;
+    gf_GKSetRoleField(1,1,2); gf_GKSetRoleField(1,0,1);
+    CHECK(gv_roles[1][1]==3 && gv_roles[1][0]==33);
+    gv_gameStarted=false;
+    gf_GKSetRoleField(1,0,34);
+    CHECK(gv_roles[1][0]==34);
+}
 int main() {
-    testQueries(); testConversionGuardsAndState(); testChat(); testClosedNightWindow(); testCommand();
+    testRoleSetterBoundary(); testQueries(); testConversionGuardsAndState(); testChat(); testClosedNightWindow(); testCommand();
     testLimao(); testSheriff(); testET(); testCheckEnd();
     std::cout << "PASS: actual faction API/guards/no-side-effects/profession state; role/death names; card rows; night chat; solo commands; limaо snapshots; sheriff; 25 ET expressions; three complete faction ET bodies; CheckEnd" << '\n';
     std::cout << "PASS: 4000 seeded independent counter populations + effective-identity metamorphism; 900 randomized full ET fixtures; " << fixtures << " fixtures, " << checks << " assertions; UBSan/bounds" << std::endl;

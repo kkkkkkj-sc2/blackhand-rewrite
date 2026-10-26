@@ -1,0 +1,28 @@
+{
+  "pool": 3,
+  "role": 35,
+  "pinyin": "kuilei",
+  "cn": "傀儡",
+  "name_key": "GK35NAME",
+  "desc_key": "GK35DESC",
+  "investigator": [],
+  "crime_key": "GK35CRIME",
+  "options": [],
+  "flag10": false,
+  "guessable": true,
+  "help_preview": null,
+  "extra_def_lines": [
+    "gv_roleInvestigatorArray[3][35][0] = StringExternal(\"Param/Value/GK35INV1\");",
+    "gv_roleInvestigatorArray[3][35][1] = StringExternal(\"Param/Value/GK35INV2\");",
+    "gv_roleOptions[3][35][10] = false;",
+    "gv_roleWeights[3][35] = 0.0;"
+  ],
+  "interactions": {
+    "swap": {"text": "源码审查：gf_GKPuppetToggle经白天指令/技能开启；gf_EExecution在律师拦截之后调用gf_GKSubstitute，从存活且已开启的其他傀儡中等概率选一名替死。不是夜间登门目标，不受夜间交换重定向。"},
+    "investigate": {"text": "源码审查：gf_GKPuppetToggle只切换启用状态并提示，不登记对外访问；替死成功由gf_EExecution清除该傀儡的启用状态。公开过客职业、固定主题色；尚未SC2实机验证。"},
+    "restrict": {"text": "源码审查：gf_BHRestrictAllowed未给予夜间限制免疫，无自带夜间免疫、可被夜杀。白天开启由gf_GKDayCan校验阶段及存活状态；gf_GKSubstitute只筛存活、职业和已开启状态，不读取gv_roleblocked或gv_jailed。此为当前白天替死实现，不代表夜间限制免疫；尚未SC2实机验证。"},
+    "guessage": {"text": "源码审查：gf_ASGuessRole(4,33)已映射角色35，gf_ASE5AEA1E69FA5E98089E9A1B92的中立列表上界已为35；尚未SC2实机验证。", "in_guess_list": true}
+  },
+  "note": "中立·过客公开职业。白天通过指令/技能预先开启替死，在白天公开处决时替被处决者死亡；多个有效候选随机一名。继承转世前真实阵营，不得再转阵营或角色，无投票/被送审资格，不计胜利/送审人数；城镇/黑手党/三合会随队胜负且死后可赢，任何中立归属仅存活至终局共胜、不触发或延迟胜利；原生默认中立存活目标，不开原阵营夜聊。普通随机权重0，自设可显式选择。角色号35不访问银行首胜数组。",
+  "review_status": "draft"
+}

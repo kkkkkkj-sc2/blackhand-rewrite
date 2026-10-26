@@ -15,6 +15,7 @@ import subprocess
 import tempfile
 
 from test_egun import function, mask, translate
+from test_faction_conversion import with_guoke_dependencies, missing_actual_globals
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / 'work/blackhand/CustomLogic.galaxy'
@@ -421,10 +422,17 @@ def original_roster():
 def main():
     source = SCRIPT.read_text()
     check_wiring(source)
-    bodies = [function(source, name) for name in NAMES]
+    names = with_guoke_dependencies(source, (*NAMES, 'gf_BHPrivateRoleName', 'gf_BHRoleName'))
+    bodies = [function(source, name) for name in names]
+    globals_text = missing_actual_globals(source, bodies, PREFIX)
     baseline = original_roster()
     prototypes = '\n'.join(body.split('{', 1)[0].strip() + ';' for body in bodies)
-    code = translate(PREFIX + '\n' + prototypes + '\n' + '\n\n'.join(bodies)
+    native_text = r'''
+#define null ""
+string IntToString(int n) { return std::to_string(n); }
+int Color(double r,double g,double b) { return int(r*10000+g*100+b); }
+'''
+    code = translate(PREFIX + native_text + '\n' + globals_text + '\n' + prototypes + '\n' + '\n\n'.join(bodies)
                      + '\n' + baseline + '\n' + CASES)
     compiler = shutil.which('g++') or shutil.which('clang++')
     assert compiler, 'a C++ compiler is required'

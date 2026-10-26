@@ -14,6 +14,8 @@ import subprocess
 import tempfile
 import unittest
 
+from test_faction_conversion import with_guoke_dependencies, missing_actual_globals
+
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "work/blackhand/CustomLogic.galaxy"
 SOURCE = SCRIPT.read_text()
@@ -24,7 +26,7 @@ CHAT_NAMES = (
     "gf_GSChatHidden", "gf_GSChatRecipient", "gf_GSSpecialRecipient",
     "gf_GSSpecialSay", "gf_GSChatSay", "gf_GSRefreshChat", "gf_GSChatJoin",
 )
-SUPPORT_NAMES = ("gf_BHConverted", "gf_GSIs", "gf_GSActive", "gf_GSPlayerLabel", "gf_FZChatHidden", "gf_XRNeutralFatal")
+SUPPORT_NAMES = ("gf_BHConverted", "gf_BHSpyActive", "gf_GSIs", "gf_GSActive", "gf_GSPlayerLabel", "gf_FZChatHidden", "gf_XRNeutralFatal")
 
 
 def mask(source: str) -> str:
@@ -258,8 +260,10 @@ class GongshengtiChat(unittest.TestCase):
             print(f"{name}: L{first}-L{first + body.count(chr(10))}")
 
     def test_extracted_galaxy(self):
-        names = (*SUPPORT_NAMES, *CHAT_NAMES)
-        harness = PRELUDE + prototypes(names) + extracted(names) + "\n" + HARNESS
+        names = with_guoke_dependencies(SOURCE, (*SUPPORT_NAMES, *CHAT_NAMES))
+        bodies = [function(SOURCE, name) for name in names]
+        globals_text = missing_actual_globals(SOURCE, bodies, PRELUDE)
+        harness = PRELUDE + '\n' + globals_text + '\n' + prototypes(names) + extracted(names) + "\n" + HARNESS
         with tempfile.TemporaryDirectory(prefix="gs-chat-test-") as directory:
             source, binary = Path(directory) / "chat.cpp", Path(directory) / "chat-test"
             source.write_text(harness)
