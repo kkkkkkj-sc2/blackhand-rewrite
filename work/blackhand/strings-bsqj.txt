@@ -1,0 +1,6 @@
+// 白手起家：用户 -save 阵容，仅15人。
+Param/Value/BSQJNAME=<s val="ModCenterSize24Bold"><c val="D8B56A">白手起家</c></s>
+Param/Value/BSQJDESC=一名初来咋到的家族领袖来到了小镇，他渴望建立自己的势力。
+Param/Value/BSQJBTN=<s val="ModCenterSize24Bold"><c val="D8B56A">白手起家</c></s>
+Param/Value/BSQJSUBA=<c val="D8B56A">白手起家</c>
+Param/Value/BSQJONLY15=<s val="ModLeftSize16"><c val="FF4444">「白手起家」仅限15人使用；当前人数不足，未载入阵容。</c></s>

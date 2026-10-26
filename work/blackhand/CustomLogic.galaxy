@@ -668,6 +668,9 @@ bool gv_chooseNames;
 bool gv_success;
 int[16][2] gv_semifinalRole;
 fixed[9][41] gv_roleWeights;
+// 白手起家缺失项使用初始化时的默认快照，不继承此前载入的板子。
+bool[6][41][12] gv_bsqjDefaultOptions;
+fixed[6][41] gv_bsqjDefaultWeights;
 fixed[9][41] gv_finalWeights;
 int gv_tempPlayers;
 playergroup gv_tempPlayerGroup;
@@ -2381,6 +2384,9 @@ void gf_VJSXOptions (); // 随机：决死之心
 void gf_VCCZOptions (); // 随机：传承者
 void gf_VHLZSOptions (); // 随机：混乱之始
 void gf_VSYJXOptions (); // 随机：实验性角色
+void gf_VBSQJOptions (); // 白手起家（仅15人）
+void gf_BSQJSnapshotDefaults ();
+void gf_BHApplyLobbyOptions ();
 void gf_VRankedBOptions ();
 void gf_VRankedDOptions ();
 void gf_VRankedDOptions2 ();
@@ -6834,6 +6840,7 @@ void gf_InitializeVariables () {
     gv_roleInvestigatorArray[3][37][1] = StringExternal("Param/Value/GK37INV2");
     gv_roleOptions[3][37][10] = false;
     gv_roleWeights[3][37] = 0.0;
+    gf_BSQJSnapshotDefaults();
 }
 
 void gf_InitializeOther () {
@@ -51007,6 +51014,10 @@ bool auto_gf_OSComputeOptions_TriggerFunc (bool testConds, bool runActions) {
             gv_variant = "syjx";
         }
 
+        if ((gv_variantSelection == 41)) {
+            gv_variant = "bsqj";
+        }
+
     }
     gf_BRNormalizeOptions();
     TriggerEnable(gt_RepickHost, false);
@@ -54172,6 +54183,7 @@ void gf_OSInitializeOptionsScreen () {
     DialogControlAddItem(gv_variantsMenuItem[0], PlayerGroupAll(), StringExternal("Param/Value/CCZTNAME")); // 第38项（随机：传承者）
     DialogControlAddItem(gv_variantsMenuItem[0], PlayerGroupAll(), StringExternal("Param/Value/HLZSNAME")); // 第39项（随机：混乱之始）
     DialogControlAddItem(gv_variantsMenuItem[0], PlayerGroupAll(), StringExternal("Param/Value/SYJXNAME")); // 第40项（随机：实验性角色）
+    DialogControlAddItem(gv_variantsMenuItem[0], PlayerGroupAll(), StringExternal("Param/Value/BSQJNAME")); // 第41项（白手起家）
 }
 
 void gf_OSActivateOptions () {
@@ -60498,7 +60510,7 @@ bool gt_SetupDone_Func (bool testConds, bool runActions) {
         gf_CBDimChat(auto0165DB70_var);
         gf_CBAllowDisallowChatting(auto0165DB70_var, ge_Allow_Disallow);
     }
-    if (((gv_variant == "sotd") || (gv_variant == "bfcz") || (gv_variant == "djsp")) || ((gv_variant == "tq") || (gv_variant == "cw") || (gv_variant == "wd") || (gv_variant == "jsx") || (gv_variant == "ccz") || (gv_variant == "hlzs") || (gv_variant == "syjx"))) {
+    if (((gv_variant == "sotd") || (gv_variant == "bfcz") || (gv_variant == "djsp")) || ((gv_variant == "tq") || (gv_variant == "cw") || (gv_variant == "wd") || (gv_variant == "jsx") || (gv_variant == "ccz") || (gv_variant == "hlzs") || (gv_variant == "syjx") || (gv_variant == "bsqj"))) {
         autoEDCD1153_g = gv_currentPlayers;
         autoEDCD1153_var = -1;
         while (true) {
@@ -82402,6 +82414,11 @@ bool gt_OSVariantsMenuChange_Func (bool testConds, bool runActions) {
         libNtve_gf_SetDialogItemText(gv_variantDescriptionItem[0], StringExternal("Param/Value/SYJXDESC"), PlayerGroupAll());
         DialogControlSetEnabled(gv_variantsMenuItem[1], PlayerGroupSingle(gv_host), true);
     }
+    if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 41)) {
+        libNtve_gf_SetDialogItemText(gv_variantDescriptionItem[1], StringExternal("Param/Value/BSQJNAME"), PlayerGroupAll());
+        libNtve_gf_SetDialogItemText(gv_variantDescriptionItem[0], StringExternal("Param/Value/BSQJDESC"), PlayerGroupAll());
+        DialogControlSetEnabled(gv_variantsMenuItem[1], PlayerGroupSingle(gv_host), true);
+    }
 
     if ((DialogControlGetSelectedItem(gv_variantsMenuItem[0], gv_host) == 31)) {
         gv_variantSelection = 31;
@@ -82435,6 +82452,9 @@ bool gt_OSVariantsMenuChange_Func (bool testConds, bool runActions) {
     }
     if ((DialogControlGetSelectedItem(gv_variantsMenuItem[0], gv_host) == 40)) {
         gv_variantSelection = 40;
+    }
+    if ((DialogControlGetSelectedItem(gv_variantsMenuItem[0], gv_host) == 41)) {
+        gv_variantSelection = 41;
     }
     TriggerEnable(gt_OSVariantsMenuConfirm, true);
     return true;
@@ -82721,6 +82741,9 @@ bool gt_OSVariantsMenuConfirm_Func (bool testConds, bool runActions) {
     }
     if ((DialogControlGetSelectedItem(gv_variantsMenuItem[0], gv_host) == 40)) {
         gv_variantSelection = 40;
+    }
+    if ((DialogControlGetSelectedItem(gv_variantsMenuItem[0], gv_host) == 41)) {
+        gv_variantSelection = 41;
     }
 
     DialogControlSetEnabled(gv_variantsMenuItem[1], PlayerGroupSingle(gv_host), false);
@@ -83068,6 +83091,9 @@ bool gt_OSVariantsMenuConfirm_Func (bool testConds, bool runActions) {
     if ((gv_variantSelection == 40)) {
         gf_VSYJXOptions();
     }
+    if ((gv_variantSelection == 41)) {
+        gf_VBSQJOptions();
+    }
     TriggerEnable(gt_OSVariantsMenuConfirm, true);
     return true;
 }
@@ -83138,7 +83164,7 @@ bool gt_OSRoleManipulate_Func (bool testConds, bool runActions) {
         if (!((gv_variantSelection != 14))) {
             return false;
         }
-        if (!((gv_variantSelection != 31) && (gv_variantSelection != 32) && (gv_variantSelection != 33) && (gv_variantSelection != 35) && (gv_variantSelection != 36) && (gv_variantSelection != 37) && (gv_variantSelection != 38) && (gv_variantSelection != 39) && (gv_variantSelection != 40))) {
+        if (!((gv_variantSelection != 31) && (gv_variantSelection != 32) && (gv_variantSelection != 33) && (gv_variantSelection != 35) && (gv_variantSelection != 36) && (gv_variantSelection != 37) && (gv_variantSelection != 38) && (gv_variantSelection != 39) && (gv_variantSelection != 40) && (gv_variantSelection != 41))) {
             return false;
         }
     }
@@ -84281,7 +84307,7 @@ bool gt_OSRoleSelect_Func (bool testConds, bool runActions) {
 
     }
 
-    if ((((gv_roleCategory == 1) && (gv_roleSelection == 12) && (gv_bigRoleAssigned[1] == true)) || ((gv_roleCategory == 1) && (gv_roleSelection == 23) && (gv_bigRoleAssigned[1] == true)) || ((gv_roleCategory == 1) && (gv_roleSelection == 14) && (gv_bigRoleAssigned[2] == true)) || ((gv_roleCategory == 1) && (gv_roleSelection == 20) && (gv_bigRoleAssigned[4] == true)) || ((gv_roleCategory == 2) && (gv_roleSelection == 2) && (gv_bigRoleAssigned[0] == true)) || ((gv_roleCategory == 2) && (gv_roleSelection == 17) && (gv_bigRoleAssigned[0] == true)) || ((gv_roleCategory == 2) && (gv_roleSelection == 18) && (gv_bigRoleAssigned[0] == true)) || ((gv_roleCategory == 2) && ((gv_roleSelection == 19) || (gv_roleSelection == 22)) && (gv_bigRoleAssigned[0] == true)) || ((gv_roleCategory == 5) && (gv_roleSelection == 2) && (gv_bigRoleAssigned[5] == true)) || ((gv_roleCategory == 5) && (gv_roleSelection == 17) && (gv_bigRoleAssigned[5] == true)) || ((gv_roleCategory == 5) && (gv_roleSelection == 18) && (gv_bigRoleAssigned[5] == true)) || ((gv_roleCategory == 5) && ((gv_roleSelection == 19) || (gv_roleSelection == 22)) && (gv_bigRoleAssigned[5] == true)) || ((gv_roleCategory == 3) && (gv_roleSelection == 10) && (gv_bigRoleAssigned[3] == true)) || ((gv_roleCategory == 3) && (gv_roleSelection == 12) && (gv_bigRoleAssigned[6] == true)) || ((gv_roleCategory == 1) && (gv_roleSelection == 19) && (gv_bigRoleAssigned[1] == true)) || ((gv_roleCategory == 3) && (gv_roleSelection == 13) && (gv_bigRoleAssigned[7] == true)) || ((gv_roleCategory == 3) && (gv_roleSelection == 32) && (gv_bigRoleAssigned[8] == true)) || ((gv_roleCategory == 3) && (gv_roleSelection == 21) && (gv_bigRoleAssigned[9] == true)) || ((gv_roleCategory == 2) && (gv_roleSelection == 16) && (gv_bigRoleAssigned[10] == true)) || ((gv_roleCategory == 5) && (gv_roleSelection == 16) && (gv_bigRoleAssigned[11] == true)) || ((gv_roleCategory == 1) && (gv_roleSelection == 32) && (gv_bigRoleAssigned[12] == true)) || (gv_variantSelection == 1) || (gv_variantSelection == 4) || (gv_variantSelection == 8) || (gv_variantSelection == 9) || (gv_variantSelection == 10) || (gv_variantSelection == 11) || (gv_variantSelection == 12) || (gv_variantSelection == 31) || (gv_variantSelection == 32) || (gv_variantSelection == 33) || (gv_variantSelection == 35) || (gv_variantSelection == 36) || (gv_variantSelection == 37) || (gv_variantSelection == 38) || (gv_variantSelection == 39) || (gv_variantSelection == 40)) || (gf_BHSpyMadBlocked() == true)) {
+    if ((((gv_roleCategory == 1) && (gv_roleSelection == 12) && (gv_bigRoleAssigned[1] == true)) || ((gv_roleCategory == 1) && (gv_roleSelection == 23) && (gv_bigRoleAssigned[1] == true)) || ((gv_roleCategory == 1) && (gv_roleSelection == 14) && (gv_bigRoleAssigned[2] == true)) || ((gv_roleCategory == 1) && (gv_roleSelection == 20) && (gv_bigRoleAssigned[4] == true)) || ((gv_roleCategory == 2) && (gv_roleSelection == 2) && (gv_bigRoleAssigned[0] == true)) || ((gv_roleCategory == 2) && (gv_roleSelection == 17) && (gv_bigRoleAssigned[0] == true)) || ((gv_roleCategory == 2) && (gv_roleSelection == 18) && (gv_bigRoleAssigned[0] == true)) || ((gv_roleCategory == 2) && ((gv_roleSelection == 19) || (gv_roleSelection == 22)) && (gv_bigRoleAssigned[0] == true)) || ((gv_roleCategory == 5) && (gv_roleSelection == 2) && (gv_bigRoleAssigned[5] == true)) || ((gv_roleCategory == 5) && (gv_roleSelection == 17) && (gv_bigRoleAssigned[5] == true)) || ((gv_roleCategory == 5) && (gv_roleSelection == 18) && (gv_bigRoleAssigned[5] == true)) || ((gv_roleCategory == 5) && ((gv_roleSelection == 19) || (gv_roleSelection == 22)) && (gv_bigRoleAssigned[5] == true)) || ((gv_roleCategory == 3) && (gv_roleSelection == 10) && (gv_bigRoleAssigned[3] == true)) || ((gv_roleCategory == 3) && (gv_roleSelection == 12) && (gv_bigRoleAssigned[6] == true)) || ((gv_roleCategory == 1) && (gv_roleSelection == 19) && (gv_bigRoleAssigned[1] == true)) || ((gv_roleCategory == 3) && (gv_roleSelection == 13) && (gv_bigRoleAssigned[7] == true)) || ((gv_roleCategory == 3) && (gv_roleSelection == 32) && (gv_bigRoleAssigned[8] == true)) || ((gv_roleCategory == 3) && (gv_roleSelection == 21) && (gv_bigRoleAssigned[9] == true)) || ((gv_roleCategory == 2) && (gv_roleSelection == 16) && (gv_bigRoleAssigned[10] == true)) || ((gv_roleCategory == 5) && (gv_roleSelection == 16) && (gv_bigRoleAssigned[11] == true)) || ((gv_roleCategory == 1) && (gv_roleSelection == 32) && (gv_bigRoleAssigned[12] == true)) || (gv_variantSelection == 1) || (gv_variantSelection == 4) || (gv_variantSelection == 8) || (gv_variantSelection == 9) || (gv_variantSelection == 10) || (gv_variantSelection == 11) || (gv_variantSelection == 12) || (gv_variantSelection == 31) || (gv_variantSelection == 32) || (gv_variantSelection == 33) || (gv_variantSelection == 35) || (gv_variantSelection == 36) || (gv_variantSelection == 37) || (gv_variantSelection == 38) || (gv_variantSelection == 39) || (gv_variantSelection == 40) || (gv_variantSelection == 41)) || (gf_BHSpyMadBlocked() == true)) {
         DialogControlSetEnabled(gv_rolesMenusItem[3], PlayerGroupSingle(gv_host), false);
     }
     else {
@@ -84644,7 +84670,7 @@ bool gt_OSMenus_Func (bool testConds, bool runActions) {
         TriggerEnable(gt_OSMenus, true);
     }
 
-    if ((EventDialogControl() == gv_rolesMenusItem[2]) && (gv_variantSelection != 1) && (gv_variantSelection != 31) && (gv_variantSelection != 32) && (gv_variantSelection != 33) && (gv_variantSelection != 35) && (gv_variantSelection != 36) && (gv_variantSelection != 37) && (gv_variantSelection != 38) && (gv_variantSelection != 39) && (gv_variantSelection != 40) && (DialogControlGetSelectedItem(EventDialogControl(), gv_host) >= 1)) {
+    if ((EventDialogControl() == gv_rolesMenusItem[2]) && (gv_variantSelection != 1) && (gv_variantSelection != 31) && (gv_variantSelection != 32) && (gv_variantSelection != 33) && (gv_variantSelection != 35) && (gv_variantSelection != 36) && (gv_variantSelection != 37) && (gv_variantSelection != 38) && (gv_variantSelection != 39) && (gv_variantSelection != 40) && (gv_variantSelection != 41) && (DialogControlGetSelectedItem(EventDialogControl(), gv_host) >= 1)) {
         lv_a = 1;
         for ( ; ( (auto70359D9D_ai >= 0 && lv_a <= auto70359D9D_ae) || (auto70359D9D_ai < 0 && lv_a >= auto70359D9D_ae) ) ; lv_a += auto70359D9D_ai ) {
             if ((PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (lv_a != gv_host)) {
@@ -89096,6 +89122,147 @@ DialogControlRemoveAllItems(gv_rolesMenusItem[2], PlayerGroupAll());
     DialogControlSetEnabled(gv_optionsPanelItem[29], PlayerGroupSingle(gv_host), false);
     DialogControlSetEnabled(gv_optionsPanelItem[31], PlayerGroupSingle(gv_host), false);
 }
+
+// shw323：只捕获初始化完成后的默认值；新预设不改通用默认重置及旧 BASE64 协议。
+void gf_BSQJSnapshotDefaults () {
+    int lv_pool;
+    int lv_role;
+    int lv_bit;
+
+    for (lv_pool = 1; lv_pool <= 5; lv_pool += 1) {
+        for (lv_role = 1; lv_role <= c_bhSaveRoleMax; lv_role += 1) {
+            gv_bsqjDefaultWeights[lv_pool][lv_role] = gv_bankSaveWeights[0][lv_pool][lv_role];
+            for (lv_bit = 0; lv_bit <= 11; lv_bit += 1) {
+                gv_bsqjDefaultOptions[lv_pool][lv_role][lv_bit] = gv_roleOptions[lv_pool][lv_role][lv_bit];
+            }
+        }
+    }
+}
+
+// 用户 -save 按导出端协议离线解码。原串与确认项保留在 work/presets/baishouqijia.json。
+// 物理位0..4有多少存多少；其余位/新增角色权重用初始默认。只支持原始15席。
+void gf_VBSQJOptions () {
+    int lv_a;
+    int lv_pool;
+    int lv_role;
+    int lv_bit;
+    int lv_pos;
+    bool lv_value;
+    string lv_word;
+    string lv_weight;
+    string lv_category;
+    string lv_roleList;
+    string[6] lv_bits;
+    string[6] lv_weights;
+
+    libNtve_gf_SetDialogItemText(gv_confirmationButtonItem[1], StringExternal("Param/Value/BSQJBTN"), PlayerGroupAll());
+    gv_setupInfo[1] = StringExternal("Param/Value/BSQJSUBA");
+    DialogControlAddItem(gv_rolesMenusItem[0], PlayerGroupAll(), StringExternal("Param/Value/C264FEA4"));
+    DialogControlAddItem(gv_rolesMenusItem[0], PlayerGroupAll(), StringExternal("Param/Value/C1E1492C"));
+    DialogControlAddItem(gv_rolesMenusItem[0], PlayerGroupAll(), StringExternal("Param/Value/FF2C2A34"));
+    DialogControlAddItem(gv_rolesMenusItem[0], PlayerGroupAll(), StringExternal("Param/Value/FBD78287"));
+    DialogControlAddItem(gv_rolesMenusItem[0], PlayerGroupAll(), StringExternal("Param/Value/36EB4524"));
+    DialogControlAddItem(gv_optionsPanelItem[3], PlayerGroupAll(), StringExternal("Param/Value/B4F7A9F6"));
+    DialogControlAddItem(gv_optionsPanelItem[3], PlayerGroupAll(), StringExternal("Param/Value/F429FE99"));
+    DialogControlAddItem(gv_optionsPanelItem[3], PlayerGroupAll(), StringExternal("Param/Value/E4DDE61D"));
+    DialogControlAddItem(gv_optionsPanelItem[6], PlayerGroupAll(), StringExternal("Param/Value/3EBC62A6"));
+    DialogControlAddItem(gv_optionsPanelItem[6], PlayerGroupAll(), StringExternal("Param/Value/6A680082"));
+    DialogControlAddItem(gv_optionsPanelItem[6], PlayerGroupAll(), StringExternal("Param/Value/A2853A16"));
+    DialogControlAddItem(gv_optionsPanelItem[6], PlayerGroupAll(), StringExternal("Param/Value/CD5FE7E9"));
+    DialogControlAddItem(gv_optionsPanelItem[21], PlayerGroupAll(), StringExternal("Param/Value/452C0568"));
+    DialogControlAddItem(gv_optionsPanelItem[21], PlayerGroupAll(), StringExternal("Param/Value/A1C287A2"));
+    DialogControlAddItem(gv_optionsPanelItem[21], PlayerGroupAll(), StringExternal("Param/Value/40640D5E"));
+
+    // 不经过旧 BASE64 导入器，避免角色位/全局位错解及空权重词的对齐问题。
+    lv_bits[1] = "110001101111111000000010011000100001110011100111101100001000010000001010000110000011000000010100000000000000000001000000000000000000000000000000000000000000000000000000000100";
+    lv_bits[2] = "100001011011000001001100010010100001100010000100001010000000000000000010000100000000000000000000000000000010";
+    lv_bits[3] = "100000000010000111001011010010000101110011100010001110101100010001100010000110001000";
+    lv_bits[4] = "000000110000000110101000000000001000000000000000000000000000110000000000000000000000000000";
+    lv_bits[5] = "100001011011000001001100010100100001100010000100001010000000000000000010000100000000000000000000000000000010";
+    lv_weights[1] = "0.0 2.0 3.0 1.2 1.5 1.1 1.5 1.2 0.5 0.0 1.0 1.0 0.5 0.5 2.0 2.0 1.0 0.0 0.5 0.0 0.5 1.2 0.0 1.0 1.0 2.5 2.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0";
+    lv_weights[2] = "2.0 1.0 1.5 1.5 1.0 1.0 1.0 0.5 0.5 1.0 1.0 0.0 0.0 1.0 0.0 0.5 1.0 1.0 1.0 0.0 0.0 1.0";
+    lv_weights[3] = "1.0 1.0 2.0 0.6 0.7 1.5 1.5 0.5 1.2 0.2 3.0 1.0 0.2 0.3 4.0 0.5 0.1 0.2";
+    lv_weights[4] = "";
+    lv_weights[5] = "2.0 1.0 1.5 1.5 1.0 1.0 1.0 0.5 0.5 1.0 1.0 0.0 0.0 0.0 1.0 0.5 1.0 1.0 1.0 0.0 0.0 1.0";
+
+    for (lv_pool = 1; lv_pool <= 5; lv_pool += 1) {
+        for (lv_role = 1; lv_role <= c_bhSaveRoleMax; lv_role += 1) {
+            gv_bankSaveWeights[0][lv_pool][lv_role] = gv_bsqjDefaultWeights[lv_pool][lv_role];
+            lv_weight = StringWord(lv_weights[lv_pool], lv_role);
+            if ((lv_weight != "") && (lv_weight != null)) {
+                gv_bankSaveWeights[0][lv_pool][lv_role] = StringToFixed(lv_weight);
+            }
+
+            lv_word = "";
+            for (lv_bit = 0; lv_bit <= 11; lv_bit += 1) {
+                lv_value = gv_bsqjDefaultOptions[lv_pool][lv_role][lv_bit];
+                gv_roleOptions[lv_pool][lv_role][lv_bit] = lv_value;
+                gv_defaultRoleOptions[lv_pool][lv_role][lv_bit] = lv_value;
+                if ((gv_roleOptionExists[lv_pool][lv_role][lv_bit] == true)) {
+                    lv_pos = ((lv_role - 1) * 5) + lv_bit + 1;
+                    if ((lv_bit <= 4) && (lv_pos <= StringLength(lv_bits[lv_pool]))) {
+                        lv_value = (StringSub(lv_bits[lv_pool], lv_pos, lv_pos) == "1");
+                    }
+
+                    if ((lv_value == true)) {
+                        lv_word = lv_word + "1";
+                    }
+                    else {
+                        lv_word = lv_word + "0";
+                    }
+                }
+            }
+
+            // 没有能力开关的角色也要有非空词，VLoad 才会同步其权重。
+            if ((lv_word == "")) {
+                lv_word = "0";
+            }
+
+            gv_bankSaveStrings[0][lv_role][lv_pool] = lv_word;
+        }
+    }
+
+    gv_bankSaveStrings[0][0][0] = "1211001111000";
+    gv_bankSaveReals[0][0] = 1.2;
+    gv_bankSaveReals[0][1] = 0.6;
+    gv_bankSaveReals[0][2] = 0.3;
+    gv_bankSaveReals[0][3] = 0.8;
+    lv_category = "1 1 1 4 4 4 4 4 4 4 4 4 2 3 4";
+    lv_roleList = "2 2 13 4 2 2 2 2 5 5 7 6 22 1 13";
+    gv_rolesAssigned = 0;
+    DialogControlRemoveAllItems(gv_rolesMenusItem[2], PlayerGroupAll());
+    for (lv_a = 1; lv_a <= 15; lv_a += 1) {
+        gv_categoriesArray[lv_a] = 0;
+        gv_rolesArray[lv_a] = 0;
+        gv_bankSaveIntegers[0][1][lv_a] = 0;
+        gv_bankSaveIntegers[0][0][lv_a] = 0;
+        if ((PlayerGroupCount(gv_currentPlayers) == 15)) {
+            gv_bankSaveIntegers[0][1][lv_a] = StringToInt(StringWord(lv_category, lv_a));
+            gv_bankSaveIntegers[0][0][lv_a] = StringToInt(StringWord(lv_roleList, lv_a));
+        }
+    }
+
+    gf_VLoadSaveSlot(0, 10);
+    gf_BHApplyLobbyOptions();
+    if ((PlayerGroupCount(gv_currentPlayers) != 15)) {
+        gf_CBSystemMessage(StringExternal("Param/Value/BSQJONLY15"), gv_host, 0, 0, SoundLink("Spectre_Explode", -1), Color(0,0,0));
+    }
+
+    DialogControlSetEnabled(gv_optionsPanelItem[1], PlayerGroupSingle(gv_host), false);
+    DialogControlSetEnabled(gv_optionsPanelItem[2], PlayerGroupSingle(gv_host), false);
+    DialogControlSetEnabled(gv_optionsPanelItem[3], PlayerGroupSingle(gv_host), false);
+    DialogControlSetEnabled(gv_optionsPanelItem[4], PlayerGroupSingle(gv_host), false);
+    DialogControlSetEnabled(gv_optionsPanelItem[5], PlayerGroupSingle(gv_host), false);
+    DialogControlSetEnabled(gv_optionsPanelItem[6], PlayerGroupSingle(gv_host), false);
+    DialogControlSetEnabled(gv_optionsPanelItem[7], PlayerGroupSingle(gv_host), false);
+    DialogControlSetEnabled(gv_optionsPanelItem[21], PlayerGroupSingle(gv_host), false);
+    DialogControlSetEnabled(gv_optionsPanelItem[23], PlayerGroupSingle(gv_host), false);
+    DialogControlSetEnabled(gv_optionsPanelItem[24], PlayerGroupSingle(gv_host), false);
+    DialogControlSetEnabled(gv_optionsPanelItem[27], PlayerGroupSingle(gv_host), false);
+    DialogControlSetEnabled(gv_optionsPanelItem[29], PlayerGroupSingle(gv_host), false);
+    DialogControlSetEnabled(gv_optionsPanelItem[31], PlayerGroupSingle(gv_host), false);
+}
+
 void gf_SHWAttemptKill (int lp_target, int lp_killer) {
     gv_damage[lp_target] += 1;
     if ((gv_guarded[lp_target] != 0) && (lp_target != lp_killer)) {

@@ -735,6 +735,9 @@ MUST_HAVE_KEYS = [
   # 随机：实验性角色
   'Param/Value/SYJXNAME', 'Param/Value/SYJXDESC', 'Param/Value/SYJXBTN',
   'Param/Value/SYJXSUBA', 'Param/Value/SYJXSUBB',
+  # 白手起家（仅15人，原始导出阵容）
+  'Param/Value/BSQJNAME', 'Param/Value/BSQJDESC', 'Param/Value/BSQJBTN',
+  'Param/Value/BSQJSUBA', 'Param/Value/BSQJONLY15',
   # shw288 唐吉诃德 (3/21)
   'Param/Value/DQNAME', 'Param/Value/DQDESC', 'Param/Value/DQCARD',
   'Param/Value/DQBOX1', 'Param/Value/DQBOX2', 'Param/Value/DQBOX4',
