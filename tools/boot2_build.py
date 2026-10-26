@@ -453,6 +453,8 @@ MUST_HAVE_KEYS = [
   'Param/Value/BHFFORTRAIT',
   'Param/Value/BHFMEDTRAIT',
   'Param/Value/BHFMEMTRAIT',
+  'Param/Value/BHFMAYORTRAIT', 'Param/Value/BHFMAYORPREFIX',
+  'Param/Value/BHFMAYORMAFIA', 'Param/Value/BHFMAYORTRIAD',
   'Param/Value/BHFUSAGE',
   'Param/Value/BHFREJECT',
   'Param/Value/BHFDONE',

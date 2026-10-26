@@ -74,6 +74,13 @@
 - 转换者须处于自己帮派的普通夜聊会话；原生职业保留显式行动通知的发起资格，不能因正在关人而吞掉原有帮派通知。收件人仍须处于真实同帮派的可用会话；不给对家、旧阵营、过客、信使配对私聊或无关主机旁播。
 - 新文本由 [strings-gang-action.txt](<../work/blackhand/strings-gang-action.txt>) 提供，五键均登记打包回读；沿用系统提示缩放入口。真实函数抽取回归见 [test_gang_action_notice.py](<../tools/test_gang_action_notice.py>)；这是引擎替身及静态接线验证，不是 SC2 实机通过。
 
+## 市长揭示阵营（shw325）
+
+- 市长特性追加用户原文：「若你的阵营发生了转变，在你揭示自己的身份时，其他人会知道你是什么阵营。」
+- 成功揭示后，经 `gf_BHMayorRevealFaction` 查询真实阵营，只对黑手党／三合会向当前全部玩家追加「市长序号.名字是一个黑手党／三合会成员！」。序号使用投票楼层 `gv_playerSpot`，异常时回落玩家 ID；姓名保持玩家颜色。城镇市长没有额外广播。
+- `-vote` 与按钮两条成功揭示路径均接线。原本公开揭示、2/3/4 票设置、案底、音乐及沉默／投票／受审守卫不改；不在阵营转换时提前广播，也不为已揭示者重开揭示。
+- 四个新键在 [strings-faction.txt](<../work/blackhand/strings-faction.txt>)，均登记打包回读。专项：[test_mayor_faction_reveal.py](<../tools/test_mayor_faction_reveal.py>)，使用真实生产函数与引擎替身，非 SC2 实测。
+
 ## 验证
 
 ```bash

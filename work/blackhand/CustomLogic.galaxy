@@ -458,6 +458,7 @@ text gf_BHRoleName (int lp_player);
 text gf_BHInvestigatedRoleName (int lp_player);
 text gf_BHDeathName (int lp_player);
 void gf_BHFactionCard (int lp_player);
+void gf_BHMayorRevealFaction (int lp_player);
 void gf_BHRefreshFactionChat ();
 bool gf_BHGangActionReady (int lp_player);
 bool gf_BHGangActionSourceReady (int lp_source);
@@ -40383,6 +40384,7 @@ void gf_RTTownRoleText (int lp_player) {
             gv_roleBoxText[lv_a][2] = (gv_roleBoxText[lv_a][2] + StringExternal("Param/Value/D312D3AC"));
         }
 
+        gv_roleBoxText[lv_a][2] = (gv_roleBoxText[lv_a][2] + StringExternal("Param/Value/BHFMAYORTRAIT"));
         SoundPlay(SoundLink("Thor_What", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
     }
 
@@ -77970,6 +77972,8 @@ bool gt_ASMayorAction_Func (bool testConds, bool runActions) {
                 if (auto6FB492E8_var < 0) { break; }
                 gf_CBSystemMessage((StringExternal("Param/Value/B1519496") + TextWithColor(StringToText(gv_name[EventPlayer()]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[EventPlayer()])) + StringExternal("Param/Value/C3EAAB9C")), auto6FB492E8_var, EventPlayer(), 0, SoundLink("UI_ObjectiveComplete", -1), Color(19.61, 58.82, 78.43));
             }
+            gf_BHMayorRevealFaction(EventPlayer());
+
             if ((gv_roleOptions[1][12][1] == false) && (gv_roleOptions[1][12][2] == false)) {
                 gv_votes[EventPlayer()] = 2;
             }
@@ -97434,6 +97438,8 @@ else {
             if (autoDF8C288F_var < 0) { break; }
             gf_CBSystemMessage((StringExternal("Param/Value/521DD82D") + TextWithColor(StringToText(gv_name[EventPlayer()]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[EventPlayer()])) + StringExternal("Param/Value/28FA8635")), autoDF8C288F_var, EventPlayer(), 0, SoundLink("UI_ObjectiveComplete", -1), Color(19.61, 58.82, 78.43));
         }
+        gf_BHMayorRevealFaction(EventPlayer());
+
         if ((gv_roleOptions[1][12][1] == false) && (gv_roleOptions[1][12][2] == false)) {
             gv_votes[EventPlayer()] = 2;
         }
@@ -110577,6 +110583,49 @@ void gf_BHFactionCard (int lp_player) {
     }
 
     gv_roleBoxText[lp_player][6] = gf_RTMakeWinList(gf_BHFaction(lp_player), 0);
+}
+
+// 市长成功揭示后公开真实新阵营；城镇市长不增加广播，不改变票权。
+void gf_BHMayorRevealFaction (int lp_player) {
+    int lv_faction;
+    int lv_spot;
+    int lv_recipient;
+    text lv_message;
+
+    if ((lp_player < 1) || (lp_player > 15)) {
+        return;
+    }
+
+    if ((gv_roles[lp_player][1] != 1) || (gv_roles[lp_player][0] != 12) || (gv_activated[lp_player] == false)) {
+        return;
+    }
+
+    lv_faction = gf_BHFaction(lp_player);
+    if ((lv_faction != 2) && (lv_faction != 5)) {
+        return;
+    }
+
+    lv_spot = gv_playerSpot[lp_player];
+    if ((lv_spot < 1) || (lv_spot > 15)) {
+        lv_spot = lp_player;
+    }
+
+    lv_message = (StringExternal("Param/Value/BHFMAYORPREFIX") + IntToText(lv_spot) + StringToText(".") + TextWithColor(StringToText(gv_name[lp_player]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lp_player])));
+    if ((lv_faction == 2)) {
+        lv_message = (lv_message + StringExternal("Param/Value/BHFMAYORMAFIA"));
+    }
+    else {
+        lv_message = (lv_message + StringExternal("Param/Value/BHFMAYORTRIAD"));
+    }
+
+    lv_recipient = 1;
+    while ((lv_recipient <= 15)) {
+        if ((PlayerGroupHasPlayer(gv_currentPlayers, lv_recipient) == true)) {
+            gf_CBSystemMessage(lv_message, lv_recipient, lp_player, 0, SoundLink("Silent", -1), Color(19.61, 58.82, 78.43));
+        }
+
+        lv_recipient += 1;
+    }
 }
 
 // 行动意向是帮派私密信息，不是实际造访记录；只认当前真实阵营与会话。
