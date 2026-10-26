@@ -33852,6 +33852,11 @@ void gf_RSMafiaSetup2 () {
                         gv_immune[lv_a][2] = true;
                     }
 
+                    // shw320: intrinsic investigation immunity also applies while jailed.
+                    if ((gv_roles[lv_a][0] == 22)) {
+                        gv_immune[lv_a][2] = true;
+                    }
+
                 }
                 else {
                     gf_CBAssignUnassignChatChannel(lv_a, 1, ge_Clear_DoNotClear);
@@ -34024,6 +34029,11 @@ void gf_RSTriadSetup () {
                     }
 
                     if ((gv_roles[lv_a][0] == 5) && (gv_roleOptions[5][5][1] == true)) {
+                        gv_immune[lv_a][2] = true;
+                    }
+
+                    // shw320: intrinsic investigation immunity also applies while jailed.
+                    if ((gv_roles[lv_a][0] == 22)) {
                         gv_immune[lv_a][2] = true;
                     }
 
@@ -110225,6 +110235,8 @@ void gf_BRDraw (int lp_player) {
 
 void gf_BRSetup (int lp_player) {
     gv_immune[lp_player][0] = true;
+    gv_immune[lp_player][2] = true;
+
     gv_variableOptions[lp_player][0] = 1;
     gv_variableOptions[lp_player][1] = 0;
     gv_variableOptions[lp_player][2] = 0;
