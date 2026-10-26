@@ -90,12 +90,24 @@ def integration(source: str) -> tuple[str, ...]:
     print('PASS wiring: slot replacement/reset/knife claims; first-day night-entry commit before succession/setup/chat; no dawn commit; daytime button recovery; registered compatibility command', flush=True)
     # Checkbox helpers execute in test_baron_options; this suite owns runtime recruitment.
     runtime = names - {'gf_BRNormalizeOptions', 'gf_BROptionClick'}
-    return tuple(sorted(runtime)) + ('gt_BRRecruit_Func', 'gt_BRRecruit_Init', 'gt_BRPanel_Func', 'gt_BRPanel_Init', 'gf_BHPickLeader') + VISITS
+    return tuple(sorted(runtime)) + ('gt_BRRecruit_Func', 'gt_BRRecruit_Init', 'gt_BRPanel_Func', 'gt_BRPanel_Init', 'gt_GKAbilities_Init', 'gf_BHPickLeader') + VISITS
 
 
 def harness(source: str) -> str:
     names = integration(source)
-    base = core.harness(source)
+    original_names = core.NAMES
+    dependencies = list(original_names)
+    if re.search(r'^bool gf_BHNoVoteOrCount\s*\([^;{}]*\)\s*\{', source, re.M):
+        dependencies.append('gf_BHNoVoteOrCount')
+
+    # Adapt only this inherited harness: keep new production guards real and
+    # extract their GK dependency closure, without editing the shared core suite.
+    core.NAMES = core.with_guoke_dependencies(source, dependencies)
+    try:
+        base = core.harness(source)
+    finally:
+        core.NAMES = original_names
+
     base = base.replace(function(base, 'main'), '')
     bodies = [function(source, name) for name in names]
     raw = '\n\n'.join(bodies)
@@ -168,7 +180,7 @@ int randomCalls=0;
     extension = r'''
 ''' + globals_text + '\n' + constants_text + r'''
 using color = int;
-trigger gt_BRRecruit=0, gt_BRPanel=0;
+trigger gt_BRRecruit=0, gt_BRPanel=0, gt_GKPanel=0, gt_GKCommand=0;
 fixed forcedRandomFraction=-1;
 int RandomInt(int lo,int hi) { CHECK(lo<=hi); ++randomCalls; return std::uniform_int_distribution<int>(lo,hi)(brRng); }
 fixed RandomFixed(fixed lo,fixed hi) {
@@ -254,7 +266,7 @@ void brReset(string label,int pool=2,bool startsOnDay=true) {
     uiEnabled.clear(); uiDialogVisible.clear(); uiPosition.clear(); uiWrites.clear();
     dialogs.clear(); controls.clear(); triggerNames.clear(); registeredDialogEvents.clear();
     registeredCommands.clear(); nextUI=10000; nextTrigger=700; lastControl=lastDialog=0;
-    eventControl=0; gt_BRPanel=gt_BRRecruit=0;
+    eventControl=0; gt_BRPanel=gt_BRRecruit=gt_GKPanel=gt_GKCommand=0;
     gf_BRReset();
     gv_startonDay=startsOnDay; gv_dayNumber=startsOnDay?1:2;
     gv_isNight=false; gv_bhFactionChatOpen=false;
@@ -687,7 +699,7 @@ void testUIAndReset() {
         }));
         gf_BRReset(); CHECK(!gv_brFrozen && !gv_brDone);
         for(int p=0;p<16;++p) { CHECK(!gv_brReady[p]); CHECK(recruits(p).empty()); }
-        registeredCommands.clear(); gt_BRRecruit_Init(); CHECK(registeredCommands==std::vector<string>{"-recruit"});
+        registeredCommands.clear(); gt_BRRecruit_Init(); CHECK(registeredCommands==std::vector<string>({"-recruit","-pair","-puppet"}));
     }
 }
 int main(int argc,char** argv) {

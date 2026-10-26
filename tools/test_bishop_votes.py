@@ -71,7 +71,7 @@ def audit(source: str) -> None:
 def build_harness(source: str, *, extra_functions: tuple[str, ...] = (),
                   extra_native: tuple[str, ...] = (), extra_cpp: str = '') -> str:
     names = [
-        'gf_BHVoteWeight', 'gf_BHWithdrawVotes', 'gt_ASVote_Func',
+        'gf_BHVoteWeight', 'gf_BHNoVoteOrCount', 'gf_BHWithdrawVotes', 'gt_ASVote_Func',
         'gt_ASTrialVote_Func', 'gt_ASSkipButton_Func', 'gt_ASSkip_Func',
         'gf_ASTrialVote', 'gf_ASStartVote', 'gf_ASTieVote', 'gf_ASEndActions',
         'gf_ASStopVote', 'gt_DetectLeave_Func', 'gt_ADAntiAFKPeriod_Func',

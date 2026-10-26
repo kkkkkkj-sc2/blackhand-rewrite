@@ -116,7 +116,14 @@ def check_wiring(source, old):
     check_investigation_wiring(source)
 
     card = mask(function(source, 'gf_RTRoleCard'))
-    assert re.search(r'gf_BHFactionCard\s*\(\s*lp_player\s*\)\s*;\s*(?:gf_GKCard\(lp_player\);\s*)?\}', card), 'faction card override must precede only the passer card overlay'
+    expected_card_tail = '''gf_BHFactionCard(lp_player);
+        gf_GKCard(lp_player);
+        if ((gv_xrLifeDid[lp_player] == true)) {
+            gv_roleBoxText[lp_player][2] = (gv_roleBoxText[lp_player][2] + StringExternal("Param/Value/XRLIFEPASSIVE"));
+        }
+    }'''
+    compact_card = re.sub(r'\s+', '', function(source, 'gf_RTRoleCard'))
+    assert compact_card.endswith(re.sub(r'\s+', '', expected_card_tail)), 'faction overlay must precede the passer overlay and only the explicit rebirth trait'
     assert 'gf_BHConverted' in card, 'temporary FZ template must exclude actual converts'
     convert = mask(function(source, 'gf_BHConvertFaction'))
     assert re.search(r'if\s*\(\s*\(\s*gv_roles\[lp_player\]\[0\]\s*==\s*33\s*\)\s*\)\s*\{\s*'

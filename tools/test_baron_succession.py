@@ -39,7 +39,7 @@ def harness(source: str) -> str:
     assert dispatcher.index('gf_LSConvert(lv_a);') < hook < dispatcher.index('gf_SKV_2_qizi(')
     assert hook < dispatcher.index('gf_SKV_5_sishi(')
     for count, pool in ((2, 2), (12, 5)):
-        assert re.search(r'if \(\(gf_BHFaction\(lv_a\) == ' + str(pool) + r'\)\) \{\s*gv_rsConvX\[' + str(count) + r'\] \+= 1;', dispatcher)
+        assert re.search(r'if \(\(gf_BHFaction\(lv_a\) == ' + str(pool) + r'\) && \(gf_GKIs\(lv_a\) == false\)\) \{\s*gv_rsConvX\[' + str(count) + r'\] \+= 1;', dispatcher)
 
     night = mask(function(source, 'auto_gf_NightTransition_TriggerFunc'))
     assert night.index('gf_BRResolveRecruit();') < night.index('gv_isNight = true;') < night.index('gf_RSConversions();') < night.index('gf_RAActionsBase(lv_a);') < night.index('gf_RSTownSetup();')

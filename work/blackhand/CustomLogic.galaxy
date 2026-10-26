@@ -324,6 +324,7 @@ int[16] gv_gkVoteDay;
 int[16] gv_gkRebirthRole;
 int[16] gv_gkRebirthFaction;
 bool gf_GKIs (int lp_player);
+bool gf_BHNoVoteOrCount (int lp_player);
 void gf_GKSetRoleField (int lp_player, int lp_field, int lp_value);
 int gf_GKAliveCount ();
 bool gf_GKWon (int lp_player, int lp_winner);
@@ -2432,6 +2433,8 @@ bool gf_XRGangShare (int lp_player, int lp_role);
 void gf_XRLifeNote (int lp_player, bool lp_remake);
 void gf_XRLifeFlush ();
 bool gf_XRTryRebirth (int lp_player, bool lp_remake);
+void gf_XRLifeGamblerInit (int lp_player);
+void gf_XRLifeAnnounce (int lp_player);
 void gf_XRGangSay (int lp_player, string lp_message);
 void gf_XRDeadSay (int lp_player, string lp_message, bool lp_public);
 void gf_XRAnnounce (int lp_player);
@@ -11243,7 +11246,7 @@ bool auto_gf_TrialVoteResults_TriggerFunc (bool testConds, bool runActions) {
                 lv_c = 0;
                 lv_a = 1;
                 for ( ; ( (autoA4002886_ai >= 0 && lv_a <= autoA4002886_ae) || (autoA4002886_ai < 0 && lv_a >= autoA4002886_ae) ) ; lv_a += autoA4002886_ai ) {
-                    if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_GKIs(lv_a) == false)) && (gv_aFK[lv_a] < 720)) {
+                    if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_BHNoVoteOrCount(lv_a) == false)) && (gv_aFK[lv_a] < 720)) {
                         lv_c += 1;
                     }
 
@@ -11260,7 +11263,7 @@ bool auto_gf_TrialVoteResults_TriggerFunc (bool testConds, bool runActions) {
                 lv_c = 0;
                 lv_a = 1;
                 for ( ; ( (auto83D9B714_ai >= 0 && lv_a <= auto83D9B714_ae) || (auto83D9B714_ai < 0 && lv_a >= auto83D9B714_ae) ) ; lv_a += auto83D9B714_ai ) {
-                    if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_GKIs(lv_a) == false)) && (gv_aFK[lv_a] < 720)) {
+                    if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_BHNoVoteOrCount(lv_a) == false)) && (gv_aFK[lv_a] < 720)) {
                         lv_c += 1;
                     }
 
@@ -11277,7 +11280,7 @@ bool auto_gf_TrialVoteResults_TriggerFunc (bool testConds, bool runActions) {
                 lv_c = 0;
                 lv_a = 1;
                 for ( ; ( (auto427F759A_ai >= 0 && lv_a <= auto427F759A_ae) || (auto427F759A_ai < 0 && lv_a >= auto427F759A_ae) ) ; lv_a += auto427F759A_ai ) {
-                    if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_GKIs(lv_a) == false)) && (gv_aFK[lv_a] < 720)) {
+                    if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_BHNoVoteOrCount(lv_a) == false)) && (gv_aFK[lv_a] < 720)) {
                         lv_c += 1;
                     }
 
@@ -15349,7 +15352,7 @@ int gf_CheckEnd () {
             continue;
         }
 
-        if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) {
+        if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_BHNoVoteOrCount(lv_a) == false)) {
             lv_x[10] += 1;
             if ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 28)) {
                 lv_eg += 1;
@@ -15568,7 +15571,7 @@ int gf_CheckEnd () {
 
         lv_a = 1;
         for ( ; ( (auto810B2F73_ai >= 0 && lv_a <= auto810B2F73_ae) || (auto810B2F73_ai < 0 && lv_a >= auto810B2F73_ae) ) ; lv_a += auto810B2F73_ai ) {
-        if ((gf_GKIs(lv_a) == true)) {
+        if ((gf_BHNoVoteOrCount(lv_a) == true)) {
             continue;
         }
 
@@ -15600,7 +15603,7 @@ int gf_CheckEnd () {
     if ((lv_x[0] == 0) && (lv_x[1] >= 1) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[30] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[14] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[20] == 0) && (lv_x[19] == 0)) {
         lv_a = 1;
         for ( ; ( (auto17FF05F9_ai >= 0 && lv_a <= auto17FF05F9_ae) || (auto17FF05F9_ai < 0 && lv_a >= auto17FF05F9_ae) ) ; lv_a += auto17FF05F9_ai ) {
-        if ((gf_GKIs(lv_a) == true)) {
+        if ((gf_BHNoVoteOrCount(lv_a) == true)) {
             continue;
         }
 
@@ -15628,7 +15631,7 @@ int gf_CheckEnd () {
     if ((lv_x[0] == 0) && (lv_x[1] <= lv_x[15]) && (lv_x[15] >= 1) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[30] == 0) && (lv_x[6] == 0) && (lv_x[13] == 0) && (lv_x[20] == 0) && (lv_x[19] == 0) && (lv_x[14] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0)) {
         lv_a = 1;
         for ( ; ( (autoA9F1223C_ai >= 0 && lv_a <= autoA9F1223C_ae) || (autoA9F1223C_ai < 0 && lv_a >= autoA9F1223C_ae) ) ; lv_a += autoA9F1223C_ai ) {
-        if ((gf_GKIs(lv_a) == true)) {
+        if ((gf_BHNoVoteOrCount(lv_a) == true)) {
             continue;
         }
 
@@ -15723,7 +15726,7 @@ int gf_CheckEnd () {
     if ((lv_x[0] == 0) && (lv_x[1] == 0) && (lv_x[15] == 0) && (lv_x[2] == 0) && (lv_x[27] == 0) && (lv_x[28] == 0) && (lv_x[29] == 0) && (lv_x[30] == 0) && (lv_x[6] == 0) && (lv_x[13] >= 1) && (lv_x[14] == 0) && (lv_x[18] == 0) && (lv_x[24] == 0) && (lv_x[25] == 0) && (lv_x[19] == 0) && (lv_x[20] == 0)) {
         lv_a = 1;
         for ( ; ( (autoCBDF2485_ai >= 0 && lv_a <= autoCBDF2485_ae) || (autoCBDF2485_ai < 0 && lv_a >= autoCBDF2485_ae) ) ; lv_a += autoCBDF2485_ai ) {
-        if ((gf_GKIs(lv_a) == true)) {
+        if ((gf_BHNoVoteOrCount(lv_a) == true)) {
             continue;
         }
 
@@ -15760,6 +15763,11 @@ int gf_CheckEnd () {
         return 16;
     }
 
+    // No counted players remain: an earned Gambler win must not wait seven nights.
+    if ((lv_x[10] == 0) && (lv_x[23] > 0)) {
+        return 20;
+    }
+
     if ((((lv_x[10] == 2) && (gv_dayOver == false)) || (gv_tieTicker >= 7))) {
         if (((((gv_roleOptions[1][1][1] == false) || (lv_x[11] == 0)) && ((lv_x[1] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26] + lv_eg))))) < lv_x[0]) && ((lv_x[15] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26] + lv_eg))))) < lv_x[0])) || ((gv_roleOptions[1][1][1] == true) && (lv_x[11] > 0) && ((lv_x[1] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26] + lv_eg))))) <= lv_x[0]) && ((lv_x[15] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26] + lv_eg))))) <= lv_x[0]))) && ((lv_x[2] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26] + lv_eg))))) < lv_x[0]) && ((lv_x[6] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26] + lv_eg))))) < lv_x[0]) && ((lv_x[13] + lv_x[24] + lv_x[25] + lv_x[18] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26] + lv_eg))))) < lv_x[0]) && ((lv_x[14] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26] + lv_eg))))) < lv_x[0]) && ((lv_x[18] + lv_x[24] + lv_x[25] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26] + lv_eg))))) < lv_x[0]) && ((lv_x[28] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26] + lv_eg))))) < lv_x[0]) && ((lv_x[29] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26] + lv_eg))))) < lv_x[0]) && ((lv_x[30] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26] + lv_eg))))) < lv_x[0]) && (lv_x[17] == 0) && (lv_x[26] == 0) && (lv_x[0] > 0)) {
             if ((gv_roleOptions[1][1][1] == true) && (lv_x[11] == lv_x[0])) {
@@ -15768,7 +15776,7 @@ int gf_CheckEnd () {
 
             lv_a = 1;
             for ( ; ( (auto6B2B8780_ai >= 0 && lv_a <= auto6B2B8780_ae) || (auto6B2B8780_ai < 0 && lv_a >= auto6B2B8780_ae) ) ; lv_a += auto6B2B8780_ai ) {
-        if ((gf_GKIs(lv_a) == true)) {
+        if ((gf_BHNoVoteOrCount(lv_a) == true)) {
             continue;
         }
 
@@ -15796,7 +15804,7 @@ int gf_CheckEnd () {
         if (((((gv_roleOptions[1][1][1] == false) || (lv_x[11] == 0)) && (lv_x[0] <= (lv_x[1] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26] + lv_eg))))))) || ((gv_roleOptions[1][1][1] == true) && (lv_x[11] > 0) && (lv_x[0] < (lv_x[1] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26] + lv_eg)))))))) && (lv_x[2] < lv_x[1]) && (lv_x[27] < lv_x[1]) && (lv_x[28] < lv_x[1]) && (lv_x[29] < lv_x[1]) && (lv_x[30] < lv_x[1]) && (lv_x[6] < lv_x[1]) && (lv_x[13] <= lv_x[1]) && (lv_x[14] < lv_x[1]) && (lv_x[15] < lv_x[1]) && (lv_x[18] < lv_x[1]) && (lv_x[24] < lv_x[1]) && (lv_x[25] < lv_x[1]) && (lv_x[19] < lv_x[1]) && (lv_x[20] < lv_x[1]) && (lv_x[21] < lv_x[1]) && (lv_x[1] > 0)) {
             lv_a = 1;
             for ( ; ( (autoD4ACE952_ai >= 0 && lv_a <= autoD4ACE952_ae) || (autoD4ACE952_ai < 0 && lv_a >= autoD4ACE952_ae) ) ; lv_a += autoD4ACE952_ai ) {
-        if ((gf_GKIs(lv_a) == true)) {
+        if ((gf_BHNoVoteOrCount(lv_a) == true)) {
             continue;
         }
 
@@ -15824,7 +15832,7 @@ int gf_CheckEnd () {
         if (((((gv_roleOptions[1][1][1] == false) || (lv_x[11] == 0)) && (lv_x[0] <= (lv_x[15] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26] + lv_eg))))))) || ((gv_roleOptions[1][1][1] == true) && (lv_x[11] > 0) && (lv_x[0] < (lv_x[15] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26] + lv_eg)))))))) && (lv_x[2] < lv_x[15]) && (lv_x[27] < lv_x[15]) && (lv_x[28] < lv_x[15]) && (lv_x[29] < lv_x[15]) && (lv_x[30] < lv_x[15]) && (lv_x[6] < lv_x[15]) && (lv_x[13] <= lv_x[15]) && (lv_x[14] < lv_x[15]) && (lv_x[18] < lv_x[15]) && (lv_x[24] < lv_x[15]) && (lv_x[25] < lv_x[15]) && (lv_x[19] < lv_x[15]) && (lv_x[20] == lv_x[15]) && (lv_x[1] <= lv_x[15]) && (lv_x[15] > 0)) {
             lv_a = 1;
             for ( ; ( (auto768C6371_ai >= 0 && lv_a <= auto768C6371_ae) || (auto768C6371_ai < 0 && lv_a >= auto768C6371_ae) ) ; lv_a += auto768C6371_ai ) {
-        if ((gf_GKIs(lv_a) == true)) {
+        if ((gf_BHNoVoteOrCount(lv_a) == true)) {
             continue;
         }
 
@@ -15871,7 +15879,7 @@ int gf_CheckEnd () {
         if ((lv_x[0] <= (lv_x[13] + (lv_x[5] + (lv_x[16] + (lv_x[17] + (lv_x[21] + lv_x[26] + lv_eg)))))) && (lv_x[1] < lv_x[13]) && (lv_x[15] < lv_x[13]) && (lv_x[2] < lv_x[13]) && (lv_x[27] < lv_x[13]) && (lv_x[28] < lv_x[13]) && (lv_x[29] < lv_x[13]) && (lv_x[30] < lv_x[13]) && (lv_x[6] < lv_x[13]) && (lv_x[14] < lv_x[13]) && (lv_x[18] < lv_x[13]) && (lv_x[24] < lv_x[13]) && (lv_x[25] < lv_x[13]) && (lv_x[19] < lv_x[13]) && (lv_x[20] < lv_x[13]) && (lv_x[13] > 0)) {
             lv_a = 1;
             for ( ; ( (autoBDD14553_ai >= 0 && lv_a <= autoBDD14553_ae) || (autoBDD14553_ai < 0 && lv_a >= autoBDD14553_ae) ) ; lv_a += autoBDD14553_ai ) {
-        if ((gf_GKIs(lv_a) == true)) {
+        if ((gf_BHNoVoteOrCount(lv_a) == true)) {
             continue;
         }
 
@@ -22490,7 +22498,7 @@ bool auto_gf_EExecution_TriggerFunc (bool testConds, bool runActions) {
             gf_ASStartVote();
             lv_a = 1;
             for ( ; ( (autoAAACE4B7_ai >= 0 && lv_a <= autoAAACE4B7_ae) || (autoAAACE4B7_ai < 0 && lv_a >= autoAAACE4B7_ae) ) ; lv_a += autoAAACE4B7_ai ) {
-                if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_GKIs(lv_a) == false))) {
+                if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_BHNoVoteOrCount(lv_a) == false))) {
                     lv_c += 1;
                 }
 
@@ -38634,6 +38642,8 @@ void gf_ASTieVote () {
         }
 
     }
+
+    gf_GKVoteUI();
 }
 
 trigger auto_gf_ASFlashLine_Trigger = null;
@@ -39769,6 +39779,9 @@ void gf_RTRoleCard (int lp_player) {
 
     gf_BHFactionCard(lp_player);
     gf_GKCard(lp_player);
+    if ((gv_xrLifeDid[lp_player] == true)) {
+        gv_roleBoxText[lp_player][2] = (gv_roleBoxText[lp_player][2] + StringExternal("Param/Value/XRLIFEPASSIVE"));
+    }
 }
 
 void gf_RTTownRoleText (int lp_player) {
@@ -41469,10 +41482,6 @@ void gf_RTNeutralRoleText (int lp_player) {
         gv_roleBoxText[lv_a][4] = StringExternal("Param/Value/F8FD7A35");
         gv_roleBoxText[lv_a][1] = StringExternal("Param/Value/622D43BA");
         gv_roleBoxText[lv_a][2] = StringExternal("Param/Value/58DFC7E9");
-        if ((gv_xrLifeDid[lv_a] == true)) {
-            gv_roleBoxText[lv_a][2] = StringExternal("Param/Value/XRFOODBOX");
-        }
-
         gv_roleBoxText[lv_a][3] = StringExternal("Param/Value/0A734419");
         SoundPlay(SoundLink("Viking_Yes", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
     }
@@ -63676,7 +63685,7 @@ bool gt_DetectLeave_Func (bool testConds, bool runActions) {
                                 lv_c = 0;
                                 lv_b = 1;
                                 for ( ; ( (auto4318EDEE_ai >= 0 && lv_b <= auto4318EDEE_ae) || (auto4318EDEE_ai < 0 && lv_b >= auto4318EDEE_ae) ) ; lv_b += auto4318EDEE_ai ) {
-                                    if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_b) == true) && (((gv_roles[lv_b][1] != 1) || (gv_roles[lv_b][0] != 18)) && (gf_GKIs(lv_b) == false)) && (gv_aFK[lv_b] < 720)) {
+                                    if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_b) == true) && (((gv_roles[lv_b][1] != 1) || (gv_roles[lv_b][0] != 18)) && (gf_BHNoVoteOrCount(lv_b) == false)) && (gv_aFK[lv_b] < 720)) {
                                         lv_c += 1;
                                     }
 
@@ -63695,7 +63704,7 @@ bool gt_DetectLeave_Func (bool testConds, bool runActions) {
                                 lv_c = 0;
                                 lv_b = 1;
                                 for ( ; ( (auto321A7B6B_ai >= 0 && lv_b <= auto321A7B6B_ae) || (auto321A7B6B_ai < 0 && lv_b >= auto321A7B6B_ae) ) ; lv_b += auto321A7B6B_ai ) {
-                                    if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_b) == true) && (((gv_roles[lv_b][1] != 1) || (gv_roles[lv_b][0] != 18)) && (gf_GKIs(lv_b) == false)) && (gv_aFK[lv_b] < 720)) {
+                                    if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_b) == true) && (((gv_roles[lv_b][1] != 1) || (gv_roles[lv_b][0] != 18)) && (gf_BHNoVoteOrCount(lv_b) == false)) && (gv_aFK[lv_b] < 720)) {
                                         lv_c += 1;
                                     }
 
@@ -63714,7 +63723,7 @@ bool gt_DetectLeave_Func (bool testConds, bool runActions) {
                                 lv_c = 0;
                                 lv_b = 1;
                                 for ( ; ( (autoA1DBF040_ai >= 0 && lv_b <= autoA1DBF040_ae) || (autoA1DBF040_ai < 0 && lv_b >= autoA1DBF040_ae) ) ; lv_b += autoA1DBF040_ai ) {
-                                    if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_b) == true) && (((gv_roles[lv_b][1] != 1) || (gv_roles[lv_b][0] != 18)) && (gf_GKIs(lv_b) == false)) && (gv_aFK[lv_b] < 720)) {
+                                    if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_b) == true) && (((gv_roles[lv_b][1] != 1) || (gv_roles[lv_b][0] != 18)) && (gf_BHNoVoteOrCount(lv_b) == false)) && (gv_aFK[lv_b] < 720)) {
                                         lv_c += 1;
                                     }
 
@@ -71037,7 +71046,7 @@ bool gt_DaySequence_Func (bool testConds, bool runActions) {
             libNtve_gf_SetDialogItemText(gv_voteInfoItem[1], StringExternal("Param/Value/9FD4B4D7"), PlayerGroupAll());
             lv_a = 1;
             for ( ; ( (autoA218BDC7_ai >= 0 && lv_a <= autoA218BDC7_ae) || (autoA218BDC7_ai < 0 && lv_a >= autoA218BDC7_ae) ) ; lv_a += autoA218BDC7_ai ) {
-                if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_GKIs(lv_a) == false))) {
+                if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_BHNoVoteOrCount(lv_a) == false))) {
                     lv_x += 1;
                 }
 
@@ -71055,7 +71064,7 @@ bool gt_DaySequence_Func (bool testConds, bool runActions) {
             libNtve_gf_SetDialogItemText(gv_voteInfoItem[1], StringExternal("Param/Value/B752E75A"), PlayerGroupAll());
             lv_a = 1;
             for ( ; ( (autoC30E6FCC_ai >= 0 && lv_a <= autoC30E6FCC_ae) || (autoC30E6FCC_ai < 0 && lv_a >= autoC30E6FCC_ae) ) ; lv_a += autoC30E6FCC_ai ) {
-                if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_GKIs(lv_a) == false))) {
+                if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_BHNoVoteOrCount(lv_a) == false))) {
                     lv_x += 1;
                 }
 
@@ -71073,7 +71082,7 @@ bool gt_DaySequence_Func (bool testConds, bool runActions) {
             libNtve_gf_SetDialogItemText(gv_voteInfoItem[1], StringExternal("Param/Value/65D5815B"), PlayerGroupAll());
             lv_a = 1;
             for ( ; ( (auto1B32F437_ai >= 0 && lv_a <= auto1B32F437_ae) || (auto1B32F437_ai < 0 && lv_a >= auto1B32F437_ae) ) ; lv_a += auto1B32F437_ai ) {
-                if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_GKIs(lv_a) == false))) {
+                if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_BHNoVoteOrCount(lv_a) == false))) {
                     lv_x += 1;
                 }
 
@@ -71091,7 +71100,7 @@ bool gt_DaySequence_Func (bool testConds, bool runActions) {
             libNtve_gf_SetDialogItemText(gv_voteInfoItem[1], StringExternal("Param/Value/F10E976D"), PlayerGroupAll());
             lv_a = 1;
             for ( ; ( (autoB64C7539_ai >= 0 && lv_a <= autoB64C7539_ae) || (autoB64C7539_ai < 0 && lv_a >= autoB64C7539_ae) ) ; lv_a += autoB64C7539_ai ) {
-                if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_GKIs(lv_a) == false))) {
+                if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_BHNoVoteOrCount(lv_a) == false))) {
                     lv_x += 1;
                 }
 
@@ -71115,7 +71124,7 @@ bool gt_DaySequence_Func (bool testConds, bool runActions) {
             libNtve_gf_SetDialogItemText(gv_voteInfoItem[1], StringExternal("Param/Value/07C6BEA8"), PlayerGroupAll());
             lv_a = 1;
             for ( ; ( (autoB2482517_ai >= 0 && lv_a <= autoB2482517_ae) || (autoB2482517_ai < 0 && lv_a >= autoB2482517_ae) ) ; lv_a += autoB2482517_ai ) {
-                if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_GKIs(lv_a) == false))) {
+                if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_BHNoVoteOrCount(lv_a) == false))) {
                     lv_x += 1;
                 }
 
@@ -71139,7 +71148,7 @@ bool gt_DaySequence_Func (bool testConds, bool runActions) {
             }
             lv_a = 1;
             for ( ; ( (auto2AD3FA1E_ai >= 0 && lv_a <= auto2AD3FA1E_ae) || (auto2AD3FA1E_ai < 0 && lv_a >= auto2AD3FA1E_ae) ) ; lv_a += auto2AD3FA1E_ai ) {
-                if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_GKIs(lv_a) == false))) {
+                if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_BHNoVoteOrCount(lv_a) == false))) {
                     lv_x += 1;
                 }
 
@@ -71157,7 +71166,7 @@ bool gt_DaySequence_Func (bool testConds, bool runActions) {
             libNtve_gf_SetDialogItemText(gv_voteInfoItem[1], StringExternal("Param/Value/6B1406BA"), PlayerGroupAll());
             lv_a = 1;
             for ( ; ( (auto739CDE28_ai >= 0 && lv_a <= auto739CDE28_ae) || (auto739CDE28_ai < 0 && lv_a >= auto739CDE28_ae) ) ; lv_a += auto739CDE28_ai ) {
-                if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_GKIs(lv_a) == false))) {
+                if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_BHNoVoteOrCount(lv_a) == false))) {
                     lv_x += 1;
                 }
 
@@ -73242,7 +73251,7 @@ bool gt_ADAntiAFKPeriod_Func (bool testConds, bool runActions) {
                         lv_c = 0;
                         lv_b = 1;
                         for ( ; ( (autoFC33F63B_ai >= 0 && lv_b <= autoFC33F63B_ae) || (autoFC33F63B_ai < 0 && lv_b >= autoFC33F63B_ae) ) ; lv_b += autoFC33F63B_ai ) {
-                            if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_b) == true) && (((gv_roles[lv_b][1] != 1) || (gv_roles[lv_b][0] != 18)) && (gf_GKIs(lv_b) == false)) && (gv_aFK[lv_b] < 720)) {
+                            if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_b) == true) && (((gv_roles[lv_b][1] != 1) || (gv_roles[lv_b][0] != 18)) && (gf_BHNoVoteOrCount(lv_b) == false)) && (gv_aFK[lv_b] < 720)) {
                                 lv_c += 1;
                             }
 
@@ -73261,7 +73270,7 @@ bool gt_ADAntiAFKPeriod_Func (bool testConds, bool runActions) {
                         lv_c = 0;
                         lv_b = 1;
                         for ( ; ( (autoA35FD7EF_ai >= 0 && lv_b <= autoA35FD7EF_ae) || (autoA35FD7EF_ai < 0 && lv_b >= autoA35FD7EF_ae) ) ; lv_b += autoA35FD7EF_ai ) {
-                            if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_b) == true) && (((gv_roles[lv_b][1] != 1) || (gv_roles[lv_b][0] != 18)) && (gf_GKIs(lv_b) == false)) && (gv_aFK[lv_b] < 720)) {
+                            if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_b) == true) && (((gv_roles[lv_b][1] != 1) || (gv_roles[lv_b][0] != 18)) && (gf_BHNoVoteOrCount(lv_b) == false)) && (gv_aFK[lv_b] < 720)) {
                                 lv_c += 1;
                             }
 
@@ -73280,7 +73289,7 @@ bool gt_ADAntiAFKPeriod_Func (bool testConds, bool runActions) {
                         lv_c = 0;
                         lv_b = 1;
                         for ( ; ( (auto4887C128_ai >= 0 && lv_b <= auto4887C128_ae) || (auto4887C128_ai < 0 && lv_b >= auto4887C128_ae) ) ; lv_b += auto4887C128_ai ) {
-                            if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_b) == true) && (((gv_roles[lv_b][1] != 1) || (gv_roles[lv_b][0] != 18)) && (gf_GKIs(lv_b) == false)) && (gv_aFK[lv_b] < 720)) {
+                            if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_b) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_b) == true) && (((gv_roles[lv_b][1] != 1) || (gv_roles[lv_b][0] != 18)) && (gf_BHNoVoteOrCount(lv_b) == false)) && (gv_aFK[lv_b] < 720)) {
                                 lv_c += 1;
                             }
 
@@ -78762,7 +78771,7 @@ bool gt_ASSkipButton_Func (bool testConds, bool runActions) {
         }
     }
 
-    if ((gf_GKIs(EventPlayer()) == true)) {
+    if ((gf_BHNoVoteOrCount(EventPlayer()) == true)) {
         return false;
     }
 
@@ -78961,7 +78970,7 @@ bool gt_ASMarshallAction_Func (bool testConds, bool runActions) {
         if ((gv_voteOn == true)) {
             lv_a = 1;
             for ( ; ( (auto3DDF1C22_ai >= 0 && lv_a <= auto3DDF1C22_ae) || (auto3DDF1C22_ai < 0 && lv_a >= auto3DDF1C22_ae) ) ; lv_a += auto3DDF1C22_ai ) {
-                if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_GKIs(lv_a) == false))) {
+                if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_BHNoVoteOrCount(lv_a) == false))) {
                     lv_c += 1;
                 }
 
@@ -79229,7 +79238,7 @@ bool gt_ASJudgeAction_Func (bool testConds, bool runActions) {
             if ((gv_voteOn == true)) {
                 lv_a = 1;
                 for ( ; ( (autoE6286917_ai >= 0 && lv_a <= autoE6286917_ae) || (autoE6286917_ai < 0 && lv_a >= autoE6286917_ae) ) ; lv_a += autoE6286917_ai ) {
-                    if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_GKIs(lv_a) == false))) {
+                    if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_BHNoVoteOrCount(lv_a) == false))) {
                         lv_c += 1;
                     }
 
@@ -80610,7 +80619,7 @@ bool gt_ASVote_Func (bool testConds, bool runActions) {
             return false;
         }
 
-        if (!((((gv_roles[EventPlayer()][1] != 1) || (gv_roles[EventPlayer()][0] != 18)) && (gf_GKIs(EventPlayer()) == false)))) {
+        if (!((((gv_roles[EventPlayer()][1] != 1) || (gv_roles[EventPlayer()][0] != 18)) && (gf_BHNoVoteOrCount(EventPlayer()) == false)))) {
             return false;
         }
 
@@ -80619,7 +80628,7 @@ bool gt_ASVote_Func (bool testConds, bool runActions) {
         }
     }
 
-    if ((gf_GKIs(EventPlayer()) == true)) {
+    if ((gf_BHNoVoteOrCount(EventPlayer()) == true)) {
         return false;
     }
 
@@ -81206,7 +81215,7 @@ bool gt_ASSkip_Func (bool testConds, bool runActions) {
         }
     }
 
-    if ((gf_GKIs(EventPlayer()) == true)) {
+    if ((gf_BHNoVoteOrCount(EventPlayer()) == true)) {
         return false;
     }
 
@@ -81311,7 +81320,7 @@ bool gt_ASTrialVote_Func (bool testConds, bool runActions) {
             return false;
         }
 
-        if (!((((gv_roles[EventPlayer()][1] != 1) || (gv_roles[EventPlayer()][0] != 18)) && (gf_GKIs(EventPlayer()) == false)))) {
+        if (!((((gv_roles[EventPlayer()][1] != 1) || (gv_roles[EventPlayer()][0] != 18)) && (gf_BHNoVoteOrCount(EventPlayer()) == false)))) {
             return false;
         }
 
@@ -81320,7 +81329,7 @@ bool gt_ASTrialVote_Func (bool testConds, bool runActions) {
         }
     }
 
-    if ((gf_GKIs(EventPlayer()) == true)) {
+    if ((gf_BHNoVoteOrCount(EventPlayer()) == true)) {
         return false;
     }
 
@@ -84174,26 +84183,6 @@ bool gt_OSRoleSelect_Func (bool testConds, bool runActions) {
                 gv_roleSelection = 29;
             }
 
-            if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 31)) {
-                gv_roleSelection = 33;
-            }
-
-            if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 32)) {
-                gv_roleSelection = 34;
-            }
-
-            if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 33)) {
-                gv_roleSelection = 35;
-            }
-
-            if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 34)) {
-                gv_roleSelection = 36;
-            }
-
-            if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 35)) {
-                gv_roleSelection = 37;
-            }
-
         }
 
     }
@@ -84617,11 +84606,6 @@ bool gt_OSMenus_Func (bool testConds, bool runActions) {
                 DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/D89BFDF1") + gv_roleNameArray[gv_roleCategory][27] + StringExternal("Param/Value/258B2E40")));
                 DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/D89BFDF1") + gv_roleNameArray[gv_roleCategory][28] + StringExternal("Param/Value/258B2E40")));
                 DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/D89BFDF1") + gv_roleNameArray[gv_roleCategory][29] + StringExternal("Param/Value/258B2E40")));
-                DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/D89BFDF1") + gv_roleNameArray[gv_roleCategory][33] + StringExternal("Param/Value/258B2E40")));
-                DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/D89BFDF1") + gv_roleNameArray[gv_roleCategory][34] + StringExternal("Param/Value/258B2E40")));
-                DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/D89BFDF1") + gv_roleNameArray[gv_roleCategory][35] + StringExternal("Param/Value/258B2E40")));
-                DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/D89BFDF1") + gv_roleNameArray[gv_roleCategory][36] + StringExternal("Param/Value/258B2E40")));
-                DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/D89BFDF1") + gv_roleNameArray[gv_roleCategory][37] + StringExternal("Param/Value/258B2E40")));
             }
 
         }
@@ -97378,7 +97362,7 @@ else {
     if ((gv_voteOn == true)) {
         lv_a = 1;
         for ( ; ( (auto8BE3D783_ai >= 0 && lv_a <= auto8BE3D783_ae) || (auto8BE3D783_ai < 0 && lv_a >= auto8BE3D783_ae) ) ; lv_a += auto8BE3D783_ai ) {
-            if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_GKIs(lv_a) == false))) {
+            if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_BHNoVoteOrCount(lv_a) == false))) {
                 lv_c += 1;
             }
 
@@ -97521,7 +97505,7 @@ else {
         if ((gv_voteOn == true)) {
             lv_a = 1;
             for ( ; ( (autoDA761DB8_ai >= 0 && lv_a <= autoDA761DB8_ae) || (autoDA761DB8_ai < 0 && lv_a >= autoDA761DB8_ae) ) ; lv_a += autoDA761DB8_ai ) {
-                if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_GKIs(lv_a) == false))) {
+                if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_BHNoVoteOrCount(lv_a) == false))) {
                     lv_c += 1;
                 }
 
@@ -105582,7 +105566,7 @@ void gf_JSRecount () {
     lv_c = 0;
     lv_a = 1;
     for ( ; ( (autoJSRC_ai >= 0 && lv_a <= autoJSRC_ae) || (autoJSRC_ai < 0 && lv_a >= autoJSRC_ae) ) ; lv_a += autoJSRC_ai ) {
-        if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_GKIs(lv_a) == false))) {
+        if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true) && (((gv_roles[lv_a][1] != 1) || (gv_roles[lv_a][0] != 18)) && (gf_BHNoVoteOrCount(lv_a) == false))) {
             lv_c += 1;
         }
     }
@@ -106954,6 +106938,10 @@ void gf_XRLifeNote (int lp_player, bool lp_remake) {
     const int autoXRN_ae = 4;
     const int autoXRN_ai = 1;
 
+    if ((lp_player < 1) || (lp_player > 15)) {
+        return;
+    }
+
     if ((gv_xrLife == false) || (gv_xrLifeDone == true) || (gv_xrLifeN >= 4)) {
         return;
     }
@@ -106968,7 +106956,6 @@ void gf_XRLifeNote (int lp_player, bool lp_remake) {
         }
     }
 
-    gv_gkRebirthFaction[lp_player] = gf_LMCat(lp_player);
     gv_xrLifeN += 1;
     gv_xrLifeOrder[gv_xrLifeN] = lp_player;
     gv_xrLifeRemake[lp_player] = lp_remake;
@@ -106976,47 +106963,92 @@ void gf_XRLifeNote (int lp_player, bool lp_remake) {
 
 void gf_XRLifeFlush () {
     int lv_i;
-    int lv_j;
-    int lv_swap;
-    int[6] lv_pool;
 
-    const int autoXRF_ae = 4;
-    const int autoXRF_ai = 1;
-
-    if ((gv_xrLife == false) || (gv_xrLifeDone == true) || (gv_xrLifeN < 4)) {
+    if ((gv_xrLife == false) || (gv_xrLifeDone == true) || (gv_xrLifeN < 4) || (gv_gameOver == true)) {
         return;
     }
 
     gv_xrLifeDone = true;
     lv_i = 1;
-    while ((lv_i <= 5)) {
-        lv_pool[lv_i] = 32 + lv_i;
-        lv_i += 1;
-    }
-
-    lv_i = 1;
     while ((lv_i <= 4)) {
-        lv_j = RandomInt(lv_i, 5);
-        lv_swap = lv_pool[lv_i];
-        lv_pool[lv_i] = lv_pool[lv_j];
-        lv_pool[lv_j] = lv_swap;
-        gv_gkRebirthRole[gv_xrLifeOrder[lv_i]] = lv_pool[lv_i];
-        lv_i += 1;
-    }
-
-    lv_i = 1;
-    for ( ; ( (autoXRF_ai >= 0 && lv_i <= autoXRF_ae) || (autoXRF_ai < 0 && lv_i >= autoXRF_ae) ) ; lv_i += autoXRF_ai ) {
         gf_XRTryRebirth(gv_xrLifeOrder[lv_i], gv_xrLifeRemake[gv_xrLifeOrder[lv_i]]);
+        lv_i += 1;
     }
 
-    // Broadcast only after the entire batch has been restored.
+    // Announce only after the entire batch is restored; leavers are not replaced.
     lv_i = 1;
     while ((lv_i <= 4)) {
-        if ((gv_xrLifeDid[gv_xrLifeOrder[lv_i]] == true) && (PlayerGroupHasPlayer(gv_alivePlayers, gv_xrLifeOrder[lv_i]) == true)) {
-            gf_GKAnnounce(gv_xrLifeOrder[lv_i]);
+        gf_XRLifeAnnounce(gv_xrLifeOrder[lv_i]);
+        lv_i += 1;
+    }
+}
+
+void gf_XRLifeGamblerInit (int lp_player) {
+    int lv_pairFirst;
+    int lv_pairSecond;
+    int lv_pairDay;
+
+    if ((lp_player < 1) || (lp_player > 15)) {
+        return;
+    }
+
+    gv_gkRole[lp_player] = 0;
+    gv_gkFaction[lp_player] = 0;
+    gv_bhFaction[lp_player] = 0;
+    gv_lmWin[lp_player][0] = 0;
+    gv_lmWin[lp_player][1] = 0;
+    gv_lmFaction[lp_player] = 0;
+    gv_fzPool[lp_player] = 0;
+    gv_fzRole[lp_player] = 0;
+    gv_ttWon[lp_player] = false;
+    gv_executionWin[lp_player] = false;
+    gv_executed[lp_player] = false;
+    gv_votes[lp_player] = 0;
+    gv_gkVoteDay[lp_player] = 0;
+    gv_shots[lp_player] = -1;
+    gv_cooldown[lp_player] = 0;
+    gv_skillCount[lp_player] = 0;
+    gv_e8B58CE9ACBCE782B9E695B0[lp_player] = 0;
+    gv_e8B58CE7A59EE782B9E695B0[lp_player] = 0;
+    gv_e7BB99E4BA86E697A0E6958CE4BA86[lp_player] = false;
+
+    // A committed current-day messenger pairing belongs to its two endpoints.
+    lv_pairFirst = gv_gkPair[lp_player][0];
+    lv_pairSecond = gv_gkPair[lp_player][1];
+    lv_pairDay = gv_gkPairDay[lp_player];
+    gf_GKAbilityResetPlayer(lp_player);
+    if ((lv_pairDay > 0) && (lv_pairDay == gv_dayNumber)) {
+        gv_gkPair[lp_player][0] = lv_pairFirst;
+        gv_gkPair[lp_player][1] = lv_pairSecond;
+        gv_gkPairDay[lp_player] = lv_pairDay;
+    }
+
+    gv_grPrivateChat[lp_player] = false;
+    gf_CBAssignUnassignChatChannel(lp_player, 0, ge_Clear_Clear);
+    gf_BHWithdrawVotes(lp_player);
+    gf_RTRoleCard(lp_player);
+}
+
+void gf_XRLifeAnnounce (int lp_player) {
+    int lv_a;
+    text lv_line;
+
+    if ((lp_player < 1) || (lp_player > 15)) {
+        return;
+    }
+
+    if ((gv_xrLifeDid[lp_player] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lp_player) == false)) {
+        return;
+    }
+
+    lv_line = (gf_GKLabel(lp_player) + StringExternal("Param/Value/XRLIFEREBORN"));
+    lv_a = 1;
+    while ((lv_a <= 15)) {
+        if ((PlayerGroupHasPlayer(gv_currentPlayers, lv_a) == true)) {
+            gf_CBSystemMessage(lv_line, lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0, 0, 0));
         }
 
-        lv_i += 1;
+        lv_a += 1;
     }
 }
 
@@ -107028,17 +107060,21 @@ bool gf_XRTryRebirth (int lp_player, bool lp_remake) {
     const int autoXRLIFE_ae = 15;
     const int autoXRLIFE_ai = 1;
 
-    if ((gv_xrLife == false) || (gv_xrLifeDid[lp_player] == true)) {
+    if ((lp_player < 1) || (lp_player > 15)) {
         return false;
     }
-    if ((gv_bhFeignRole[lp_player] != 0) || (PlayerGroupHasPlayer(gv_currentPlayers, lp_player) == false)) {
+
+    if ((gv_xrLife == false) || (gv_xrLifeDid[lp_player] == true) || (gv_gameOver == true)) {
+        return false;
+    }
+    if ((gv_bhFeignRole[lp_player] != 0) || (PlayerGroupHasPlayer(gv_currentPlayers, lp_player) == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lp_player) == true)) {
         return false;
     }
 
     gv_xrLifeDid[lp_player] = true;
-    // The only in-game constructor bypassing the immutable profession gate.
+    // Explicit constructor: the temporary rule revives a neutral Gambler.
     gv_roles[lp_player][1] = 3;
-    gv_roles[lp_player][0] = gv_gkRebirthRole[lp_player];
+    gv_roles[lp_player][0] = 17;
     gv_lmWin[lp_player][0] = 0;
     gv_lmWin[lp_player][1] = 0;
     gv_bhFaction[lp_player] = 0;
@@ -107046,14 +107082,15 @@ bool gf_XRTryRebirth (int lp_player, bool lp_remake) {
     gv_diedAtNight[lp_player] = false;
     gv_action[lp_player][0] = 0;
     gv_action[lp_player][1] = 0;
-    gv_visitation[lp_player] = 0;
+    gf_BHVisitNone(lp_player);
     gv_jailed[lp_player] = 0;
-    gv_roleblocked[lp_player] = 0;
+    gf_BHUnblock(lp_player);
+    gv_suicide[lp_player] = false;
     gv_immune[lp_player][0] = false;
     gv_immune[lp_player][1] = false;
     gv_immune[lp_player][2] = false;
     gv_immune[lp_player][3] = false;
-    // Passersby are vulnerable: no inherited Survivor food or former-role shield.
+    // Do not inherit former-role shields or Survivor food.
     gv_immuneChance[lp_player] = 0;
     gv_e9BB98E8AEA4E9A39FE789A9[lp_player] = false;
     PlayerGroupAdd(gv_alivePlayers, lp_player);
@@ -107146,7 +107183,7 @@ bool gf_XRTryRebirth (int lp_player, bool lp_remake) {
         TextTagShow(gv_nameTag[lp_player], PlayerGroupAll(), (gv_isNight == false));
     }
 
-    gf_GKInit(lp_player, gv_gkRebirthFaction[lp_player]);
+    gf_XRLifeGamblerInit(lp_player);
     gf_RefreshRoleBox();
     DialogSetVisible(gv_roleBox, PlayerGroupSingle(lp_player), true);
     return true;
@@ -108426,7 +108463,7 @@ int gf_BHVoteWeight (int lp_player) {
         return 0;
     }
 
-    if ((gf_GKIs(lp_player) == true)) {
+    if ((gf_BHNoVoteOrCount(lp_player) == true)) {
         return 0;
     }
 
@@ -109815,13 +109852,13 @@ int gf_GSChatRoot (int p) {
 }
 
 int gf_GSGRPartner (int p) {
-    if ((p < 1) || (p > 15) || (gf_GKIs(p) == true)) {
+    if ((p < 1) || (p > 15) || (gf_GKIs(p) == true) || (gv_xrLifeDid[p] == true)) {
         return 0;
     }
-    if ((gv_grChild[p] >= 1) && (gv_grChild[p] <= 15) && (gf_GKIs(gv_grChild[p]) == false)) {
+    if ((gv_grChild[p] >= 1) && (gv_grChild[p] <= 15) && (gf_GKIs(gv_grChild[p]) == false) && (gv_xrLifeDid[gv_grChild[p]] == false)) {
         return gv_grChild[p];
     }
-    if ((gv_grParent[p] >= 1) && (gv_grParent[p] <= 15) && (gf_GKIs(gv_grParent[p]) == false)) {
+    if ((gv_grParent[p] >= 1) && (gv_grParent[p] <= 15) && (gf_GKIs(gv_grParent[p]) == false) && (gv_xrLifeDid[gv_grParent[p]] == false)) {
         return gv_grParent[p];
     }
 
@@ -110909,6 +110946,19 @@ void gf_BRResolveRecruit () {
                 if ((gf_BHConvertFaction(lv_target, gv_roles[lv_a][1]) == true)) {
                     lv_n += 1;
                 }
+                else if ((gf_BRSelectable(lv_a, lv_target) == true)) {
+                    // Only living, current, named true professions may reveal a refusal.
+                    // Do not use investigation/disguise name helpers here.
+                    if (((gv_roles[lv_target][1] == 1) || (gv_roles[lv_target][1] == 2) || (gv_roles[lv_target][1] == 3) || (gv_roles[lv_target][1] == 5)) && (gv_roles[lv_target][0] >= 1) && (gv_roles[lv_target][0] <= 40) && (gv_roleNameArray[gv_roles[lv_target][1]][gv_roles[lv_target][0]] != null)) {
+                        gf_CBSystemMessage((StringExternal("Param/Value/BRFAIL1") + IntToText(gv_playerSpot[lv_target]) + StringToText(". ") + TextWithColor(StringToText(gv_name[lv_target]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_target])) + StringExternal("Param/Value/BRFAIL2") + gf_BHRoleName(lv_target) + StringExternal("Param/Value/BRFAIL3")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                        if ((gv_roles[lv_a][1] == 2)) {
+                            gf_CBSystemMessage(StringExternal("Param/Value/BRREFUSE2"), lv_target, lv_target, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                        }
+                        else {
+                            gf_CBSystemMessage(StringExternal("Param/Value/BRREFUSE5"), lv_target, lv_target, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
+                        }
+                    }
+                }
 
                 lv_i += 1;
             }
@@ -111315,6 +111365,15 @@ void gf_GKSetRoleField (int lp_player, int lp_field, int lp_value) {
     gv_roles[lp_player][lp_field] = lp_value;
 }
 
+// shw322: reborn Gamblers and passersby have no votes or counted population.
+bool gf_BHNoVoteOrCount (int lp_player) {
+    if ((lp_player < 1) || (lp_player > 15)) {
+        return false;
+    }
+
+    return ((gf_GKIs(lp_player) == true) || (gv_xrLifeDid[lp_player] == true));
+}
+
 int gf_GKAliveCount () {
     int lv_a;
     int lv_n;
@@ -111322,7 +111381,7 @@ int gf_GKAliveCount () {
     lv_a = 1;
     lv_n = 0;
     while ((lv_a <= 15)) {
-        if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_GKIs(lv_a) == false)) {
+        if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_BHNoVoteOrCount(lv_a) == false)) {
             lv_n += 1;
         }
 
@@ -111446,19 +111505,27 @@ void gf_GKVoteUI () {
 
     lv_a = 1;
     while ((lv_a <= 15)) {
+        // Only actual GK professions are immune to nomination, not Gamblers.
         if ((gf_GKIs(lv_a) == true)) {
             DialogControlSetVisible(gv_actionDialogItem[lv_a][2], PlayerGroupAll(), false);
+        }
+
+        if ((gf_BHNoVoteOrCount(lv_a) == true)) {
             lv_b = 1;
             while ((lv_b <= 15)) {
                 DialogControlSetVisible(gv_actionDialogItem[lv_b][2], PlayerGroupSingle(lv_a), false);
                 DialogControlSetVisible(gv_actionDialogItem[lv_b][3], PlayerGroupSingle(lv_a), false);
                 DialogControlSetVisible(gv_actionDialogItem[lv_b][4], PlayerGroupSingle(lv_a), false);
                 gv_hiddenButton[lv_a][lv_b] = false;
-                gv_hiddenButton[lv_b][lv_a] = false;
+                if ((gf_GKIs(lv_a) == true)) {
+                    gv_hiddenButton[lv_b][lv_a] = false;
+                }
+
                 lv_b += 1;
             }
 
             DialogControlSetVisible(gv_actionDialogItem[0][1], PlayerGroupSingle(lv_a), false);
+            DialogControlSetVisible(gv_skipButtonItem, PlayerGroupSingle(lv_a), false);
         }
 
         lv_a += 1;

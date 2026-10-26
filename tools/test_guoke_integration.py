@@ -81,8 +81,94 @@ class Hooks:
         self.check(earlier in code and later in code and code.index(earlier) < code.index(later), f'{name}: require {earlier} before {later}')
 
 
+def temporary_gambler_hooks(hooks: Hooks) -> None:
+    """shw322's population/vote exception is NOT a GK identity extension."""
+    helper = compact(hooks.get('gf_BHNoVoteOrCount'))
+    hooks.check('lp_player<1' in helper and 'lp_player>15' in helper, 'NoVoteOrCount bounds before array access')
+    hooks.check('return((gf_GKIs(lp_player)==true)||(gv_xrLifeDid[lp_player]==true));' in helper, 'NoVoteOrCount is exactly GK or persistent rebirth marker')
+    hooks.check('gv_xrLifeDid' not in hooks.get('gf_GKIs') and '17' not in hooks.get('gf_GKIs'), 'Gambler is never a GK identity')
+    hooks.check('gf_BHNoVoteOrCount(lv_a)==false' in compact(hooks.get('gf_GKAliveCount')), 'AliveCount uses real exclusion helper')
+    _, weight, _, _ = hooks.guard('gf_BHVoteWeight', 'gf_BHNoVoteOrCount(lp_player)==true')
+    hooks.check(compact(weight) == 'return0;', 'No vote power, even if old/fixed-three/support weights remain')
+    hooks.before('gf_BHVoteWeight', 'gf_BHNoVoteOrCount(lp_player)', 'gv_gkVoteDay[lp_player]')
+
+    # These guards are deliberately OUTSIDE testConds: scripted/automatic
+    # execution cannot bypass them by calling the trigger with testConds=false.
+    for name in ('gt_ASVote_Func', 'gt_ASTrialVote_Func', 'gt_ASSkip_Func', 'gt_ASSkipButton_Func'):
+        _, body, start, end = hooks.guard(name, 'gf_BHNoVoteOrCount(EventPlayer())==true')
+        hooks.check(compact(body) == 'returnfalse;', name + ': reject no-vote actor')
+        parents = [block for block in blocks(hooks.get(name)) if block[2] < start and block[3] >= end]
+        hooks.check(not any(block[0] == 'testConds' for block in parents), name + ': automatic execution cannot bypass actor guard')
+        hooks.check(not re.search(r'gv_(?:playerVote|skipVote|voteCount|trialVotes)\[.*?\]\s*[+\-]?=(?!=)', hooks.get(name)[:start]), name + ': no ballot mutation before rejection')
+        hooks.before(name, 'gf_BHNoVoteOrCount(EventPlayer())', 'if(!runActions)')
+
+    # -skip is a chat command wired to the SAME protected real trigger. There
+    # is no command-only alternate route to restoring vote rights.
+    hooks.check('TriggerAddEventChatMessage(gt_ASSkip,c_playerAny,"-skip",true);' in compact(hooks.get('gt_ASSkip_Init')), '-skip command registration stays on protected handler')
+    for name, trigger in (('gt_ASVote_Init', 'gt_ASVote'), ('gt_ASTrialVote_Init', 'gt_ASTrialVote'), ('gt_ASSkipButton_Init', 'gt_ASSkipButton')):
+        hooks.check('TriggerAddEventDialogControl(' + trigger + ',' in compact(hooks.get(name)), name + ': real UI entry remains registered')
+
+    ui = 'gf_GKVoteUI'
+    _, no_vote_ui, _, _ = hooks.guard(ui, 'gf_BHNoVoteOrCount(lv_a)==true')
+    for column in (2, 3, 4):
+        hooks.check(f'DialogControlSetVisible(gv_actionDialogItem[lv_b][{column}],PlayerGroupSingle(lv_a),false);' in compact(no_vote_ui), 'Hide own nomination/trial controls: ' + str(column))
+    hooks.check('DialogControlSetVisible(gv_skipButtonItem,PlayerGroupSingle(lv_a),false);' in compact(no_vote_ui), 'Hide skip control from no-vote actors')
+    hooks.check('DialogControlSetVisible(gv_actionDialogItem[lv_a][2],PlayerGroupAll(),false);' not in compact(no_vote_ui), 'No-vote flag must not make reborn gamblers immune to nomination')
+    for name in ('gf_ASStartVote', 'gf_ASTrialVote', 'gf_ASTieVote'):
+        hooks.check(compact(hooks.get(name)).count('gf_GKVoteUI();') == 1, name + ': applies UI exclusion after ordinary UI setup')
+    hooks.check(compact(hooks.get('gf_ASTieVote')).endswith('gf_GKVoteUI();}'), 'Tie revote reapplies GK/reborn UI exclusion after the last ordinary button restoration')
+    _, target, _, _ = hooks.guard('gt_ASVote_Func', 'gv_actionDialogItem[lv_a][2]==EventDialogControl()')
+    hooks.check('gf_GKIs(lv_a)==false' in compact(hooks.get('gt_ASVote_Func')) and 'gf_BHNoVoteOrCount(lv_a)' not in compact(target), 'Nomination target immunity remains GK-only')
+
+    # All real electorate recount sites, including deferred/automatic vote
+    # result callbacks, leave/AFK and judge/marshal transitions.
+    count_owners = {
+        'auto_gf_TrialVoteResults_TriggerFunc': 3,
+        'auto_gf_EExecution_TriggerFunc': 1,
+        'gt_DetectLeave_Func': 3, 'gt_ADAntiAFKPeriod_Func': 3,
+        'gt_DaySequence_Func': 7, 'gt_ASMarshallAction_Func': 1,
+        'gt_ASJudgeAction_Func': 1, 'gf_SKY_1_zhifazhang': 1,
+        'gf_SKY_3_faguan': 1, 'gf_JSRecount': 1,
+    }
+    for name, expected in count_owners.items():
+        eligible = [block for block in blocks(hooks.get(name)) if 'PlayerGroupHasPlayer(gv_alivePlayers,' in block[0] and 'gv_roles[' in block[0] and '!=18' in block[0]]
+        hooks.check(len(eligible) == expected, name + ': retain all electorate recount branches')
+        for condition, _, _, _ in eligible:
+            hooks.check('gf_BHNoVoteOrCount(' in condition and '==false' in condition, name + ': each recount excludes reborn/GK')
+
+    # Main CheckEnd skips only native GK globally. Reborn gamblers are excluded
+    # ONLY from alive population, so their earned >=3 gambler win still counts.
+    check_end = hooks.get('gf_CheckEnd')
+    alive = [block for block in blocks(check_end) if block[0] == '(PlayerGroupHasPlayer(gv_alivePlayers,lv_a)==true)&&(gf_BHNoVoteOrCount(lv_a)==false)']
+    hooks.check(len(alive) == 1 and 'lv_x[10]+=1;' in compact(alive[0][1]), 'CheckEnd main alive branch excludes reborn population')
+    hooks.check('gf_BHNoVoteOrCount' not in check_end[:alive[0][2]], 'CheckEnd cannot globally continue over gambler winners')
+    _, gambler_win, gambler_start, _ = hooks.guard('gf_CheckEnd', 'gv_e8B58CE9ACBCE782B9E695B0[lv_a]>=3')
+    hooks.check('lv_x[23]+=1;' in compact(gambler_win) and gambler_start > alive[0][3], 'Earned gambler winners are counted outside alive exclusion')
+    skips = [block for block in blocks(check_end) if block[0] == '(gf_BHNoVoteOrCount(lv_a)==true)']
+    hooks.check(len(skips) == 8 and all(compact(block[1]) == 'continue;' for block in skips), 'Eight later special-role population loops use common exclusion')
+
+    flush = compact(hooks.get('gf_XRLifeFlush'))
+    hooks.check('RandomInt(' not in flush and 'gv_gkRebirthRole' not in flush and 'gv_gkRebirthFaction' not in compact(hooks.get('gf_XRLifeNote')), 'Temporary rule does not shuffle jobs or inherit factions')
+    hooks.before('gf_XRLifeFlush', 'gv_xrLifeDone=true;', 'gf_XRTryRebirth(')
+    hooks.before('gf_XRLifeFlush', 'gf_XRTryRebirth(', 'gf_XRLifeAnnounce(')
+    rebirth = compact(hooks.get('gf_XRTryRebirth'))
+    for statement in ('gv_xrLifeDid[lp_player]=true;', 'gv_roles[lp_player][1]=3;', 'gv_roles[lp_player][0]=17;', 'gf_XRLifeGamblerInit(lp_player);'):
+        hooks.check(statement in rebirth, 'Real rebirth constructor requires ' + statement)
+    hooks.check('gf_GKInit(' not in rebirth, 'Rebirth cannot construct old native GK professions')
+    init = compact(hooks.get('gf_XRLifeGamblerInit'))
+    for statement in ('gv_gkRole[lp_player]=0;', 'gv_gkFaction[lp_player]=0;', 'gv_votes[lp_player]=0;', 'gv_e8B58CE9ACBCE782B9E695B0[lp_player]=0;', 'gv_e8B58CE7A59EE782B9E695B0[lp_player]=0;', 'gf_BHWithdrawVotes(lp_player);', 'gf_RTRoleCard(lp_player);', 'gf_CBAssignUnassignChatChannel(lp_player,0,ge_Clear_Clear);'):
+        hooks.check(statement in init, 'Gambler init preserves intended ordinary-role reset: ' + statement)
+    hooks.check('gv_xrLifeDid[lp_player]=false' not in init + rebirth, 'Keep persistent once-only revival/no-count marker')
+    for name in ('gf_XRLifeFlush', 'gf_XRTryRebirth'):
+        condition, rejected, _, _ = hooks.guard(name, 'gv_gameOver==true')
+        hooks.check('return' in compact(rejected), name + ': no resurrection after game over')
+    _, passive, _, _ = hooks.guard('gf_RTRoleCard', 'gv_xrLifeDid[lp_player]==true')
+    hooks.check('XRLIFEPASSIVE' in passive and 'gv_roleBoxText[lp_player][2]' in passive, 'Ordinary role card appends persistent no-vote/no-count trait')
+
+
 def audit(source: str) -> int:
     hooks = Hooks(source)
+    temporary_gambler_hooks(hooks)
     # Both the live chat implementation and legacy copied implementation must
     # consume mail before any native title/recipient routing can run.
     for name in ('gf_CBAddChat', 'gf_CBAddChatE8AF95E8AF95E79C8BE883BDE4B88DE883BDE794A8'):
@@ -133,11 +219,13 @@ def audit(source: str) -> int:
     _, unavailable, _, _ = hooks.guard('gf_GRChatToggle', 'lv_partner==0')
     hooks.check('return;' in compact(unavailable), 'GR toggle must reject unavailable/GK endpoints')
     hooks.check('gv_grChild' not in hooks.get('gf_GRChatToggle') and 'gv_grParent' not in hooks.get('gf_GRChatToggle'), 'GR toggle cannot read raw graph instead of validated partner')
-    _, no_self, _, _ = hooks.guard('gf_GSGRPartner', 'gf_GKIs(p)==true')
+    condition, no_self, _, _ = hooks.guard('gf_GSGRPartner', 'gf_GKIs(p)==true')
     hooks.check(compact(no_self) == 'return0;', 'GK self must have no old GR partner')
+    hooks.check('gv_xrLifeDid[p]==true' in condition, 'Reborn gambler self must have no old GR partner')
     for edge in ('gv_grChild[p]', 'gv_grParent[p]'):
         condition, body, _, _ = hooks.guard('gf_GSGRPartner', 'gf_GKIs(' + edge + ')==false')
         hooks.check(edge + '>=1' in condition and edge + '<=15' in condition and compact(body) == 'return' + edge + ';', 'GR partner validates bounds and excludes GK edge: ' + edge)
+        hooks.check('gv_xrLifeDid[' + edge + ']==false' in condition, 'GR partner excludes reborn gambler edge: ' + edge)
 
     # The parent's/child's DIRECT GR partner delivery does not pass through
     # GSSpecialRecipient and therefore still requires mail isolation as well.
@@ -172,17 +260,17 @@ def audit(source: str) -> int:
 
     # Constructor reset preserves only this day's committed pairing. Freeze
     # consumes that fact even after the original messenger dies/changes job.
-    init = 'gf_GKInit'
-    for saved in ('lv_pairFirst=gv_gkPair[lp_player][0];', 'lv_pairSecond=gv_gkPair[lp_player][1];', 'lv_pairDay=gv_gkPairDay[lp_player];'):
-        hooks.before(init, saved, 'gf_GKAbilityResetPlayer(lp_player);')
+    for init in ('gf_GKInit', 'gf_XRLifeGamblerInit'):
+        for saved in ('lv_pairFirst=gv_gkPair[lp_player][0];', 'lv_pairSecond=gv_gkPair[lp_player][1];', 'lv_pairDay=gv_gkPairDay[lp_player];'):
+            hooks.before(init, saved, 'gf_GKAbilityResetPlayer(lp_player);')
 
-    condition, restore, _, _ = hooks.guard(init, 'lv_pairDay==gv_dayNumber')
-    hooks.check('lv_pairDay>0' in condition, 'Only an existing current-day pairing survives constructor reset')
-    for assignment in ('gv_gkPair[lp_player][0]=lv_pairFirst;', 'gv_gkPair[lp_player][1]=lv_pairSecond;', 'gv_gkPairDay[lp_player]=lv_pairDay;'):
-        hooks.check(assignment in compact(restore), 'Constructor restores preserved pairing field: ' + assignment)
-        hooks.before(init, 'gf_GKAbilityResetPlayer(lp_player);', assignment)
+        condition, restore, _, _ = hooks.guard(init, 'lv_pairDay==gv_dayNumber')
+        hooks.check('lv_pairDay>0' in condition, init + ': Only an existing current-day pairing survives constructor reset')
+        for assignment in ('gv_gkPair[lp_player][0]=lv_pairFirst;', 'gv_gkPair[lp_player][1]=lv_pairSecond;', 'gv_gkPairDay[lp_player]=lv_pairDay;'):
+            hooks.check(assignment in compact(restore), init + ': restores preserved pairing field: ' + assignment)
+            hooks.before(init, 'gf_GKAbilityResetPlayer(lp_player);', assignment)
 
-    hooks.check('gv_grPrivateChat[lp_player]=false;' in compact(hooks.get(init)), 'Constructor clears active old GR private-chat toggle')
+        hooks.check('gv_grPrivateChat[lp_player]=false;' in compact(hooks.get(init)), init + ': clears active old GR private-chat toggle')
     condition, freeze, _, _ = hooks.guard('gf_GKMailFreeze', 'gv_gkPairDay[p]==gv_dayNumber')
     hooks.check('gv_gkPairDay[p]>0' in condition and 'gf_GKLive(first)==true' in condition and 'gf_GKLive(second)==true' in condition, 'Freeze requires a current committed pairing and two live endpoints')
     hooks.check('gf_GKRole(p' not in condition and 'gf_GKLive(p)' not in condition and 'gv_roles[p]' not in condition, 'Freeze cannot require original messenger current job/alive state')

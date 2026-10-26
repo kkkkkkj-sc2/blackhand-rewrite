@@ -32,6 +32,7 @@ NAMES = (
     'gf_ETTownWin', 'gf_ETMafiaWin', 'gf_ETTriadWin', 'gf_BHFactionReset',
     'gf_BHSpyActive', 'gf_BHSeenFaction', 'gf_BHInvestigatedRoleName', 'gf_BHPrivateRoleName',
     'gf_GKIs', 'gf_GKSetRoleField', 'gf_GKAliveCount', 'gf_GKWon',
+    'gf_BHNoVoteOrCount',
     'gf_BHWithdrawVotes',
 )
 
@@ -42,7 +43,7 @@ def with_guoke_dependencies(source: str, names) -> tuple[str, ...]:
     cursor = 0
     while cursor < len(result):
         body = function(source, result[cursor])
-        for called in sorted(set(re.findall(r'\b(gf_GK\w+)\s*\(', mask(body)))):
+        for called in sorted(set(re.findall(r'\b(gf_GK\w+|gf_BHNoVoteOrCount)\s*\(', mask(body)))):
             if called not in result:
                 result.append(called)
 

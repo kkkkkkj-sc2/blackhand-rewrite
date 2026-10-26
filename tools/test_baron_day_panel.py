@@ -36,7 +36,11 @@ ABILITY_BOUNDARIES = {
 def harness(source: str) -> str:
     base = baron.harness(source)
     base = base.replace(function(base, 'main'), '')
-    ability = function(source, 'gt_ASAbilityButton_Func')
+    names = baron.core.with_guoke_dependencies(source, ('gt_ASAbilityButton_Func',))
+    existing = set(re.findall(r'^(?:void|bool|int|text)\s+(\w+)\s*\([^;{}]*\)\s*\{', base, re.M))
+    bodies = [function(source, name) for name in names if name not in existing]
+    headers = '\n'.join(body.split('{', 1)[0].strip() + ';' for body in bodies)
+    ability = '\n\n'.join(bodies)
     used = set(re.findall(r'\bgv_\w+', mask(ability))) - set(re.findall(r'\bgv_\w+', base))
     declarations = {}
     for match in re.finditer(r'^(\w+)((?:\[\d+\])*)\s+(gv_\w+)\s*(?:=[^;]*)?;', source, re.M):
@@ -47,8 +51,8 @@ def harness(source: str) -> str:
     globals_text = '\n'.join(declarations[name] for name in sorted(used))
     resets = '\n'.join(f'    clearValue({name});' for name in sorted(used))
     calls = baron.core.calls(ability)
-    unknown = calls - baron.core.calls(base) - ABILITY_BOUNDARIES - {
-        'gt_ASAbilityButton_Func', 'TriggerIsEnabled', 'DialogControlIsVisible',
+    unknown = calls - baron.core.calls(base) - ABILITY_BOUNDARIES - set(names) - {
+        'TriggerIsEnabled', 'DialogControlIsVisible', 'DialogControlCreate',
     }
     assert not unknown, ('new shared ability boundary must be reviewed', unknown)
     stubs = []
@@ -57,7 +61,10 @@ def harness(source: str) -> str:
         result = '' if header.startswith('void ') else ' return false;'
         stubs.append(header + ' { CHECK(false && "unrelated daytime ability boundary");' + result + ' }')
 
+    constants = sorted(set(re.findall(r'\b(?:c_|ge_)\w+', mask(ability))) - set(re.findall(r'\b(?:c_|ge_)\w+', base)))
+    constants_text = '\n'.join(f'constexpr int {name}={index};' for index, name in enumerate(constants, 100))
     ability = translate(ability)
+    ability = re.sub(r'\bnull\b', '0', ability)
     ability = re.sub(r'^(\s+(?:int|bool|playergroup)\s+\w+(?:\[\d+\])*)\s*;', r'\1 = {};', ability, flags=re.M)
     assert 'gf_BRPanelOpen(EventPlayer());' in ability
     assert 'gf_BRDayButtons();' in mask(function(source, 'gf_ASStartVote'))
@@ -65,14 +72,18 @@ def harness(source: str) -> str:
     assert 'gf_BRPanelCloseAll();' in mask(function(source, 'gf_ASStopVote'))
     assert 'gt_BRPanel_Init();' in mask(function(source, 'gt_BRRecruit_Init')), 'real registered recruit init must also register the panel event'
     print('PASS actual day-panel/ability bodies, registration and resume/close wiring; unrelated profession branches are explicit fail-fast boundaries', flush=True)
-    return base + '\n' + globals_text + r'''
+    return base + '\n' + globals_text + '\n' + constants_text + r'''
 trigger gt_Type=0;
+void DialogControlCreate(int dialog,int type) {
+    CHECK(type==c_triggerControlTypeButton);
+    createControl(dialog,0,0,0,0,0,"button");
+}
 bool TriggerIsEnabled(trigger) { return true; }
 bool DialogControlIsVisible(int item,int player) {
     CHECK(player>=1 && player<=15);
     return uiVisible[{player,item}];
 }
-''' + '\n'.join(stubs) + '\n' + ability + r'''
+''' + '\n'.join(stubs) + '\n' + headers + '\n' + ability + r'''
 void panelReset(const string& label,int pool=2,bool start=true) {
     brReset(label,pool,start);
 ''' + resets + r'''
@@ -115,9 +126,10 @@ void setupAndRegistration() {
     gt_BRRecruit_Init();
     CHECK(gt_BRPanel!=gt_BRRecruit);
     CHECK(triggerNames[gt_BRPanel]=="gt_BRPanel_Func");
-    CHECK(registeredCommands==std::vector<string>{"-recruit"});
-    CHECK(registeredDialogEvents.size()==1);
+    CHECK(registeredCommands==std::vector<string>({"-recruit","-pair","-puppet"}));
+    CHECK(registeredDialogEvents.size()==2);
     CHECK(registeredDialogEvents[0]==std::array<int,4>{gt_BRPanel,c_playerAny,c_invalidDialogControlId,c_triggerControlEventTypeClick});
+    CHECK(registeredDialogEvents[1]==std::array<int,4>{gt_GKPanel,c_playerAny,c_invalidDialogControlId,c_triggerControlEventTypeClick});
     gf_BRPanelBuild(); CHECK(dialogs.size()==1);
     CHECK(dialogs[gv_brPanel].width==900 && dialogs[gv_brPanel].height==470);
     CHECK(!dialogs[gv_brPanel].modal && !dialogs[gv_brPanel].image);

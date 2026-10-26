@@ -362,10 +362,12 @@ Param/Value/XRTITLE=<c val="FFCC66">额外规则</c>
 Param/Value/XRHINT=可以同时开。只有主机能改。
 Param/Value/XRDEADLAB=<c val="CCCCCC">亡灵小镇</c><n/>死者在死后依然可以发言。
 Param/Value/XRGANGLAB=<c val="CC6666">团伙作案</c><n/>同名中立致命会加入各自的频道，且胜利条件不再要求存活到最后。
-Param/Value/XRLIFELAB=<c val="88CCAA">转世重生</c><n/>最先死亡的四名玩家会一同转世为过客，继承真实阵营；五种职业随机分配，四人职业互不重复。
+Param/Value/XRLIFELAB=<c val="88CCAA">转世重生</c><n/>最先死亡的四名玩家会以赌鬼的身份复活，他们无法投票且不算在存活人数中。
 Param/Value/XRFOODBOX=- 你如果没有行动则会消耗一份食物<n/>- 如果你访问的人出门行动了，则你会在其家中安全度过夜晚（非法闯入）<n/>- 如果你访问的人没有出门，则你会被赶出，消耗一份食物<n/>- 你初始有 1 份食物<n/>- 你有食物时拥有无敌<n/>- 你失去最后的食物后会饿死<n/>- 正常情况下，你不能重复去同一个人的家中
 Param/Value/XRLIFEDOT=. 
 Param/Value/XRLIFEON= <c val="FFFF00">复活
+Param/Value/XRLIFEREBORN= 以「赌鬼」的身份复活了。
+Param/Value/XRLIFEPASSIVE=<n/>- 你通过转世重生复活，无法投票且不计入存活人数。
 Param/Value/XRCLOSE=关闭
 Param/Value/XRDEAD=<c val="888888">[死者] </c>
 Param/Value/XRGANG=<c val="CC6666">[团伙·</c>
@@ -373,6 +375,6 @@ Param/Value/XRGANG2=<c val="CC6666">] </c>
 Param/Value/XRIN=<s val="ModLeftSize16Bold"><c val="CC6666">你进入了团伙频道。只有和你同名的人听得到。</c></s>
 Param/Value/XRGANGWIN=<n/><c val="CC6666">同名有一人胜利，其余同名一起胜利，不必活到最后。</c>
 Param/Value/XRANNHEADER=本局游戏启用了以下额外规则：
-Param/Value/XRANNLIFE=「<c val="FFFF00">转世重生</c>」：最先死亡的四名玩家会一同转世为过客，继承真实阵营；五种职业随机分配，四人职业互不重复。
+Param/Value/XRANNLIFE=「<c val="FFFF00">转世重生</c>」：最先死亡的四名玩家会以赌鬼的身份复活，他们无法投票且不算在存活人数中。
 Param/Value/XRANNGANG=「<c val="FFFF00">团伙作案</c>」：同名中立致命会加入各自的频道，且胜利条件不再要求存活到最后。
 Param/Value/XRANNDEAD=「<c val="FFFF00">亡灵小镇</c>」：死者在死后依然可以发言。

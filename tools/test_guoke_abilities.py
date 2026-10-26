@@ -79,7 +79,7 @@ def state():
     env = {
         'gv_currentPlayers': set(range(1, n)), 'gv_alivePlayers': set(range(1, n)),
         'gv_players': set(range(1, n)), 'gv_roles': [[0, 0] for _ in range(n)],
-        'gv_gkRole': [0] * n,
+        'gv_gkRole': [0] * n, 'gv_xrLifeDid': [False] * n,
         'gv_grParent': [0] * n, 'gv_grChild': [0] * n,
         'gv_bhFeignRole': [0] * n, 'gv_action': [[0, 0] for _ in range(n)],
         'gv_visitation': [0] * n, 'gv_visitation2': [0] * n,
@@ -263,6 +263,22 @@ class Abilities(unittest.TestCase):
         self.role(1, 35)
         self.assertEqual(partner(1), 0)
         self.assertEqual(partner(2), 0)
+
+    def test_reborn_gambler_loses_old_gr_chat_but_keeps_lineage(self):
+        partner = self.s['gf_GSGRPartner']
+        self.s['gv_grChild'][1] = 2
+        self.s['gv_grParent'][2] = 1
+        for reborn in (1, 2):
+            with self.subTest(reborn=reborn):
+                self.s['gv_xrLifeDid'][reborn] = True
+                self.role(reborn, 17)
+                self.assertEqual(partner(1), 0)
+                self.assertEqual(partner(2), 0)
+                self.assertEqual(self.s['gv_grChild'][1], 2)
+                self.assertEqual(self.s['gv_grParent'][2], 1)
+                self.s['gv_xrLifeDid'][reborn] = False
+                self.assertEqual(partner(1), 2)
+                self.assertEqual(partner(2), 1)
 
     def test_floor_mapping_and_commands_are_strict_atomic(self):
         self.role(1, 34)
