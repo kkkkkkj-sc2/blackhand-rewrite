@@ -49,8 +49,15 @@ def validate_spec(spec: dict) -> None:
     for pool, field in ((1, 2), (2, 3), (3, 4), (4, 5), (5, 6)):
         expected = ''.join(f'{ALPHABET.index(c):06b}' for c in fields[field])
         assert spec['physical_options'][str(pool)] == expected
+    overrides = spec['weight_overrides']
+    assert overrides == {'1': {'11': 0.0}}, 'only the confirmed bodyguard override'
     for pool, field in ((1, 7), (2, 8), (3, 9), (5, 11)):
-        assert spec['weights'][str(pool)] == [ALPHABET.index(c) / 10 for c in fields[field]]
+        expected_weights = [ALPHABET.index(c) / 10 for c in fields[field]]
+        for role, value in overrides.get(str(pool), {}).items():
+            assert 1 <= int(role) <= len(expected_weights) and value >= 0
+            expected_weights[int(role) - 1] = value
+
+        assert spec['weights'][str(pool)] == expected_weights
     assert spec['player_counts'] == [15]
     assert spec['trial'] == '1211001111000'
     assert spec['times'] == [1.2, 0.6, 0.3, 0.8]
@@ -302,6 +309,7 @@ void poison() {
     items.clear(); messages.clear(); enabled.clear(); checked.clear();
 }
 void checkPreset() {
+    require(gv_roleWeights[1][11] == 0 && gv_bankSaveWeights[0][1][11] == 0, "bodyguard excluded by confirmed board-only weight override");
     require(gv_rolesAssigned == 15, "exactly 15 roles, no accumulation");
     for (int i = 1; i <= 15; ++i) {
         require(gv_categoriesArray[i] == expectedPools[i-1], "category seat " + std::to_string(i));

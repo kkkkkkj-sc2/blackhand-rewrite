@@ -1,0 +1,5 @@
+Param/Value/BHFACWANT= 想访问
+Param/Value/BHFACCHANGE= 改为想访问
+Param/Value/BHFACCANCEL= 取消了访问计划。
+Param/Value/BHFACJOIN= 和
+Param/Value/BHFACEND=。

@@ -456,6 +456,9 @@ MUST_HAVE_KEYS = [
   'Param/Value/BHFUSAGE',
   'Param/Value/BHFREJECT',
   'Param/Value/BHFDONE',
+  # 帮派夜间行动意向：转阵营职业与原生成员共享私密频道资格
+  'Param/Value/BHFACWANT', 'Param/Value/BHFACCHANGE', 'Param/Value/BHFACCANCEL',
+  'Param/Value/BHFACJOIN', 'Param/Value/BHFACEND',
   # 共生体 (3/29)：角色卡/绑定/共享频道/死亡与判胜
   'Param/Value/GSNAME',
   'Param/Value/GSCARD',

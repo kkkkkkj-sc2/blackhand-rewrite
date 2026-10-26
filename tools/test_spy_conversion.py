@@ -10,7 +10,9 @@ of the twelve presentation/log guards is also executed independently.
 Doubles: player groups, text/color primitives, chat UI storage, event-log sink,
 channel assignment/permission sinks, sound, magnification, deterministic RNG,
 and CBSystemMessage's rendering sink. No Spy/faction/GS routing helper is a
-double. This is not an SC2 compiler, renderer, or native chat-delivery test.
+double. Actual GK mail helpers are included to verify isolation from spies and
+converted factions, rather than replacing newer dependencies with always-false
+stubs. This is not an SC2 compiler, renderer, or native chat-delivery test.
 
 Whisper audit: the legacy option is disabled by default and not allowed. Its
 only runtime read is card text; CBWhisper sends content ONLY to its endpoints.
@@ -37,6 +39,9 @@ NAMES = (
     'gf_GSChatXR', 'gf_XRNeutralFatal', 'gf_FZChatHidden',
     'gf_GSEffectiveChannel', 'gf_GSChatColor', 'gf_GSChatHidden',
     'gf_GSChatRecipient', *CHAT_NAMES, 'gf_CBWhisper', *CALLBACKS,
+    'gf_GKIs', 'gf_GKLive', 'gf_GKLabel', 'gf_GKMailMember',
+    'gf_GKMailWindow', 'gf_GKMailReady', 'gf_GKMailPeer', 'gf_GKMailHidden',
+    'gf_GKMailRoute',
 )
 
 
@@ -318,9 +323,34 @@ void whisper_cases() {
     }
     std::cout<<"PASS whispers: both switch values, native/converted direct recipients, mute preserved; no third-party content listener\n";
 }
+void mail_isolation_cases() {
+    using Chat=void(*)(int,string,text,bool);
+    for(Chat chat: {gf_CBAddChat,gf_CBAddChatE8AF95E8AF95E79C8BE883BDE4B88DE883BDE794A8})
+    for(int faction: {0,2,5}) {
+        reset(); role(1,2,1); role(2,1,8); gv_bhFaction[2]=faction;
+        gv_gameStarted=true; gv_dayNumber=gv_gkMailDay=2;
+        gv_gkMailLink[1][4]=gv_gkMailLink[4][1]=true;
+        gv_chatPrivilege[1]=true;
+        gv_channel[1]=gv_channel[4]=5;
+        check(gf_GKMailMember(1) && gf_GKMailMember(4) && !gf_GKMailMember(2));
+        check(!gf_GSChatRecipient(1,2));
+        chat(1,"MAIL_BODY",gv_name[1],false);
+        check(messages.size()==2);
+        int sender=0,recipient=0;
+        for(auto& message:messages) {
+            check(message.second==1 || message.second==4);
+            check(message.first.find("MAIL_BODY")!=string::npos);
+            sender+=message.second==1; recipient+=message.second==4;
+        }
+        check(sender==1 && recipient==1);
+        check(uiText[2][40].empty());
+        check(logs.empty());
+    }
+    std::cout<<"PASS actual messenger routing remains isolated from native spies and both converted factions\n";
+}
 int main() {
     helper_cases(); chat_route_cases(); display_cases(); callback_cases(); whisper_cases();
-    display_guard_cases();
+    mail_isolation_cases(); display_guard_cases();
     std::cout<<"PASS "<<checks<<" Spy conversion assertions (UBSan/bounds)\n";
 }
 '''

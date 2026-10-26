@@ -443,10 +443,19 @@ void fz_notification_cases() {
         role(5,1,4); gv_bhFaction[5]=faction;
         role(6,1,4); gv_bhFaction[6]=gv_fzPool[2];
         role(7,converted?faction:gv_fzPool[2],1); active[7]=false;
-        gf_FZClick(2,9);
+        if(converted) {
+            // Execute the production Town event -> FZClick -> shared notice chain.
+            // A direct FZClick is now only profession selection/private feedback.
+            for(int p: {2,3,5,7}) gv_channel[p]=faction==2?1:4;
+            eventControl=gv_actionDialogItem[9][5];
+            check(gt_ASActionButtonATown_Func(true,true));
+        } else {
+            gf_FZClick(2,9);
+        }
         check(gv_action[2][0]==9 && fakeRenders==1 && ysPicks==0);
         std::vector<int> recipients;
-        for(auto& message: messages) if(message.first.find("{Param/Value/FENGATK}")!=string::npos)
+        string announcement=converted?"{Param/Value/BHFACWANT}":"{Param/Value/FENGATK}";
+        for(auto& message: messages) if(message.first.find(announcement)!=string::npos)
             recipients.push_back(message.second);
         std::sort(recipients.begin(),recipients.end());
         // Real converts notify the real faction (including converted members),
@@ -666,7 +675,13 @@ void fz_baron_click_cases() {
         int team=converted?(pool==2?5:2):pool;
         if(converted) gv_bhFaction[2]=team;
         role(3,pool,22); role(4,team,1); gv_action[2][0]=7; gv_ysClickSlot=0;
-        gf_FZClick(2,target);
+        if(converted) {
+            gv_channel[2]=gv_channel[4]=team==2?1:4;
+            eventControl=gv_actionDialogItem[target][5];
+            check(gt_ASActionButtonATown_Func(true,true));
+        } else {
+            gf_FZClick(2,target);
+        }
         check(brCalls.empty() && ysPicks==0);
         bool rejected=target==4 || (converted && target==3 && pool==team);
         check(gv_action[2][0]==(target==2?0:rejected?7:target));
@@ -674,7 +689,7 @@ void fz_baron_click_cases() {
             int own=0,attack=0;
             for(auto& message: messages) {
                 own+=message.second==2 && message.first.find("{Param/Value/BZWILL}")!=string::npos;
-                attack+=message.first.find("{Param/Value/FENGATK}")!=string::npos;
+                attack+=message.first.find(converted?"{Param/Value/BHFACCHANGE}":"{Param/Value/FENGATK}")!=string::npos;
             }
             check(own==1 && attack>=1);
         }
