@@ -1,0 +1,14 @@
+Param/Value/XZNAME=<c val="BB44AA">先知</c>
+Param/Value/XZDESC=一名追随神谕的先知。<n/><n/><c val="BBDDFF">在第一个夜晚，你会得知三个可以被成功转化的目标，其中有一个是假的。<n/>你会在第一晚结束时成为邪教徒。</c>
+Param/Value/XZHEAD=<c val="AAAAAA">中立</c> (<c val="BB44AA">邪教会</c>)
+Param/Value/XZBOX1=- 在第一个夜晚，你会得知三个可以被成功转化的目标，其中有一个是假的。
+Param/Value/XZBOX2=- 你会在第一晚结束时成为邪教徒。
+Param/Value/XZBOX4=一名追随神谕的先知。
+Param/Value/XZCARD=<c val="BB44AA">
+Param/Value/XZINFOPREFIX=先知得知
+Param/Value/XZINFOFULL=可以被转化为邪教徒，其中有一个是假的。
+Param/Value/XZINFOSHORT=是本次转化情报中的目标；候选不足，其中有一个是假的。
+Param/Value/XZINFONOFAKE=可以被转化为邪教徒；候选不足，本次没有假目标。
+Param/Value/XZINFOEMPTY=先知未能获得转化目标：当前没有符合条件的非邪教会存活玩家。
+Param/Value/XZBECOME=你受到了神的感召，你成为了一名邪教徒。
+Param/Value/XZSEP=、

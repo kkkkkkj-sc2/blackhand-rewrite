@@ -149,7 +149,13 @@ class Script:
         """
         # 锚在「变量名 + 池作第一个下标」：`\[1\]\[1\]` 这种写法会命中 `[8][1][1]`
         # 的尾部（别池同号角色），首版就是这么把别角色的探员线索算进来的
-        pat = re.compile(rf"gv_\w+\[{pool}\]\[{role}\](?=\[|\s|=)")
+        # The default saved weight has an additional leading bank-slot index.
+        # Match only slot 0 of this exact array; never relax the pool anchoring
+        # (e.g. role 1/1 must still not read another pool's [...][1][1]).
+        pat = re.compile(
+            rf"(?:gv_\w+\[{pool}\]\[{role}\]|"
+            rf"gv_bankSaveWeights\[0\]\[{pool}\]\[{role}\])(?=\[|\s|=)"
+        )
         out = []
         for fn in ("gf_InitializeVariables", "gf_DefaultRoleOptions"):
             out += [l for l in self.body(fn) if pat.search(l) and l.strip()]

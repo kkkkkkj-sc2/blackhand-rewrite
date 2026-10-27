@@ -461,6 +461,12 @@ MUST_HAVE_KEYS = [
   # 帮派夜间行动意向：转阵营职业与原生成员共享私密频道资格
   'Param/Value/BHFACWANT', 'Param/Value/BHFACCHANGE', 'Param/Value/BHFACCANCEL',
   'Param/Value/BHFACJOIN', 'Param/Value/BHFACEND',
+  # 先知 (3/30)：首夜情报、黎明转职与完整角色卡
+  'Param/Value/XZNAME', 'Param/Value/XZDESC', 'Param/Value/XZHEAD',
+  'Param/Value/XZBOX1', 'Param/Value/XZBOX2', 'Param/Value/XZBOX4',
+  'Param/Value/XZCARD', 'Param/Value/XZINFOPREFIX', 'Param/Value/XZINFOFULL',
+  'Param/Value/XZINFOSHORT', 'Param/Value/XZINFONOFAKE', 'Param/Value/XZINFOEMPTY',
+  'Param/Value/XZBECOME', 'Param/Value/XZSEP',
   # 共生体 (3/29)：角色卡/绑定/共享频道/死亡与判胜
   'Param/Value/GSNAME',
   'Param/Value/GSCARD',
