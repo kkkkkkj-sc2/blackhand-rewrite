@@ -10,6 +10,18 @@
     15
   ],
   "source_save_code": "JMkkkkTg CCNECCCCFFHGWBN xv4CYhznsIQKGDAUAABAAAAAAAAAE hbBMShiEKAACEAAAAC gCHLSFziOsRiGI AwGoAIAAAAwAAAA hbBMUhiEKAACEAAAAC AUeMPLPMFAKKFFUUKAFAFMAKKZUAAAKAAAA UKPPKKKFFKKAAKAFKKKAAK KKUGHPPFMCeKCDoFBC  UKPPKKKFFKKAAAKFKKKAAK LGDI KJBCI",
+  "seat_overrides": [
+    {
+      "seat": 14,
+      "source": {
+        "category": 3,
+        "role": 1
+      },
+      "category": 4,
+      "role": 14,
+      "reason": "用户追加：第14席由固定连环杀手改为中立温和随机；原始保存码保留作历史溯源"
+    }
+  ],
   "category": [
     1,
     1,
@@ -24,7 +36,7 @@
     4,
     4,
     2,
-    3,
+    4,
     4
   ],
   "role": [
@@ -41,7 +53,7 @@
     7,
     6,
     22,
-    1,
+    14,
     13
   ],
   "physical_options": {

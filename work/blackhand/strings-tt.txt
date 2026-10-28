@@ -1,6 +1,6 @@
 // 调停者（中立混乱 3/23）。第六天 = 白天公告里的天数计数到达 6。
 Param/Value/TTPOOL=<c val="AAAAAA">中立</c> <c val="00CCFF">混乱</c>
-Param/Value/TTPOOLDESC=可能是调停者或精神病患者。
+Param/Value/TTPOOLDESC=可能是调停者、精神病患者或裁决者。
 Param/Value/TTNAME=<c val="7EB6FF">调停者</c>
 Param/Value/TTCARD=<c val="7EB6FF">
 Param/Value/TTALIGN=<c val="7EB6FF">无（混乱）</c>

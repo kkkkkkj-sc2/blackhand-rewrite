@@ -22,6 +22,13 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / 'work/blackhand/CustomLogic.galaxy'
 SPEC = ROOT / 'work/presets/baishouqijia.json'
 ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+# Historical user input, not an export regenerated from the amended roster.
+SOURCE_SAVE_CODE = (
+    'JMkkkkTg CCNECCCCFFHGWBN xv4CYhznsIQKGDAUAABAAAAAAAAAE '
+    'hbBMShiEKAACEAAAAC gCHLSFziOsRiGI AwGoAIAAAAwAAAA hbBMUhiEKAACEAAAAC '
+    'AUeMPLPMFAKKFFUUKAFAFMAKKZUAAAKAAAA UKPPKKKFFKKAAKAFKKKAAK '
+    'KKUGHPPFMCeKCDoFBC  UKPPKKKFFKKAAAKFKKKAAK LGDI KJBCI'
+)
 
 
 def function(source: str, name: str) -> str:
@@ -38,14 +45,30 @@ def function(source: str, name: str) -> str:
 
 
 def validate_spec(spec: dict) -> None:
+    assert spec['source_save_code'] == SOURCE_SAVE_CODE, 'preserve historical user input verbatim'
     fields = spec['source_save_code'].split(' ')
     assert len(fields) == 14 and fields[10] == ''
     assert all(c in ALPHABET for word in fields for c in word)
-    assert spec['category'] == sum(([ALPHABET.index(c) >> 3, ALPHABET.index(c) & 7]
-                                    for c in fields[0]), [])[:15]
-    assert spec['role'] == [ALPHABET.index(c) for c in fields[1]]
-    assert spec['category'] == [1, 1, 1, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 3, 4]
-    assert spec['role'] == [2, 2, 13, 4, 2, 2, 2, 2, 5, 5, 7, 6, 22, 1, 13]
+    source_categories = sum(([ALPHABET.index(c) >> 3, ALPHABET.index(c) & 7]
+                             for c in fields[0]), [])[:15]
+    source_roles = [ALPHABET.index(c) for c in fields[1]]
+    assert source_categories == [1, 1, 1, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 3, 4]
+    assert source_roles == [2, 2, 13, 4, 2, 2, 2, 2, 5, 5, 7, 6, 22, 1, 13]
+
+    seat_overrides = spec['seat_overrides']
+    assert len(seat_overrides) == 1, 'only seat 14 is amended'
+    override = seat_overrides[0]
+    assert override['seat'] == 14 and override['source'] == {'category': 3, 'role': 1}
+    assert (override['category'], override['role']) == (4, 14), 'neutral benign random slot'
+    assert override['reason'], 'record why the historical export is overridden'
+    categories, roles = source_categories.copy(), source_roles.copy()
+    seat = override['seat'] - 1
+    assert (categories[seat], roles[seat]) == (override['source']['category'], override['source']['role'])
+    categories[seat], roles[seat] = override['category'], override['role']
+    assert (spec['category'], spec['role']) == (categories, roles)
+    assert [i + 1 for i, (old, new) in enumerate(zip(zip(source_categories, source_roles),
+                                                    zip(spec['category'], spec['role'])))
+            if old != new] == [14], 'the other 14 seats must remain identical to the original export'
     for pool, field in ((1, 2), (2, 3), (3, 4), (4, 5), (5, 6)):
         expected = ''.join(f'{ALPHABET.index(c):06b}' for c in fields[field])
         assert spec['physical_options'][str(pool)] == expected
@@ -94,6 +117,12 @@ def boolean_terms(expression: str, operator: str) -> list[str]:
 
 
 def static_checks(source: str, spec: dict) -> None:
+    names = dict(line.split('=', 1) for line in
+                 (ROOT / 'work/bh-src/zhCN-GameStrings.txt').read_text(encoding='utf-8').splitlines()
+                 if line.startswith('Param/Value/'))
+    mild_name = re.search(r'gv_roleNameArray\[4\]\[14\]\s*=\s*StringExternal\("([^"]+)"\);', source)
+    assert mild_name and re.sub('<[^>]+>', '', names[mild_name[1]]).split() == ['中立', '温和']
+
     body = function(source, spec['function'])
     live = mask(body)
     assert 'gf_OSLoadBase64(' not in live and 'gf_BHApplyBoardWeights(' not in live
@@ -116,7 +145,18 @@ def static_checks(source: str, spec: dict) -> None:
     assert source.count('StringExternal("Param/Value/BSQJNAME")') >= 2
     for key in ('BSQJNAME', 'BSQJDESC', 'BSQJBTN', 'BSQJSUBA', 'BSQJONLY15'):
         assert f'Param/Value/{key}' in source
-    assert function(source, 'gf_InitializeVariables').count('gf_BSQJSnapshotDefaults();') == 1
+    init = function(source, 'gf_InitializeVariables')
+    defaults = function(source, 'gf_DefaultRoleOptions')
+    for role in (25, 38):
+        for variable in (f'gv_roleWeights[3][{role}]', f'gv_bankSaveWeights[0][3][{role}]'):
+            assert re.search(re.escape(variable) + r'\s*=\s*0\.25\s*;', mask(init)), (
+                f'{variable} must initialize to the shared JS/CJ default 0.25')
+        assert re.search(r'gv_bankSaveWeights\[0\]\[3\]\[' + str(role) + r'\]\s*=\s*0\.25\s*;', mask(defaults))
+
+    assert init.count('gf_BSQJSnapshotDefaults();') == 1
+    cj_registration = list(re.finditer(r'gv_\w+\[3\]\[38\][^;]*;', mask(init)))
+    assert cj_registration and init.index('gf_BSQJSnapshotDefaults();') > cj_registration[-1].end(), (
+        'snapshot must run after complete CJ registration, not capture its zero-initialized defaults')
 
     manipulate = function(source, 'gt_OSRoleManipulate_Func')
     condition_section = manipulate.split('// Conditions', 1)[1].split('// Actions', 1)[0]
@@ -283,7 +323,13 @@ void fixture() {
 ''' + fixture + r'''
     gf_DefaultRoleOptions();
     gf_BSQJSnapshotDefaults();
-    for (int p = 1; p <= 5; ++p) for (int r = 1; r <= 37; ++r) {
+    for (int r : {25, 38}) {
+        require(std::abs(gv_bankSaveWeights[0][3][r] - 0.25) < 1e-8,
+                "JS/CJ initialization/default bank weight is 0.25: " + std::to_string(r));
+        require(std::abs(gv_bsqjDefaultWeights[3][r] - 0.25) < 1e-8,
+                "BSQJ captures initialized JS/CJ default 0.25: " + std::to_string(r));
+    }
+    for (int p = 1; p <= 5; ++p) for (int r = 1; r <= c_bhSaveRoleMax; ++r) {
         baselineWeights[p][r] = gv_bankSaveWeights[0][p][r];
         for (int b = 0; b <= 11; ++b) baselineOptions[p][r][b] = gv_defaultRoleOptions[p][r][b];
     }
@@ -294,7 +340,7 @@ void fixture() {
     gv_xrDeadBox = 3001; gv_xrGangBox = 3002; gv_xrLifeBox = 3003;
 }
 void poison() {
-    for (int p = 1; p <= 5; ++p) for (int r = 1; r <= 37; ++r) {
+    for (int p = 1; p <= 5; ++p) for (int r = 1; r <= c_bhSaveRoleMax; ++r) {
         gv_roleWeights[p][r] = gv_bankSaveWeights[0][p][r] = 4.9;
         gv_bankSaveStrings[0][r][p] = "111111111111";
         for (int b = 0; b <= 11; ++b) {
@@ -309,13 +355,18 @@ void poison() {
     items.clear(); messages.clear(); enabled.clear(); checked.clear();
 }
 void checkPreset() {
+    for (int r : {25, 38}) {
+        require(std::abs(gv_roleWeights[3][r] - 0.25) < 1e-8
+                && std::abs(gv_bankSaveWeights[0][3][r] - 0.25) < 1e-8,
+                "BSQJ missing JS/CJ weights restore initial 0.25 even after board pollution: " + std::to_string(r));
+    }
     require(gv_roleWeights[1][11] == 0 && gv_bankSaveWeights[0][1][11] == 0, "bodyguard excluded by confirmed board-only weight override");
     require(gv_rolesAssigned == 15, "exactly 15 roles, no accumulation");
     for (int i = 1; i <= 15; ++i) {
         require(gv_categoriesArray[i] == expectedPools[i-1], "category seat " + std::to_string(i));
         require(gv_rolesArray[i] == expectedRoles[i-1], "role seat " + std::to_string(i));
     }
-    for (int p = 1; p <= 5; ++p) for (int r = 1; r <= 37; ++r) {
+    for (int p = 1; p <= 5; ++p) for (int r = 1; r <= c_bhSaveRoleMax; ++r) {
         const bool loadable = (p == 1 && r <= gv_townMax) || ((p == 2 || p == 5) && r <= gv_mafiaTriadMax) || p == 3 || (p == 4 && r <= gv_randomMax);
         if (!loadable) continue;
         for (int b = 0; b <= 11; ++b) if (gv_roleOptionExists[p][r][b]) {
@@ -375,7 +426,7 @@ def main() -> None:
     args = parser.parse_args()
     spec = json.loads(SPEC.read_text(encoding='utf-8'))
     validate_spec(spec)
-    print('PASS JSON exact raw export decode, double-space provenance and confirmed defaults policy')
+    print('PASS JSON historical raw export decode, only seat 14 overridden to 4/14, other 14 unchanged, bodyguard-only weight override and defaults policy')
     if args.spec_only:
         return
 

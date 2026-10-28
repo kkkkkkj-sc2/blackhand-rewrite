@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Execute production adjudicator, execution, death and guard bodies in C++17.
 
-No Python reimplementation of the role. Galaxy->C++ only changes types/array
-syntax and null handles. Explicit engine substitutes below cover rendering,
-triggers and external unrelated professions. Real bus/witch dispatch is checked
+No Python reimplementation of the role. Galaxy->C++ changes types/array syntax
+and null handles; investigator text slots use a narrow nullable-text adapter to
+preserve null versus initialized-empty text. Explicit engine substitutes cover
+rendering, triggers and external unrelated professions. Real bus/witch dispatch is checked
 statically; runtime tests inject its final destinations, not a SC2 simulation.
 Requires g++, enables UBSan/bounds; this is NOT an SC2 real-client test.
 """
@@ -17,6 +18,8 @@ from pathlib import Path
 
 from preset_gen import load_strings
 from test_recruiter_modes import balanced_end
+from test_egun import mask
+from test_adjudicator_contract import assert_announcement_timing
 
 
 def function(source: str, name: str) -> str:
@@ -36,6 +39,7 @@ HELPERS = (
     'gf_LSTrySpare', 'gf_LSRelease', 'gf_LSEndDay', 'gf_LSEndDayThread',
     'gf_TXResumeDay', 'gf_BHNoVoteOrCount', 'auto_gf_CheckVoteWin_TriggerFunc',
     'gf_TXProtected',
+    'gf_SKF_1_tanyuan', 'gf_DQHidden', 'gf_DQSeenPool', 'gf_DQSeenRole',
 )
 
 # Only unrelated role side effects and presentation APIs may be inert. Missing
@@ -113,7 +117,8 @@ def integration(source: str) -> list[str]:
     clock = function(source, 'gt_NightSequence_Func')
     # Use the actual increment in the executable test, not a fixed fake date.
     assert clock.index('gf_XZFirstDawn();') < clock.index('gv_dayNumber += 1;')
-    assert 'gf_CJMorning();' in function(source, 'gt_DaySequence_Func')
+    assert_announcement_timing(source)
+    assert 'gf_CJTellAll' not in mask(function(source, 'gf_CJMorning'))
     death = function(source, 'gf_GSKillPlayerDirect')
     assert death.index('PlayerGroupRemove(gv_alivePlayers, lp_player);') < death.index('gf_CJOnDeath(lp_player);')
     assert 'gf_BHVisitNone' not in function(source, 'gf_CJClearRound')
@@ -139,7 +144,7 @@ def integration(source: str) -> list[str]:
     table = json.loads((ROOT / 'work/roles-list.json').read_text())
     assert sum(e['role'] == 38 for sec in table['sections'] if sec['category'] == 3 for e in sec['entries']) == 1
     assert 'c_bhSaveRoleMax = 38;' in source
-    assert 'c_bhNeutralDrawMax = 31;' in source
+    assert 'c_bhNeutralDrawMax = 38;' in source
     assert 'gv_bankRoleAchievements[lv_a][3][38]' not in source
     assert 'gv_roleNameInput[3][38] = "caijuezhe";' in source
 
@@ -153,6 +158,18 @@ def integration(source: str) -> list[str]:
 
     assert len(results) == 25, len(results)
     results.append('void nativeDawnClock() { gv_dayNumber += 1; gv_isNight = false; gf_CJMorning(); }')
+    # Execute the actual four initialization statements, not a hand-built result.
+    # Keep Galaxy null distinct from an initialized empty text in the C++ adapter.
+    live = mask(source)
+    initialization = []
+    for target in ('gv_investigatorCJINV1', 'gv_investigatorCJINV2',
+                   'gv_roleInvestigatorArray[3][38][0]', 'gv_roleInvestigatorArray[3][38][1]'):
+        matches = list(re.finditer(re.escape(target) + r'\s*=(?!=)[^;]*;', live))
+        assert len(matches) == 1, target
+        match = matches[0]
+        initialization.append(source[match.start():match.end()])
+
+    results.append('void nativeCJInvestigatorInit() {\n' + '\n'.join(initialization) + '\n}')
     return results
 
 
@@ -169,6 +186,9 @@ def harness(source: str) -> str:
     for match in re.finditer(r'^(\w+)((?:\[\d+\])*) +(\w+)\s*(?:=[^;]*)?;', source, re.M):
         kind, dims, name = match.groups()
         if name.startswith(('gv_', 'auto_gf_', 'gt_')):
+            if name in {'gv_investigatorCJINV1', 'gv_investigatorCJINV2', 'gv_roleInvestigatorArray'}:
+                kind = 'nullable_text'
+
             declarations[name] = f'{kind} {name}{dims};'
 
     used = set(re.findall(r'\b(?:gv_|auto_gf_|gt_)\w+', re.sub(r'//[^\n]*|"(?:\\.|[^"\\])*"', '', code)))
@@ -190,6 +210,7 @@ IntToText UnitGetType TimerGetRemaining gf_BHNotify gf_CBSystemMessage gf_GKIs g
  gf_GKWon gf_XRGangShare gf_BHHistRoleWritten gf_BHHistRecordRole gf_CJChangingRole
  gf_BHWillAny gf_BHWillMore gf_BHDeathName gf_NightTransition IntToFixed CeilingI libNtve_gf_ConvertPlayerColorToColor
  gf_JSCommitExecute gf_TXSparedToday gf_JSSparedToday gf_TXSpare GameTimeOfDayGetLength GameTimeOfDaySetLength TimerPause SoundLastPlayed
+ gf_BHInvestigatedRoleName
 '''.split()
     allowed = set(NOOP + ZERO + explicit)
     assert not calls - defined - allowed, ('new dependency requires explicit stub', calls - defined - allowed)
@@ -207,6 +228,7 @@ IntToText UnitGetType TimerGetRemaining gf_BHNotify gf_CBSystemMessage gf_GKIs g
 #include <functional>
 #include <iostream>
 #include <map>
+#include <regex>
 #include <string>
 #include <utility>
 #include <vector>
@@ -215,6 +237,15 @@ using text=string; using fixed=double;
 using playergroup=int; using color=int; using soundlink=int; using trigger=int;
 using doodad=int; using unit=int; using unitgroup=int; using point=int; using actor=int; using region=int;
 using timer=int; using dialog=int; using texttag=int; using sound=int;
+// Narrow Galaxy-text adapter for investigator slots only: null is NOT "".
+struct nullable_text {
+    string value;
+    bool isNull=true;
+    nullable_text& operator=(int n) {assert(n==0); value.clear();isNull=true;return *this;}
+    nullable_text& operator=(const string& s) {value=s;isNull=false;return *this;}
+    bool operator!=(int n) const {assert(n==0);return !isNull;}
+};
+string operator+(const string& s,const nullable_text& t) {return s+t.value;}
 struct Message { string value; int recipient; };
 std::vector<Message> messages;
 std::map<string,string> strings={
@@ -270,6 +301,9 @@ double GameTimeOfDayGetLength() {return timeLength;}
 void GameTimeOfDaySetLength(double n) {timeLength=n;}
 void TimerPause(int,bool pause) {timerPaused=pause;}
 int SoundLastPlayed() {return 0;}
+// Direct identity lookup is an unexecuted branch boundary in these clue-mode
+// tests. Fail loudly if a fixture accidentally enters it; never invent a role.
+text gf_BHInvestigatedRoleName(int) {assert(false && "identity-mode getter outside clue tests");return {};}
 bool gf_JSCommitExecute(int) {return true;}
 bool gf_TXSparedToday(int) {return false;}
 bool gf_JSSparedToday(int) {return false;}
@@ -340,7 +374,7 @@ void reset() {
 }
 void pick(int p=1,int a=2,int b=3) {gf_CJPick(p,a,0);gf_CJPick(p,b,1);}
 void resolve() {gf_CJPrepareVisits();gf_CJResolveNight();gf_CJRevengeNight();}
-void morning() {nativeDawnClock();}
+void morning() {nativeDawnClock();gf_CJAnnounceMorning();}
 void nextNight() {gf_NightTransition();}
 void execute(int p) {gf_EExecution(p);drain();}
 void prepareRound() {pick();resolve();morning();}
@@ -528,7 +562,73 @@ int main() {
     }
     // Invalid and conflicting clicks never create array access/duplicate/self lists.
     reset();for(int p: {0,16,-1}) {gf_CJPick(p,2,0);assert(!gf_CJIs(p));}gf_CJPick(1,2,0);gf_CJPick(1,2,1);assert(!gv_action[1][1]);gf_CJPick(1,1,0);assert(!gv_action[1][0]);++cases;
-    std::cout<<"PASS: "<<cases<<" production adjudicator scenarios; UBSan/bounds; 25 ET winner expressions\n";
+    assert(cases==89); // Preserve every pre-split regression case above.
+
+    // Freezing is pure state work: no chat, consumed pending, same-day rerun inert.
+    reset();pick();resolve();messages.clear();nativeDawnClock();
+    assert(messages.empty() && gv_cjPendingNight[1]==0 && gv_cjListDay[1]==2);
+    assert(gv_cjList[1][0]==2 && gv_cjList[1][1]==3 && gv_cjRestNight[1]==2);
+    assert(!gv_cjSatisfied[1] && gv_cjAnnouncedDay[1]==0);
+    gf_CJMorning();assert(messages.empty() && gv_cjList[1][1]==3);++cases;
+    gf_CJAnnounceMorning();assertBroadcast(dawnLines(2,3));assert(gv_cjAnnouncedDay[1]==2);++cases;
+    messages.clear();gf_CJAnnounceMorning();gf_CJMorning();gf_CJAnnounceMorning();
+    assert(messages.empty() && gv_cjListDay[1]==2 && gv_cjRestNight[1]==2);++cases;
+
+    // A non-execution daytime death after freezing cannot rewrite the list.
+    reset();pick();resolve();nativeDawnClock();gf_KillPlayer(3,false);messages.clear();
+    gf_CJAnnounceMorning();assertBroadcast(dawnLines(2,3));assertCount(0);
+    assert(gv_cjList[1][1]==3 && gv_cjRestNight[1]==2 && !gv_cjSatisfied[1]);++cases;
+
+    // Real execution credit works BEFORE the announcement, not merely afterwards.
+    reset();pick();resolve();nativeDawnClock();gv_marshalled=true;gv_executionLimit=3;
+    execute(2);assertCount(1);assert(gv_cjSatisfied[1] && !gv_isNight);
+    messages.clear();gf_CJAnnounceMorning();assertBroadcast(dawnLines(2,3));
+    assert(gv_cjList[1][0]==2 && gv_cjRestNight[1]==2 && gv_cjSatisfied[1]);++cases;
+
+    // Death/identity change cancels pending display; game-end/night/date guards
+    // suppress announcements without granting credit or consuming an announcement.
+    for(int invalid=0;invalid<5;++invalid) {
+        reset();pick();resolve();nativeDawnClock();
+        if(invalid==0) gf_KillPlayer(1,false);
+        if(invalid==1) gf_GKSetRoleField(1,0,8);
+        if(invalid==2) gv_gameOver=true;
+        if(invalid==3) gv_isNight=true;
+        if(invalid==4) ++gv_dayNumber;
+        messages.clear();gf_CJAnnounceMorning();assert(messages.empty());
+        assert(gv_cjAnnouncedDay[1]==0);assertCount(0);++cases;
+    }
+
+    // Independent per-owner markers, all 15 interactive slots and dead spectators.
+    reset();gv_roles[6][1]=3;gv_roles[6][0]=38;gf_CJStart();gf_CJNightSetup(6);
+    pick();pick(6,4,5);resolve();PlayerGroupRemove(gv_currentPlayers,15);
+    PlayerGroupRemove(gv_alivePlayers,14);messages.clear();nativeDawnClock();assert(messages.empty());
+    gf_CJAnnounceMorning();auto expected=dawnLines(2,3),other=dawnLines(4,5);
+    expected.insert(expected.end(),other.begin(),other.end());assertBroadcast(expected);
+    assert(gv_cjAnnouncedDay[1]==2 && gv_cjAnnouncedDay[6]==2);++cases;
+    messages.clear();gf_CJAnnounceMorning();assert(messages.empty());++cases;
+    gf_CJClearRound(1);assert(gv_cjAnnouncedDay[1]==0 && gv_cjAnnouncedDay[6]==2);++cases;
+
+    // Execute the COMPLETE production investigator body: real DQ seen-role
+    // helpers, actual initialization and native prefix/suffix strings. Only the
+    // message sink is observational; identity-mode's unused getter fails closed.
+    for(bool framed: {false,true}) {
+        reset();nativeCJInvestigatorInit();gv_roles[2][1]=1;gv_roles[2][0]=4;
+        gv_visitation[2]=framed?3:1;
+        if(framed) {gv_framed[3][1]=3;gv_framed[3][0]=38;}
+        messages.clear();gf_SKF_1_tanyuan(2);assert(gv_seqAfterWait[2]);
+        assert(messages.size()==1 && messages[0].recipient==2);
+        string plain=std::regex_replace(messages[0].value,std::regex("<[^>]*>"),"");
+        assert(plain==key("CJINV1")); // Exact sentence, no added prefix/suffix.
+        ++cases;
+
+        // Adapter sanity / regression mutation: null and initialized-empty text
+        // differ. An empty second slot still causes a second real dispatch.
+        gv_roleInvestigatorArray[3][38][1]=string{};messages.clear();gf_SKF_1_tanyuan(2);
+        assert(messages.size()==2);++cases;
+        gv_roleInvestigatorArray[3][38][1]=key("CJINV1");messages.clear();gf_SKF_1_tanyuan(2);
+        assert(messages.size()==2);++cases;
+    }
+    std::cout<<"PASS: "<<cases<<" production adjudicator scenarios (89 retained); UBSan/bounds; 25 ET winner expressions; full investigator ordinary/framed bodies\n";
 }
 '''
 

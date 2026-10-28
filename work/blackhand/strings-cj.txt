@@ -7,7 +7,6 @@ Param/Value/CJBOX6=有两个被你选择的人死于处决，然后你离开小�
 Param/Value/CJWHITE=裁决者
 Param/Value/CJCARD=<c val="8FAADC">C</c>
 Param/Value/CJINV1=你的目标是一个堕落的法官，他早已扭曲 - 你的目标是一个裁决者。
-Param/Value/CJINV2=你的目标是一个堕落的法官，他早已扭曲 - 你的目标是一个裁决者。
 Param/Value/CJCRIME=操纵审判，谋杀
 Param/Value/CJINTRO1=法槌重重落下，
 Param/Value/CJINTRO2=亮明了他作为「裁决者」的特权身份。

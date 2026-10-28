@@ -220,6 +220,52 @@ def assert_card_wording(fields: dict) -> None:
     assert_trait_layout(fields[2][0])
 
 
+def assert_announcement_timing(source: str) -> None:
+    """Verify both real phase entrypoints, outside their complete dim loops."""
+    sequence = function(source, 'gt_DaySequence_Func')
+    live = mask(sequence)
+    calls = list(re.finditer(r'\bgf_CJAnnounceMorning\(\)\s*;', live))
+    assert len(calls) == 2, 'need discussion and no-discussion announcement entrypoints'
+    freeze = live_match(sequence, r'\bgf_CJMorning\(\)\s*;')
+    assert freeze.start() < calls[0].start()
+    assert not re.search(r'\bWait\s*\(', live[:freeze.start()]), 'freeze must precede day action yield'
+
+    discussion = live_match(sequence, r'\bif\s*\([^{};]*\bgv_startDayWithDiscussion\b[^{};]*\)\s*\{')
+    opening = live.index('{', discussion.start())
+    end = balanced_end(live, opening)
+    body = sequence[opening + 1:end - 1]
+    local_call = live_match(body, r'\bgf_CJAnnounceMorning\(\)\s*;')
+    timer = live_match(body, r'\bgf_TBStartTimer2\(\(60\.0\s*\*\s*gv_discussionLength\),[^;]+;')
+    wait = live_match(body, r'\bWait\(\(60\.0\s*\*\s*gv_discussionLength\),\s*c_timeGame\)\s*;')
+    assert timer.end() <= local_call.start() < wait.start(), 'announce only after discussion timer and before its wait'
+    assert calls[0].start() == opening + 1 + local_call.start()
+
+    def dim_loops_before(text: str, position: int):
+        code, loops = mask(text), []
+        for loop in re.finditer(r'\bwhile\s*\(true\)\s*\{', code):
+            loop_end = balanced_end(code, code.index('{', loop.start()))
+            inner = code[loop.start():loop_end]
+            if loop_end <= position and re.search(r'\bgf_CBDimChat\s*\(', inner):
+                assert 'PlayerGroupNextPlayer' in inner
+                loops.append((loop.start(), loop_end))
+
+        assert loops, 'announcement must follow a completed dim loop'
+        _, loop_end = loops[-1]
+        assert not re.search(r'\b(?:Wait|gf_CBDimChat)\s*\(', code[loop_end:position]), \
+            'no yield or extra dim between completed dim loop and announcement'
+
+    dim_loops_before(body, local_call.start())
+    fallback = calls[1]
+    assert fallback.start() > end, 'fallback must be outside the discussion branch'
+    dim_loops_before(sequence, fallback.start())
+    assert re.match(r'\s*gf_ASStartVote\(\)\s*;', live[fallback.end():]), \
+        'fallback must immediately precede real voting start'
+    # Both calls are below death report / revival and the pre-day CheckEnd gate.
+    transition = function(source, 'auto_gf_DayTransition_TriggerFunc')
+    assert transition.index('gf_JJResolve();') < transition.rindex('gf_CheckEnd()') \
+        < transition.index('TriggerExecute(gt_DaySequence, false, false);')
+
+
 class ActualAdjudicatorContract(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -326,17 +372,26 @@ class ActualAdjudicatorContract(unittest.TestCase):
                 self.assertEqual(self.strings['Param/Value/' + key],
                                  f'<c val="{ROLE_COLOR}">{text}</c>')
 
-    def test_actual_investigator_both_modes_keep_complete_original_sentence(self):
+    def test_actual_investigator_complete_sentence_then_null_not_empty(self):
         spec = json.loads((ROOT / 'roles' / 'caijuezhe.json').read_text(encoding='utf-8'))
         self.assertEqual(spec['investigator'], ['CJINV1', 'CJINV2'])
+        self.assertEqual(self.strings['Param/Value/CJINV1'], INVESTIGATOR)
+        self.assertNotIn('Param/Value/CJINV2', self.strings, 'unused duplicate prose must be removed')
         for slot, key in enumerate(spec['investigator']):
-            with self.subTest(slot=slot):
-                # Exact raw comparison preserves the user's internal " - ".
-                self.assertEqual(self.strings['Param/Value/' + key], INVESTIGATOR)
-                live_match(self.source, r'gv_roleInvestigatorArray\[3\]\[38\]\[' + str(slot)
-                           + r'\]\s*=\s*gv_investigator' + key + r'\s*;')
-                live_match(self.source, r'gv_investigator' + key
-                           + r'\s*=\s*StringExternal\("Param/Value/' + key + r'"\)\s*;')
+            live_match(self.source, r'gv_roleInvestigatorArray\[3\]\[38\]\[' + str(slot)
+                       + r'\]\s*=\s*gv_investigator' + key + r'\s*;')
+
+        live_match(self.source, r'gv_investigatorCJINV1\s*=\s*StringExternal\("Param/Value/CJINV1"\)\s*;')
+        live_match(self.source, r'gv_investigatorCJINV2\s*=\s*null\s*;')
+        # Actual ordinary/framed bodies dispatch slot 0 once and guard slot 1 by
+        # null, not emptiness. Executable coverage is in test_adjudicator.py.
+        investigator = function(self.source, 'gf_SKF_1_tanyuan')
+        for prefix, suffix in (('A22D1588', '745ADE02'), ('D3E28725', '33DEC688')):
+            live_match(investigator, r'gf_CBSystemMessage\(\(StringExternal\("Param/Value/'
+                       + prefix + r'"\)[^;]+StringExternal\("Param/Value/' + suffix + r'"\)\)')
+            self.assertEqual(visible_text(self.strings['Param/Value/' + prefix]
+                                         + INVESTIGATOR + self.strings['Param/Value/' + suffix]),
+                             visible_text(INVESTIGATOR))
 
     def test_actual_crime_description_registration(self):
         self.assertEqual(self.strings['Param/Value/CJCRIME'], '操纵审判，谋杀')
@@ -376,9 +431,59 @@ class ActualAdjudicatorContract(unittest.TestCase):
 
         start = function(self.source, 'gf_CJInitPlayer')
         live_match(start, r'gf_CJTellAll\(StringExternal\("Param/Value/CJINTRO3"\)\)\s*;')
-        morning = function(self.source, 'gf_CJMorning')
+        announce = function(self.source, 'gf_CJAnnounceMorning')
         for key in ('CJDAWNREQ', 'CJDAWNFAIL', 'CJDAWNONEREQ', 'CJDAWNONEFAIL'):
-            live_match(morning, r'gf_CJTellAll\(StringExternal\("Param/Value/' + key + r'"\)\)\s*;')
+            live_match(announce, r'gf_CJTellAll\(StringExternal\("Param/Value/' + key + r'"\)\)\s*;')
+
+    def test_actual_morning_freeze_and_phase_announcement_are_separate(self):
+        morning, announce = (function(self.source, name) for name in
+                             ('gf_CJMorning', 'gf_CJAnnounceMorning'))
+        self.assertNotRegex(mask(morning), r'\bgf_(?:CJTellAll|CBSystemMessage|BHNotify)\s*\(')
+        self.assertNotRegex(mask(morning), r'\bWait\s*\(')
+        self.assertNotRegex(mask(announce), r'\bgv_cj(?:List|ListDay|RestNight|Satisfied|Score|Pending|PendingNight)\b(?:\[[^\]]+\])+\s*(?:=(?!=)|[+*/-]=|\+\+|--)')
+        self.assertNotRegex(mask(announce), r'\b(?:gf_GKLive|Wait)\s*\(')
+        live_match(announce, r'gv_cjAnnouncedDay\[p\]\s*=\s*gv_dayNumber\s*;')
+        live_match(function(self.source, 'gf_CJClearRound'), r'gv_cjAnnouncedDay\[p\]\s*=\s*0\s*;')
+        assert_announcement_timing(self.source)
+
+    def test_negative_announcement_before_discussion_timer_or_after_voting(self):
+        sequence = function(self.source, 'gt_DaySequence_Func')
+        pattern = (r'(gf_TBStartTimer2\(\(60\.0\s*\*\s*gv_discussionLength\),[^;]+;)'
+                   r'\s*(gf_CJAnnounceMorning\(\);)')
+        changed, count = re.subn(pattern, r'\2\n        \1', sequence)
+        self.assertEqual(count, 1)
+        with self.assertRaisesRegex(AssertionError, 'after discussion timer'):
+            assert_announcement_timing(self.source.replace(sequence, changed))
+
+        changed, count = re.subn(r'(gf_CJAnnounceMorning\(\);)\s*(gf_ASStartVote\(\);)',
+                                 r'\2\n        \1', sequence)
+        self.assertEqual(count, 1)
+        with self.assertRaisesRegex(AssertionError, 'immediately precede'):
+            assert_announcement_timing(self.source.replace(sequence, changed))
+
+    def test_negative_announcement_without_completed_discussion_dim(self):
+        sequence = function(self.source, 'gt_DaySequence_Func')
+        match = live_match(sequence, r'\bif\s*\([^{};]*\bgv_startDayWithDiscussion\b[^{};]*\)\s*\{')
+        opening = sequence.index('{', match.start())
+        end = balanced_end(mask(sequence), opening)
+        body = sequence[opening + 1:end - 1]
+        changed, count = re.subn(r'gf_CBDimChat\(\w+\);', '', body)
+        self.assertEqual(count, 1)
+        changed_sequence = sequence[:opening + 1] + changed + sequence[end - 1:]
+        with self.assertRaisesRegex(AssertionError, 'completed dim loop'):
+            assert_announcement_timing(self.source.replace(sequence, changed_sequence))
+
+    def test_actual_help_menu_background_uses_role_blue(self):
+        help_menu = function(self.source, 'gf_MakeHelpMenu')
+        branch = live_match(help_menu, r'if\s*\(\(lv_category\s*==\s*3\)\s*&&\s*\(lv_role\s*==\s*38\)\)\s*\{')
+        opening = help_menu.index('{', branch.start())
+        end = balanced_end(mask(help_menu), opening)
+        body = help_menu[opening + 1:end - 1]
+        live_match(body, r'lv_t\[5\]\s*=\s*StringExternal\("Param/Value/CJCARD"\)\s*;')
+        color = live_match(body, r'libNtve_gf_SetDialogItemColor\(gv_roleHelpPanelItem\[lv_x\]\[0\],\s*'
+                           r'Color\(([\d.]+),\s*([\d.]+),\s*([\d.]+)\),\s*PlayerGroupAll\(\)\)\s*;')
+        actual = ''.join(f'{int(float(component) * 255 / 100 + 0.5):02X}' for component in color.groups())
+        self.assertEqual(actual, ROLE_COLOR)
 
 
 class ContractParserSafety(unittest.TestCase):
