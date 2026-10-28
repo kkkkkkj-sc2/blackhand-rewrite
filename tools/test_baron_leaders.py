@@ -350,8 +350,8 @@ void testLeaderRandomMasks() {
             if(!gv_roleOptions[pool][leaders[index]][10]) available.push_back(leaders[index]);
             gv_roleOptions[pool==2?5:2][leaders[index]][10]=!gv_roleOptions[pool][leaders[index]][10];
         }
-        // Ordinary crime weights are NOT the random-leader distribution.
-        gv_roleWeights[pool][2]=100000; gv_roleWeights[pool][22]=0;
+        // Equal positive weights retain the original inclusive endpoint coverage.
+        for(int role:leaders) gv_roleWeights[pool][role]=1;
         for(fixed endpoint:{0.0,1.0}) {
             forcedRandomFraction=endpoint;
             gf_BHPickLeader(pool==2?21:22);
@@ -363,6 +363,59 @@ void testLeaderRandomMasks() {
             gf_BHPickLeader(pool==2?21:22);
             CHECK(gv_bhPickPool==pool && gv_bhPickRole==available[index]);
         }
+        forcedRandomFraction=-1;
+    }
+
+    const fixed profiles[][5]={
+        {0,0,0,0,0}, {1,0,0,0,0}, {0,1,0,0,0},
+        {0,0,0,0,1}, {1,2,3,4,5}, {0.5,0,1.5,0,2},
+        {0,0,0,0,1.0/4096}, {-1,0,2,0,0}
+    };
+    for(int pool:{2,5}) for(int occupied=0;occupied<32;++occupied) for(const auto& weights:profiles) {
+        brReset("leader weights: zero exclusion, unequal intervals and occupancy",pool);
+        fixed total=0;
+        std::vector<int> available;
+        for(int index=0;index<5;++index) {
+            const int role=leaders[index];
+            gv_roleWeights[pool][role]=weights[index];
+            gv_roleOptions[pool][role][10]=(occupied&(1<<index))!=0;
+            // The other faction and non-leaders must never enter this distribution.
+            gv_roleWeights[pool==2?5:2][role]=100000;
+            gv_roleWeights[pool][3]=100000;
+            if(weights[index]>0 && !gv_roleOptions[pool][role][10]) {
+                available.push_back(role);
+                total+=weights[index];
+            }
+        }
+
+        for(fixed endpoint:{0.0,1.0}) {
+            const int calls=randomCalls;
+            forcedRandomFraction=endpoint;
+            gf_BHPickLeader(pool==2?21:22);
+            CHECK(gv_bhPickPool==(available.empty()?0:pool));
+            CHECK(gv_bhPickRole==(available.empty()?0:endpoint==0?available.front():available.back()));
+            CHECK(randomCalls==calls+(available.empty()?0:1));
+        }
+
+        fixed preceding=0;
+        for(int role:available) {
+            const fixed weight=gv_roleWeights[pool][role];
+            forcedRandomFraction=(preceding+weight/2)/total;
+            gf_BHPickLeader(pool==2?21:22);
+            CHECK(gv_bhPickPool==pool && gv_bhPickRole==role);
+            preceding+=weight;
+        }
+
+        // A stratified grid checks the actual weighted proportions, not just membership.
+        int counts[23]{};
+        for(int sample=0;sample<120 && total>0;++sample) {
+            forcedRandomFraction=(sample+0.5)/120;
+            gf_BHPickLeader(pool==2?21:22);
+            CHECK(gv_bhPickPool==pool && gv_bhPickRole>0);
+            ++counts[gv_bhPickRole];
+        }
+
+        for(int role:available) CHECK(std::abs(counts[role]-120*gv_roleWeights[pool][role]/total)<=1.01);
         forcedRandomFraction=-1;
     }
 }

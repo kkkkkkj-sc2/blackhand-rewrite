@@ -1,0 +1,2 @@
+Param/Value/BHLEADERDUP2=<s val="ModLeftSize16"><c val="AA0000">黑手党只能设置一名领袖；随机领袖与指定领袖不能重复添加。</c></s>
+Param/Value/BHLEADERDUP5=<s val="ModLeftSize16"><c val="AA0000">三合会只能设置一名领袖；随机领袖与指定领袖不能重复添加。</c></s>
