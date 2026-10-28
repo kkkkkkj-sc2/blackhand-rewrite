@@ -17,6 +17,7 @@ import tempfile
 from pathlib import Path
 
 from preset_gen import load_strings
+from test_faction_conversion import with_guoke_dependencies
 from test_recruiter_modes import balanced_end, function
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -110,6 +111,16 @@ def harness(source: str, core: str, integrated: bool) -> str:
     if integrated:
         bodies.append(integration(source))
         bodies.extend(random_wiring(source))
+
+    # The real random draw writes through GKSetRoleField, including CJ role
+    # cleanup. Add only absent bodies from its real recursive closure; existing
+    # CORE/draft bodies and synthesized random/expiry wrappers stay untouched.
+    roots = (*HELPERS, *(('gf_GKSetRoleField',) if integrated else ()))
+    present = set(re.findall(r'^(?:void|bool|int|text)\s+(\w+)\s*\(', '\n'.join(bodies), re.M))
+    for name in with_guoke_dependencies(source, roots):
+        if name not in present:
+            bodies.append(function(source, name))
+            present.add(name)
 
     code = '\n\n'.join(bodies)
     assert not re.search(r'gv_votes\[[^\]]+\]\s*(?:[+*/-]?=(?!=)|\+\+|--)', code), 'support wrote base votes'

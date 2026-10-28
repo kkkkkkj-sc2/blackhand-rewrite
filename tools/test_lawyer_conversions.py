@@ -15,6 +15,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+from test_faction_conversion import with_guoke_dependencies
 from test_trap_roles import function
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -43,6 +44,11 @@ def harness(source: str) -> str:
         for dependency in sorted(calls_in(body)):
             if dependency.startswith('gf_SKV_') and dependency not in names:
                 names.append(dependency)
+
+    # GKSetRoleField also owns real CJ role-change cleanup. Include that full
+    # dependency/visit closure instead of stubbing the new production calls.
+    names = with_guoke_dependencies(source, names)
+    bodies = [function(source, name) for name in names]
 
     # Full dispatch/count/convert implementations, never generated count stubs.
     code = '\n\n'.join(bodies)

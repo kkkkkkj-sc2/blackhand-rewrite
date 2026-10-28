@@ -38,12 +38,17 @@ NAMES = (
 
 
 def with_guoke_dependencies(source: str, names) -> tuple[str, ...]:
-    """Extract new passer helpers verbatim, never silently stub gameplay guards."""
+    """Extract GK/CJ/visit dependencies verbatim; retain the legacy public name.
+
+    Role replacement and ET awards now call CJ helpers. Follow their real visit
+    cleanup too, rather than turning the new gameplay guard/cleanup into a stub.
+    """
     result = list(dict.fromkeys(names))
     cursor = 0
     while cursor < len(result):
         body = function(source, result[cursor])
-        for called in sorted(set(re.findall(r'\b(gf_GK\w+|gf_BHNoVoteOrCount)\s*\(', mask(body)))):
+        for called in sorted(set(re.findall(
+                r'\b(gf_GK\w+|gf_CJ\w+|gf_BHNoVoteOrCount|gf_BHVisit\w*)\s*\(', mask(body)))):
             if called not in result:
                 result.append(called)
 
@@ -166,8 +171,9 @@ def integration(source: str) -> list[tuple[str, str]]:
 
 def harness(source: str) -> str:
     predicates = integration(source)
-    bodies = [function(source, name) for name in NAMES]
-    end_index = NAMES.index('gf_CheckEnd')
+    names = with_guoke_dependencies(source, NAMES)
+    bodies = [function(source, name) for name in names]
+    end_index = names.index('gf_CheckEnd')
     end_body = bodies[end_index]
     # Observe actual counters after the first player loop, never alter a guard,
     # counter update, winning expression, or executable Galaxy statement.
@@ -212,7 +218,7 @@ def harness(source: str) -> str:
         'TextTagShow', 'libNtve_gf_SetDialogItemText',
         'libNtve_gf_SetDialogItemImage2', 'libNtve_gf_SetDialogItemImage',
     }
-    defined = set(NAMES) | {'award_' + name for name, _ in predicates}
+    defined = set(names) | {'award_' + name for name, _ in predicates}
     unknown_calls = calls(code) - defined - supported - {'text'}
     assert not unknown_calls, ('unstubbed actual call', unknown_calls)
     predicate_array = ',\n'.join('{"' + name + '", award_' + name + '}' for name, _ in predicates)

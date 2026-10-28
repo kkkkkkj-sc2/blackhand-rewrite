@@ -109,7 +109,19 @@ def harness(source: str) -> str:
         core.NAMES = original_names
 
     base = base.replace(function(base, 'main'), '')
-    bodies = [function(source, name) for name in names]
+    inherited = set(re.findall(r'^(?:void|bool|int|text)\s+(\w+)\s*\([^;{}]*\)\s*\{',
+                               mask(base), re.M))
+    bodies = []
+    for name in names:
+        if name in inherited:
+            # CJ cleanup now brings real BHVisit helpers into the core harness.
+            # Reuse that exact production body, never keep a boundary stub or
+            # emit a second definition of the same helper in the extension.
+            assert function(base, name) == translate(function(source, name)), \
+                ('inherited dependency is not the actual production body', name)
+        else:
+            bodies.append(function(source, name))
+
     raw = '\n\n'.join(bodies)
     used = set(re.findall(r'\bgv_\w+', mask(raw))) | {
         'gv_semifinalRole', 'gv_roleWeights', 'gv_roleNameArray', 'gv_townMax',

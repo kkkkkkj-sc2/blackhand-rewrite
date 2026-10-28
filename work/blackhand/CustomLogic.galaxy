@@ -323,6 +323,43 @@ int[16] gv_gkFaction;
 int[16] gv_gkVoteDay;
 int[16] gv_gkRebirthRole;
 int[16] gv_gkRebirthFaction;
+// Adjudicator persistent state: never indexed by a bank achievement slot.
+bool[16] gv_cjInitialized;
+bool[16] gv_cjWon;
+bool[16] gv_cjLeaving;
+bool[16] gv_cjExecution;
+bool[16] gv_cjSatisfied;
+int[16] gv_cjScore;
+int[16] gv_cjMode; // 0 rest, 1 list, 2 retaliation, 3 consumed retaliation
+int[16] gv_cjRestNight;
+int[16] gv_cjResolvedNight;
+int[16] gv_cjPendingNight;
+int[16][2] gv_cjPending;
+int[16][2] gv_cjList;
+int[16] gv_cjListDay;
+bool gf_CJIs (int p);
+bool gf_CJWon (int p);
+bool gf_CJLive (int p);
+void gf_CJTellAll (text message);
+void gf_CJClearRound (int p);
+void gf_CJReset ();
+void gf_CJInitPlayer (int p);
+void gf_CJStart ();
+void gf_CJChangingRole (int p);
+bool gf_CJSelectable (int p, int target);
+void gf_CJPanel (int p);
+void gf_CJNightSetup (int p);
+void gf_CJPick (int p, int target, int slot);
+void gf_CJPrepareVisits ();
+void gf_CJRedirectSecond (int p);
+void gf_CJAttack (int p, int target);
+void gf_CJResolveNight ();
+void gf_CJRevengeNight ();
+void gf_CJMorning ();
+void gf_CJOnDeath (int dead);
+bool gf_CJSpare (int p);
+void gf_CJDusk ();
+
 bool gf_GKIs (int lp_player);
 bool gf_BHNoVoteOrCount (int lp_player);
 void gf_GKSetRoleField (int lp_player, int lp_field, int lp_value);
@@ -410,7 +447,7 @@ void gf_XZFirstDawn ();
 void gf_XZFlushDawn ();
 
 const int c_bhNeutralDrawMax = 31;  // 影武者(3/31)：中立池允许被随机抽到的最大角色号（原实现止于 gv_neutralMax=18，故 31 号随机不出来）
-const int c_bhSaveRoleMax = 37;     // Includes the five passerby professions; role arrays have 41 slots.
+const int c_bhSaveRoleMax = 38;     // Includes the five passerby professions; role arrays have 41 slots.
 const bool c_bhSoloFill = false;    // 虚拟补位总开关：shw179 发布收尾改回 false（测试请打 --solo 包）
 const int c_bhSoloFillMax = 6;      // solo 测试共六人（玩家 + 最多五个虚拟补位）
 
@@ -5263,6 +5300,7 @@ void gf_InitializeVariables () {
     // Automatic Variable Declarations
     // Implementation
     gf_GKAbilityReset();
+    gf_CJReset();
     gf_EGReset();
     gf_GSReset();
     gf_BHFactionReset();
@@ -6868,6 +6906,14 @@ void gf_InitializeVariables () {
     gv_roleWeights[3][30] = 0.0;
     gv_bankSaveWeights[0][3][30] = 0.0;
     gf_BSQJSnapshotDefaults();
+    gv_roleNameArray[3][38] = StringExternal("Param/Value/CJNAME");
+    gv_roleDescriptionArray[3][38] = StringExternal("Param/Value/CJDESC");
+    gv_roleInvestigatorArray[3][38][0] = gv_investigatorE5BCBAE5A4A7E6B094E59CBA1;
+    gv_roleInvestigatorArray[3][38][1] = gv_investigatorE5BCBAE5A4A7E6B094E59CBA2;
+    gv_e78AAFE7BDAAE58FAFE883BD[3][38] = StringExternal("Param/Value/CJCRIME");
+    gv_roleOptions[3][38][10] = true;
+    gv_roleWeights[3][38] = 0.0;
+    gv_bankSaveWeights[0][3][38] = 0.0;
 }
 
 void gf_InitializeOther () {
@@ -7103,6 +7149,7 @@ void gf_InitializeOther () {
     gv_roleNameInput[3][36] = "huhunshi";
     gv_roleNameInput[3][37] = "shiwuyuan";
     gv_roleNameInput[3][30] = "xianzhi";
+    gv_roleNameInput[3][38] = "caijuezhe";
 }
 
 void gf_DefaultRoleOptions () {
@@ -7114,7 +7161,7 @@ void gf_DefaultRoleOptions () {
     // Automatic Variable Declarations
     const int auto9C1E2330_ae = 5;
     const int auto9C1E2330_ai = 1;
-    const int auto5549649A_ae = 37; // 主教(1/35)：默认选项快照覆盖角色 1..35
+    const int auto5549649A_ae = 38; // 主教(1/35)：默认选项快照覆盖角色 1..35
     const int auto5549649A_ai = 1;
     const int auto31D80E34_ae = 11; // shw276：选项槽 0..11（警长可查出开膛手 = 槽 11；槽 10 仍是 flag10）
     const int auto31D80E34_ai = 1;
@@ -7921,6 +7968,8 @@ void gf_DefaultRoleOptions () {
     gv_roleWeights[2][22] = 1.0;
     gv_bankSaveWeights[0][5][22] = 1.0;
     gv_roleWeights[5][22] = 1.0;
+    gv_roleWeights[3][38] = 0.0;
+    gv_bankSaveWeights[0][3][38] = 0.0;
 }
 
 void gf_MakeHelpMenu () {
@@ -8039,7 +8088,7 @@ void gf_MakeHelpMenu () {
             lv_category = 5;
         }
 
-        lv_role = 37; // Includes passersby; unnamed slots remain filtered.
+        lv_role = 38; // Includes passersby; unnamed slots remain filtered.
         for ( ; ( (autoDDE9B838_ai >= 0 && lv_role <= autoDDE9B838_ae) || (autoDDE9B838_ai < 0 && lv_role >= autoDDE9B838_ae) ) ; lv_role += autoDDE9B838_ai ) {
             // gK registry: rebirth help eligibility
             if (((gv_roleNameArray[lv_category][lv_role] != null) && ((gv_roleOptions[lv_category][lv_role][10] == true) || (gv_roleChance[lv_category][lv_role] > 0.0) || ((lv_category == 1) && (lv_role == 1) && (gv_roleChance[3][11] > 0.0)) || ((lv_category == 1) && (lv_role == 7) && ((gv_roleChance[3][11] > 0.0) || (gv_roleChance[1][1] > 0.0)) && (gv_roleChance[1][14] > 0.0)) || ((lv_category == 1) && (lv_role == 14) && (gv_roleOptions[1][7][0] == true) && (gv_roleChance[1][7] > 0.0)) || ((lv_category == 2) && (lv_role == 1) && (((gv_roleOptions[2][2][4] == true) && (gv_roleChance[2][2] > 0.0)) || ((gv_roleOptions[2][3][0] == true) && (gv_roleChance[2][3] > 0.0)) || ((gv_roleOptions[2][4][2] == true) && (gv_roleChance[2][4] > 0.0)) || ((gv_roleOptions[2][5][0] == true) && (gv_roleChance[2][5] > 0.0)) || ((gv_roleOptions[2][6][0] == true) && (gv_roleChance[2][6] > 0.0)) || ((gv_roleOptions[2][7][0] == true) && (gv_roleChance[2][7] > 0.0)) || ((gv_roleOptions[2][8][1] == true) && (gv_roleChance[2][8] > 0.0)) || ((gv_roleOptions[2][9][0] == true) && (gv_roleChance[2][9] > 0.0)) || ((gv_roleOptions[2][10][0] == true) && (gv_roleChance[2][10] > 0.0)) || ((gv_roleOptions[2][15][0] == true) && (gv_roleChance[2][15] > 0.0)) || ((gv_roleOptions[2][16][0] == true) && (gv_roleChance[2][16] > 0.0)) || ((gv_roleOptions[2][11][0] == true) && (gv_roleChance[2][11] > 0.0)) || ((gv_roleOptions[3][11][0] == true) && (gv_roleChance[3][11] > 0.0) && ((gv_roleChance[2][2] > 0.0) || (gv_roleChance[2][3] > 0.0) || (gv_roleChance[2][4] > 0.0) || (gv_roleChance[2][5] > 0.0) || (gv_roleChance[2][6] > 0.0) || (gv_roleChance[2][7] > 0.0) || (gv_roleChance[2][8] > 0.0) || (gv_roleChance[2][9] > 0.0) || (gv_roleChance[2][10] > 0.0) || (gv_roleChance[2][11] > 0.0) || (gv_roleChance[2][15] > 0.0) || (gv_roleChance[2][16] > 0.0))))) || ((lv_category == 5) && (lv_role == 1) && (((gv_roleOptions[5][2][4] == true) && (gv_roleChance[5][2] > 0.0)) || ((gv_roleOptions[5][3][0] == true) && (gv_roleChance[5][3] > 0.0)) || ((gv_roleOptions[5][4][2] == true) && (gv_roleChance[5][4] > 0.0)) || ((gv_roleOptions[5][5][0] == true) && (gv_roleChance[5][5] > 0.0)) || ((gv_roleOptions[5][6][0] == true) && (gv_roleChance[5][6] > 0.0)) || ((gv_roleOptions[5][7][0] == true) && (gv_roleChance[5][7] > 0.0)) || ((gv_roleOptions[5][8][1] == true) && (gv_roleChance[5][8] > 0.0)) || ((gv_roleOptions[5][9][0] == true) && (gv_roleChance[5][9] > 0.0)) || ((gv_roleOptions[5][10][0] == true) && (gv_roleChance[5][10] > 0.0)) || ((gv_roleOptions[5][11][0] == true) && (gv_roleChance[5][11] > 0.0)) || ((gv_roleOptions[5][15][0] == true) && (gv_roleChance[5][15] > 0.0)) || ((gv_roleOptions[5][16][0] == true) && (gv_roleChance[5][16] > 0.0)) || ((gv_roleOptions[3][11][1] == true) && (gv_roleChance[3][11] > 0.0) && ((gv_roleChance[5][2] > 0.0) || (gv_roleChance[5][3] > 0.0) || (gv_roleChance[5][4] > 0.0) || (gv_roleChance[5][5] > 0.0) || (gv_roleChance[5][6] > 0.0) || (gv_roleChance[5][7] > 0.0) || (gv_roleChance[5][8] > 0.0) || (gv_roleChance[5][9] > 0.0) || (gv_roleChance[5][10] > 0.0) || (gv_roleChance[5][11] > 0.0) || (gv_roleChance[5][15] > 0.0) || (gv_roleChance[5][16] > 0.0))))) || ((lv_category == 3) && (lv_role == 3) && (gv_roleOptions[3][6][0] == true) && (gv_roleChance[3][6] > 0.0)) || ((lv_category == 3) && (lv_role == 10) && (gv_roleOptions[1][3][3] == true) && (gv_roleChance[1][3] > 0.0) && (gv_roleChance[3][8] > 0.0)) || ((lv_category == 3) && (lv_role == 10) && (gv_roleOptions[3][4][2] == true) && (gv_roleChance[3][4] > 0.0) && (gv_roleChance[3][8] > 0.0)))) || ((gv_xrLife == true) && (lv_category == 3) && (lv_role >= 33) && (lv_role <= 37))) {
@@ -8250,6 +8299,11 @@ void gf_MakeHelpMenu () {
                         if ((lv_category == 3) && (lv_role == 24)) {
                             lv_t[5] = StringExternal("Param/Value/LMCARD");
                             libNtve_gf_SetDialogItemColor(gv_roleHelpPanelItem[lv_x][0], Color(76.86, 47.06, 22.75), PlayerGroupAll());
+                        }
+
+                        if ((lv_category == 3) && (lv_role == 38)) {
+                            lv_t[5] = StringExternal("Param/Value/CJCARD");
+                            libNtve_gf_SetDialogItemColor(gv_roleHelpPanelItem[lv_x][0], Color(80.0, 62.0, 35.0), PlayerGroupAll());
                         }
 
                         if ((lv_category == 3) && (lv_role == 25)) {
@@ -9710,6 +9764,11 @@ bool auto_gf_CheckVoteWin_TriggerFunc (bool testConds, bool runActions) {
         }
         if ((gv_marshalled == true)) {
             gv_tempLength = GameTimeOfDayGetLength();
+            // Refusal precedes Marshal quota/list bookkeeping and its clock pause.
+            if ((gf_CJSpare(lv_winner) == true)) {
+                return true;
+            }
+
             TimerPause(gv_overtimer, true);
             GameTimeOfDaySetLength(90001.0);
             SoundPlay(SoundLink("UI_BnetLevelUpFadeOut", -1), PlayerGroupAll(), 100.0, 0.0);
@@ -9772,6 +9831,7 @@ bool auto_gf_CheckVoteWin_TriggerFunc (bool testConds, bool runActions) {
                     gf_JSAbandon(lv_winner);
                 }
                 else {
+            if ((gf_CJSpare(lv_winner) == true)) { return true; }
             gf_EExecution(lv_winner);
                 }
             }
@@ -9832,6 +9892,7 @@ bool auto_gf_CheckVoteWin_TriggerFunc (bool testConds, bool runActions) {
                     gf_JSAbandon(lv_winner);
                 }
                 else {
+            if ((gf_CJSpare(lv_winner) == true)) { return true; }
             gf_EExecution(lv_winner);
                 }
             }
@@ -9887,6 +9948,7 @@ bool auto_gf_CheckVoteWin_TriggerFunc (bool testConds, bool runActions) {
                     gf_JSAbandon(lv_winner);
                 }
                 else {
+            if ((gf_CJSpare(lv_winner) == true)) { return true; }
             gf_EExecution(lv_winner);
                 }
             }
@@ -10190,6 +10252,7 @@ bool auto_gf_CheckVoteWin_TriggerFunc (bool testConds, bool runActions) {
                             gf_JSAbandon(lv_winner);
                         }
                         else {
+                    if ((gf_CJSpare(lv_winner) == true)) { return true; }
                     gf_EExecution(lv_winner);
                         }
                     }
@@ -10843,6 +10906,7 @@ bool auto_gf_Trial_TriggerFunc (bool testConds, bool runActions) {
                     gf_JSAbandon(lp_player);
                 }
                 else {
+            if ((gf_CJSpare(lp_player) == true)) { return true; }
             gf_EExecution(lp_player);
                 }
             }
@@ -10952,6 +11016,7 @@ bool auto_gf_Trial_TriggerFunc (bool testConds, bool runActions) {
                 gf_JSAbandon(lp_player);
             }
             else {
+        if ((gf_CJSpare(lp_player) == true)) { return true; }
         gf_EExecution(lp_player);
             }
         }
@@ -11215,6 +11280,7 @@ bool auto_gf_TrialVoteResults_TriggerFunc (bool testConds, bool runActions) {
                 gf_JSAbandon(lp_player);
             }
             else {
+        if ((gf_CJSpare(lp_player) == true)) { return true; }
         gf_EExecution(lp_player);
             }
         }
@@ -11494,6 +11560,7 @@ bool auto_gf_NightTransition_TriggerFunc (bool testConds, bool runActions) {
     // Variable Initialization
 
     // Implementation
+    gf_CJDusk();
     gf_TutHideAll();
     gf_YSOnNight();
     if ((gv_oldLynchType != -1)) {
@@ -11778,6 +11845,7 @@ bool auto_gf_NightTransition_TriggerFunc (bool testConds, bool runActions) {
     lv_a = 1;
     while ((lv_a <= 15)) {
         gf_GKNightPanel(lv_a);
+        gf_CJNightSetup(lv_a);
         lv_a += 1;
     }
 
@@ -12930,6 +12998,7 @@ void gf_SequencePrep () {
 
     gf_DEBUG("Finished action controller stage 3");
     gf_GKPrepareVisits();
+    gf_CJPrepareVisits();
     gf_GSPrepareNight(); // Before SequenceBullshit witch/bus/roleblock passes.
 }
 
@@ -13426,6 +13495,7 @@ void gf_SequenceBullshit () {
             }
         }
 
+        gf_CJRedirectSecond(lv_a);
         // 连环爱手第二刀也受巴士司机/欺骗者交换影响；受限制时两槽已由 gf_BHVisitNone 清空。
         if ((gv_roles[lv_a][1] == 3) && (gv_roles[lv_a][0] == 1) && (gv_skBurstActive[lv_a] == true) && (gv_visitation2[lv_a] > 0) && (gv_switched[gv_visitation2[lv_a]] > 0)) {
             gf_BHVisit2(lv_a, gv_switched[gv_visitation2[lv_a]]);
@@ -13773,6 +13843,7 @@ void gf_SequenceKills () {
     gf_GSApplyShield();
     gf_TTApplyProtect();
     gf_EGPrepareNight();
+    gf_CJResolveNight();
     gf_DEBUG("Starting night kills code");
     lv_a = 1;
     for ( ; ( (auto458659E3_ai >= 0 && lv_a <= auto458659E3_ae) || (auto458659E3_ai < 0 && lv_a >= auto458659E3_ae) ) ; lv_a += auto458659E3_ai ) {
@@ -14412,6 +14483,7 @@ void gf_SequenceKills () {
 
     }
     // 旧伤在普通攻击之后、系命传播之前发作。
+    gf_CJRevengeNight();
     gf_EGResolveNight();
     lv_a = 1;
     for ( ; ( (auto78285367_ai >= 0 && lv_a <= auto78285367_ae) || (auto78285367_ai < 0 && lv_a >= auto78285367_ae) ) ; lv_a += auto78285367_ai ) {
@@ -17462,6 +17534,7 @@ bool gf_GSKillPlayerDirect (int lp_player, bool lp_disguised, bool lp_gsStaged) 
         }
 
         PlayerGroupRemove(gv_alivePlayers, lp_player);
+        gf_CJOnDeath(lp_player);
         gf_GSHostDied(lp_player); // Stage ALL dependents before any cleanup Wait/check-end.
         if ((gv_xrDead == true) && (gv_isNight == true) && (gv_bhFeignRole[lp_player] == 0)) {
             gf_CBAllowDisallowChatting(lp_player, ge_Allow_Allow);
@@ -20290,7 +20363,7 @@ void gf_ETTownWin () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || (((gf_LMCat(lv_a) == 1) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true))))) || (gf_GKWon(lv_a, 1) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || (((gf_LMCat(lv_a) == 1) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true))))) || (gf_GKWon(lv_a, 1) == true))) {
             gf_DEBUG("Town Win: Music Start");
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(50.20, 100.00, 50.20), lv_a, 2.0, 0.0);
@@ -20407,7 +20480,7 @@ void gf_ETMafiaWin () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || (((gf_LMCat(lv_a) == 2) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 2) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || (((gf_LMCat(lv_a) == 2) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 2) == true))) {
             gf_DEBUG("Mafia Win: Music Start");
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(100.00, 50.20, 50.20), lv_a, 2.0, 0.0);
@@ -20487,7 +20560,7 @@ void gf_ETTriadWin () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || (((gf_LMCat(lv_a) == 5) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 5) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || (((gf_LMCat(lv_a) == 5) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 5) == true))) {
             gf_DEBUG("Triad Win: Music Start");
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(58.82, 68.63, 100.00), lv_a, 2.0, 0.0);
@@ -20562,7 +20635,7 @@ void gf_ETSerialKillerWin () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || (((((gf_XRGangShare(lv_a, 1) == true) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 1)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || (((((gf_XRGangShare(lv_a, 1) == true) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 1)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true))) {
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(100.00, 50.20, 88.24), lv_a, 2.0, 0.0);
             libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/7466C49C"), PlayerGroupSingle(lv_a));
@@ -20611,7 +20684,7 @@ void gf_ETRipperWin () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || (((((gf_XRGangShare(lv_a, 20) == true) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 20)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || (((((gf_XRGangShare(lv_a, 20) == true) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 20)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true))) {
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(100.00, 50.20, 88.24), lv_a, 2.0, 0.0);
             libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/7466C49C"), PlayerGroupSingle(lv_a));
@@ -20660,7 +20733,7 @@ void gf_ETGanranzheWin () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((((gf_XRGangShare(lv_a, 22) == true) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 22)) || ((gv_grChild[lv_a] != 0) && (gv_roles[gv_grChild[lv_a]][1] == 3) && (gv_roles[gv_grChild[lv_a]][0] == 22))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((((gf_XRGangShare(lv_a, 22) == true) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 22)) || ((gv_grChild[lv_a] != 0) && (gv_roles[gv_grChild[lv_a]][1] == 3) && (gv_roles[gv_grChild[lv_a]][0] == 22))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true))) {
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(87.45, 100.00, 0.00), lv_a, 2.0, 0.0);
             libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/7466C49C"), PlayerGroupSingle(lv_a));
@@ -20711,7 +20784,7 @@ void gf_ETSurvivorWin () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true))) {
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(100.00, 100.00, 50.20), lv_a, 2.0, 0.0);
             libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/CAF414A6"), PlayerGroupSingle(lv_a));
@@ -20774,7 +20847,7 @@ void gf_ETJesterWin () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true))) {
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(100.00, 83.53, 100.00), lv_a, 2.0, 0.0);
             libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/220AA1E2"), PlayerGroupSingle(lv_a));
@@ -20837,7 +20910,7 @@ void gf_ETWitchWin () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true))) {
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(70.20, 56.86, 90.20), lv_a, 2.0, 0.0);
             libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/07D81176"), PlayerGroupSingle(lv_a));
@@ -20898,7 +20971,7 @@ void gf_ETArsonistWin () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || (((gf_XRGangShare(lv_a, 5) == true) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 5)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || (((gf_XRGangShare(lv_a, 5) == true) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 5)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true))) {
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(100.00, 83.53, 50.20), lv_a, 2.0, 0.0);
             libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/B2F89677"), PlayerGroupSingle(lv_a));
@@ -20949,7 +21022,7 @@ void gf_ETExecutionerWin () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true))) {
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(83.53, 90.20, 100.00), lv_a, 2.0, 0.0);
             libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/C1368E35"), PlayerGroupSingle(lv_a));
@@ -21012,7 +21085,7 @@ void gf_ETAmnesiacWin () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true))) {
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(70.20, 100.00, 90.20), lv_a, 2.0, 0.0);
             libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/4AAC8315"), PlayerGroupSingle(lv_a));
@@ -21081,7 +21154,7 @@ void gf_ETCultWin () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 8) || (gf_LMRole(lv_a) == 10) || (gf_LMRole(lv_a) == 30))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 8) || (gf_LMRole(lv_a) == 10) || (gf_LMRole(lv_a) == 30))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true))) {
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(86.67, 63.53, 83.53), lv_a, 2.0, 0.0);
             libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/54B6CE69"), PlayerGroupSingle(lv_a));
@@ -21178,7 +21251,7 @@ void gf_ETMassMurdererWin () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || (((gf_XRGangShare(lv_a, 9) == true) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 9)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || (((gf_XRGangShare(lv_a, 9) == true) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 9)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true))) {
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(73.33, 26.67, 33.33), lv_a, 2.0, 0.0);
             libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/E677B527"), PlayerGroupSingle(lv_a));
@@ -21229,7 +21302,7 @@ void gf_ETAuditorWin () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true))) {
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(73.33, 80.00, 53.33), lv_a, 2.0, 0.0);
             libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/A20BD4DA"), PlayerGroupSingle(lv_a));
@@ -21308,7 +21381,7 @@ void gf_ETJudgeWin () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true))) {
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(73.33, 40.00, 33.33), lv_a, 2.0, 0.0);
             libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/F044DEED"), PlayerGroupSingle(lv_a));
@@ -21381,7 +21454,7 @@ void gf_ETLbWin2 () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true))) {
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(73.33, 40.00, 33.33), lv_a, 2.0, 0.0);
             libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/6AD172D8"), PlayerGroupSingle(lv_a));
@@ -21469,7 +21542,7 @@ void gf_ETCorruptInquisitorWin () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))) || (((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 13)) || ((gf_XRGangShare(lv_a, 13) == true) && (lv_ci == 1))) || (((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 31) && (lv_ci == 0)) || ((gf_XRGangShare(lv_a, 31) == true) && (lv_shw == 1) && (lv_ci == 0))) || (((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 32) && (lv_ci == 0)) || ((gf_XRGangShare(lv_a, 32) == true) && (lv_tx == 1) && (lv_ci == 0))))))) || (gf_GKWon(lv_a, 0) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))) || (((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 13)) || ((gf_XRGangShare(lv_a, 13) == true) && (lv_ci == 1))) || (((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 31) && (lv_ci == 0)) || ((gf_XRGangShare(lv_a, 31) == true) && (lv_shw == 1) && (lv_ci == 0))) || (((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 32) && (lv_ci == 0)) || ((gf_XRGangShare(lv_a, 32) == true) && (lv_tx == 1) && (lv_ci == 0))))))) || (gf_GKWon(lv_a, 0) == true))) {
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(73.33, 26.67, 33.33), lv_a, 2.0, 0.0);
             libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/1A115671"), PlayerGroupSingle(lv_a));
@@ -21554,7 +21627,7 @@ void gf_ETE7989FE796AB () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 14)))))) || (gf_GKWon(lv_a, 0) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 14)))))) || (gf_GKWon(lv_a, 0) == true))) {
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(73.33, 26.67, 33.33), lv_a, 2.0, 0.0);
             libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/99AC0B83"), PlayerGroupSingle(lv_a));
@@ -21603,7 +21676,7 @@ void gf_ETE586A4E9AD82 () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 15)))))) || (gf_GKWon(lv_a, 0) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 15)))))) || (gf_GKWon(lv_a, 0) == true))) {
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(73.33, 26.67, 33.33), lv_a, 2.0, 0.0);
             libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/F09DEF22"), PlayerGroupSingle(lv_a));
@@ -21652,7 +21725,7 @@ void gf_ETE8B58CE9ACBC () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true))))) || (gf_GKWon(lv_a, 0) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true))))) || (gf_GKWon(lv_a, 0) == true))) {
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(73.33, 26.67, 33.33), lv_a, 2.0, 0.0);
             libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/C94D6A1B"), PlayerGroupSingle(lv_a));
@@ -21946,11 +22019,23 @@ void gf_EExecution (int lp_player) {
     int lv_actual;
     int lv_a;
 
+    if ((gf_CJSpare(lp_player) == true)) {
+        return;
+    }
+
+    if ((PlayerGroupHasPlayer(gv_alivePlayers, lp_player) == false)) {
+        return;
+    }
+
     if ((gf_LSTrySpare(lp_player, 0) == true)) {
         return;
     }
 
     lv_actual = gf_GKSubstitute(lp_player);
+    if ((gf_CJSpare(lv_actual) == true)) {
+        return;
+    }
+
     if ((lv_actual != lp_player)) {
         gv_gkPuppet[lv_actual] = false;
         lv_a = 1;
@@ -22057,6 +22142,7 @@ bool auto_gf_EExecution_TriggerFunc (bool testConds, bool runActions) {
     // Variable Initialization
 
     // Implementation
+    if ((gf_CJSpare(lp_player) == true)) { return true; }
     gf_DQOnExecute(lp_player);
     if ((gv_cuanweiFramed[lp_player] != 0) && (PlayerGroupHasPlayer(gv_alivePlayers, gv_cuanweiFramed[lp_player]) == true)) {
         gf_CWGainPanic(gv_cuanweiFramed[lp_player], 1);
@@ -22278,6 +22364,7 @@ bool auto_gf_EExecution_TriggerFunc (bool testConds, bool runActions) {
     }
     libNtve_gf_PauseUnit(gv_unit[lp_player], false);
     gf_ERunDeathType(lp_player);
+    gv_cjExecution[lp_player] = PlayerGroupHasPlayer(gv_alivePlayers, lp_player);
     gf_KillPlayer(lp_player, false);
     gv_deathMethod[lp_player] = (gv_deathMethod[lp_player] + "L");
     gv_executed[lp_player] = true;
@@ -32105,7 +32192,7 @@ void gf_ESBodyguardKill (int lp_killer, int lp_guard) {
 
     }
 
-    if (((gv_immuneChance[lv_target[0]] > 0) || (gv_immune[lv_target[0]][0] == true)) && !((gv_roles[lp_killer][1] == 3) && (gv_roles[lp_killer][0] == 1) && (gv_skBurstActive[lp_killer] == true))) {
+    if (((gv_immuneChance[lv_target[0]] > 0) || (gv_immune[lv_target[0]][0] == true)) && !((gv_roles[lp_killer][1] == 3) && (gv_roles[lp_killer][0] == 1) && (gv_skBurstActive[lp_killer] == true)) && (gf_CJIs(lp_killer) == false)) {
         if ((gv_immuneChance[lv_target[0]] > 0)) {
             gv_immuneChance[lv_target[0]] = (gv_immuneChance[lv_target[0]] - 1);
         }
@@ -32113,7 +32200,7 @@ void gf_ESBodyguardKill (int lp_killer, int lp_guard) {
         gf_CBSystemMessage(StringExternal("Param/Value/32F5B4C0"), lv_target[0], lv_target[0], 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
     }
     else {
-        if ((gv_healing[lv_target[0]] > 0) && (gv_roleOptions[1][11][1] == false)) {
+        if ((gv_healing[lv_target[0]] > 0) && (gv_roleOptions[1][11][1] == false) && (gf_CJIs(lp_killer) == false)) {
             gf_CBSystemMessage(StringExternal("Param/Value/7F39DE5B"), lv_target[0], lv_target[0], 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
             gf_FlashScreen(Color(0.00, 100.00, 0.00), lv_target[0], 3.0, 0.0);
             gv_healing[lv_target[0]] -= 1;
@@ -37986,7 +38073,10 @@ int gf_ASGuessRole (int lp_picked, int lp_index) {
         else if ((lp_index == 36)) {
             lv_role = 37;
         }
-        else if ((lp_index >= 37)) {
+        else if ((lp_index == 37)) {
+            lv_role = 38;
+        }
+        else if ((lp_index >= 38)) {
             lv_role = 0;
         }
     }
@@ -37994,7 +38084,7 @@ int gf_ASGuessRole (int lp_picked, int lp_index) {
         // 黑手党 / 三合会：12/13 = 14、15
         lv_role = (lp_index + 2);
     }
-    if ((lv_role > 37)) {
+    if ((lv_role > 38)) {
         lv_role = 0;
     }
     return lv_role;
@@ -38012,7 +38102,7 @@ void gf_ASE5AEA1E69FA5E98089E9A1B92 (int lp_player, int lp_picked) {
     const int auto4D2826D4_ae = 20;
     const int auto4D2826D4_ai = 1;
     // Prophet catalog 3/30: one additional neutral review row.
-    const int auto8DA97E18_ae = 36;
+    const int auto8DA97E18_ae = 37;
     const int auto8DA97E18_ai = 1;
 
     // Variable Initialization
@@ -42432,6 +42522,14 @@ gv_roleBoxText[lv_a][2] = (gv_roleBoxText[lv_a][2] + StringExternal("Param/Value
         gv_roleBoxText[lv_a][6] = gf_RTMakeWinList(3, 8);
     }
 
+    if ((gv_roles[lv_a][0] == 38)) {
+        gv_roleBoxText[lv_a][0] = StringExternal("Param/Value/CJHEAD");
+        gv_roleBoxText[lv_a][1] = StringExternal("Param/Value/CJBOX1");
+        gv_roleBoxText[lv_a][2] = StringExternal("Param/Value/CJBOX2");
+        gv_roleBoxText[lv_a][3] = StringExternal("Param/Value/CJBOX6");
+        gv_roleBoxText[lv_a][4] = StringExternal("Param/Value/CJWHITE");
+        gv_roleBoxText[lv_a][6] = StringExternal("Param/Value/CJBOX6");
+    }
 }
 
 void gf_RTTriadRoleText (int lp_player) {
@@ -43127,7 +43225,7 @@ bool gf_OSCheckOptionsA (bool lp_error) {
     // Automatic Variable Declarations
     const int auto936F66DC_ae = 8;
     const int auto936F66DC_ai = 1;
-    const int auto17874970_ae = 37;
+    const int auto17874970_ae = 38;
     const int auto17874970_ai = 1;
     const int auto211FBCA9_ae = 15;
     const int auto211FBCA9_ai = 1;
@@ -43345,6 +43443,10 @@ bool gf_OSCheckOptionsA (bool lp_error) {
             }
 
             if ((gv_categoriesArray[lv_a] == 3) && (gv_rolesArray[lv_a] == 23)) {
+                lv_c[4] = true;
+            }
+
+            if ((gv_categoriesArray[lv_a] == 3) && (gv_rolesArray[lv_a] == 38)) {
                 lv_c[4] = true;
             }
 
@@ -49833,7 +49935,7 @@ void gf_VLoadSaveSlot (int lp_player, int lp_version) {
     for ( ; ( (auto3C2F2D82_ai >= 0 && lv_a <= auto3C2F2D82_ae) || (auto3C2F2D82_ai < 0 && lv_a >= auto3C2F2D82_ae) ) ; lv_a += auto3C2F2D82_ai ) {
         lv_x[lv_a][1] = gv_bankSaveIntegers[lp_player][1][lv_a];
         lv_x[lv_a][0] = gv_bankSaveIntegers[lp_player][0][lv_a];
-        if (((lv_x[lv_a][1] > 5) || (lv_x[lv_a][1] < 1) || (lv_x[lv_a][0] > 37) || (lv_x[lv_a][0] < 1))) {
+        if (((lv_x[lv_a][1] > 5) || (lv_x[lv_a][1] < 1) || (lv_x[lv_a][0] > 38) || (lv_x[lv_a][0] < 1))) {
             lv_x[lv_a][1] = 0;
             lv_x[lv_a][0] = 0;
         }
@@ -51584,7 +51686,7 @@ void gf_OSGenerateChances () {
     if ((gv_emulate == false)) {
         lv_a = 1;
         for ( ; ( (auto2FA5F4BF_ai >= 0 && lv_a <= auto2FA5F4BF_ae) || (auto2FA5F4BF_ai < 0 && lv_a >= auto2FA5F4BF_ae) ) ; lv_a += auto2FA5F4BF_ai ) {
-            auto808848AB_ae = 37; // 主教(1/35)：几率清零、计数、归一化覆盖新角色
+            auto808848AB_ae = 38; // 主教(1/35)：几率清零、计数、归一化覆盖新角色
             lv_b = 1;
             for ( ; ( (auto808848AB_ai >= 0 && lv_b <= auto808848AB_ae) || (auto808848AB_ai < 0 && lv_b >= auto808848AB_ae) ) ; lv_b += auto808848AB_ai ) {
                 gv_roleChance[lv_a][lv_b] *= 0.0;
@@ -51611,7 +51713,7 @@ void gf_OSGenerateChances () {
                 lv_z = 1;
                 lv_a = 1;
                 for ( ; ( (auto1419D80A_ai >= 0 && lv_a <= auto1419D80A_ae) || (auto1419D80A_ai < 0 && lv_a >= auto1419D80A_ae) ) ; lv_a += auto1419D80A_ai ) {
-                    auto0AAC1EA6_ae = 37; // 主教(1/35)：几率清零、计数、归一化覆盖新角色
+                    auto0AAC1EA6_ae = 38; // 主教(1/35)：几率清零、计数、归一化覆盖新角色
                     lv_b = 1;
                     for ( ; ( (auto0AAC1EA6_ai >= 0 && lv_b <= auto0AAC1EA6_ae) || (auto0AAC1EA6_ai < 0 && lv_b >= auto0AAC1EA6_ae) ) ; lv_b += auto0AAC1EA6_ai ) {
                         gv_roleOptions[lv_a][lv_b][10] = false;
@@ -51776,7 +51878,7 @@ void gf_OSGenerateChances () {
                 if ((gv_emulate == false)) {
                     lv_a = 1;
                     for ( ; ( (autoCF8B5CF7_ai >= 0 && lv_a <= autoCF8B5CF7_ae) || (autoCF8B5CF7_ai < 0 && lv_a >= autoCF8B5CF7_ae) ) ; lv_a += autoCF8B5CF7_ai ) {
-                        auto949BFF5F_ae = 37; // 主教(1/35)：几率清零、计数、归一化覆盖新角色
+                        auto949BFF5F_ae = 38; // 主教(1/35)：几率清零、计数、归一化覆盖新角色
                         lv_b = 1;
                         for ( ; ( (auto949BFF5F_ai >= 0 && lv_b <= auto949BFF5F_ae) || (auto949BFF5F_ai < 0 && lv_b >= auto949BFF5F_ae) ) ; lv_b += auto949BFF5F_ai ) {
                             if ((gv_roleOptions[lv_a][lv_b][10] == true)) {
@@ -51793,7 +51895,7 @@ void gf_OSGenerateChances () {
     }
     lv_a = 1;
     for ( ; ( (auto8886837F_ai >= 0 && lv_a <= auto8886837F_ae) || (auto8886837F_ai < 0 && lv_a >= auto8886837F_ae) ) ; lv_a += auto8886837F_ai ) {
-        autoAE6D7D3B_ae = 37; // 主教(1/35)：几率清零、计数、归一化覆盖新角色
+        autoAE6D7D3B_ae = 38; // 主教(1/35)：几率清零、计数、归一化覆盖新角色
         lv_b = 1;
         for ( ; ( (autoAE6D7D3B_ai >= 0 && lv_b <= autoAE6D7D3B_ae) || (autoAE6D7D3B_ai < 0 && lv_b >= autoAE6D7D3B_ae) ) ; lv_b += autoAE6D7D3B_ai ) {
             gv_roleOptions[lv_a][lv_b][10] = false;
@@ -51816,7 +51918,7 @@ void gf_OSGenerateChances () {
     if ((gv_emulate == false)) {
         lv_a = 1;
         for ( ; ( (auto78EDBE6B_ai >= 0 && lv_a <= auto78EDBE6B_ae) || (auto78EDBE6B_ai < 0 && lv_a >= auto78EDBE6B_ae) ) ; lv_a += auto78EDBE6B_ai ) {
-            auto28F2BD63_ae = 37; // 主教(1/35)：几率清零、计数、归一化覆盖新角色
+            auto28F2BD63_ae = 38; // 主教(1/35)：几率清零、计数、归一化覆盖新角色
             lv_b = 1;
             for ( ; ( (auto28F2BD63_ai >= 0 && lv_b <= auto28F2BD63_ae) || (auto28F2BD63_ai < 0 && lv_b >= auto28F2BD63_ae) ) ; lv_b += auto28F2BD63_ai ) {
                 gv_roleChance[lv_a][lv_b] *= 100.0;
@@ -52467,7 +52569,7 @@ int gf_BHHistFaction (int lp_pool, int lp_role) {
             return 4;
         }
 
-        if (((lp_role == 4) || (lp_role == 8) || (lp_role == 10) || (lp_role == 11) || (lp_role == 12) || (lp_role == 13) || (lp_role == 16) || (lp_role == 19) || (lp_role == 28) || (lp_role == 30))) {
+        if (((lp_role == 4) || (lp_role == 8) || (lp_role == 10) || (lp_role == 11) || (lp_role == 12) || (lp_role == 13) || (lp_role == 16) || (lp_role == 19) || (lp_role == 28) || (lp_role == 30) || (lp_role == 38))) {
             return 5;
         }
 
@@ -62054,6 +62156,7 @@ bool gt_Start_Func (bool testConds, bool runActions) {
     }
     UIClearMessages(PlayerGroupAll(), c_messageAreaDirective);
     gf_GKStart();
+    gf_CJStart();
     // 取名结束、清空旧聊天后公布开关；同时保留在系统消息记录中。
     lv_a = 1;
     for ( ; ( (auto5357D6D4_ai >= 0 && lv_a <= auto5357D6D4_ae) || (auto5357D6D4_ai < 0 && lv_a >= auto5357D6D4_ae) ) ; lv_a += auto5357D6D4_ai ) {
@@ -65281,7 +65384,7 @@ bool gt_Blacklist_Func (bool testConds, bool runActions) {
     const int autoD54915CA_ai = 1;
     const int auto5938E5BD_ae = 5;
     const int auto5938E5BD_ai = 1;
-    const int auto06C73FD2_ae = 37;
+    const int auto06C73FD2_ae = 38;
     const int auto06C73FD2_ai = 1;
 
     // Variable Initialization
@@ -65552,7 +65655,7 @@ bool gt_Prefer_Func (bool testConds, bool runActions) {
     const int auto4212D457_ai = 1;
     const int autoE58EDA46_ae = 5;
     const int autoE58EDA46_ai = 1;
-    const int autoA667E0B3_ae = 37;
+    const int autoA667E0B3_ae = 38;
     const int autoA667E0B3_ai = 1;
 
     // Variable Initialization
@@ -68885,6 +68988,7 @@ bool gt_Exeq_Func (bool testConds, bool runActions) {
                 gf_JSAbandon(lv_hit);
             }
             else {
+        if ((gf_CJSpare(lv_hit) == true)) { return true; }
         gf_EExecution(lv_hit);
             }
         }
@@ -70980,6 +71084,7 @@ bool gt_DaySequence_Func (bool testConds, bool runActions) {
     gf_JSDayButtons();
     gf_BRDayButtons();
     gf_GKAbilitiesDay();
+    gf_CJMorning();
     DialogControlSetEnabled(gv_skipButtonItem, PlayerGroupAll(), true);
     DialogControlSetEnabled(gv_switchButtonItem, PlayerGroupAll(), false);
     if ((gv_tieTicker >= 5)) {
@@ -71546,6 +71651,7 @@ bool gt_DaySequence_Func (bool testConds, bool runActions) {
                             gf_JSAbandon(lv_winner);
                         }
                         else {
+                    if ((gf_CJSpare(lv_winner) == true)) { return true; }
                     gf_EExecution(lv_winner);
                         }
                     }
@@ -75502,6 +75608,10 @@ bool gt_NPNightCamera_Func (bool testConds, bool runActions) {
                         gf_NPVantageCamera(lv_a);
                     }
 
+                    if ((gv_roles[lv_a][1] == 3) && (gv_roles[lv_a][0] == 38)) {
+                        gf_NPVantageCamera(lv_a);
+                    }
+
                     if ((gv_roles[lv_a][1] == 3) && (gv_roles[lv_a][0] == 15)) {
                         gf_NPDeadCamera(lv_a);
                     }
@@ -76959,6 +77069,11 @@ bool gt_ASActionButtonANeutral_Func (bool testConds, bool runActions) {
 
     }
     if ((lv_target > 0)) {
+        if ((gv_roles[lv_source][1] == 3) && (gv_roles[lv_source][0] == 38)) {
+            gf_CJPick(lv_source, lv_target, 0);
+            return true;
+        }
+
         if ((gf_GKIs(lv_source) == true)) {
             gf_GKNightClick(lv_source, lv_target);
             return true;
@@ -77124,6 +77239,11 @@ bool gt_ASActionButtonBNeutral_Func (bool testConds, bool runActions) {
 
     }
     if ((lv_target > 0)) {
+        if ((gv_roles[lv_source][1] == 3) && (gv_roles[lv_source][0] == 38)) {
+            gf_CJPick(lv_source, lv_target, 1);
+            return true;
+        }
+
         if ((gv_roles[lv_source][1] == 3) && (gv_roles[lv_source][0] == 1) && (gv_skBurstActive[lv_source] == true) && (gv_action[lv_source][0] != lv_target)) {
             gf_BHSerialKillerSecondTarget(lv_source, lv_target);
         }
@@ -78349,7 +78469,7 @@ bool gt_ASSearcherGuess_Func (bool testConds, bool runActions) {
     const int auto6A6D0D5B_ae = 5;
     const int auto6A6D0D5B_ai = 1;
     // shw205: 29 → 32，否则 观察者(1/31)/影武者(3/31)/天选者(3/32) 永远匹配不到
-    const int autoFE4EC373_ae = 37;
+    const int autoFE4EC373_ae = 38;
     const int autoFE4EC373_ai = 1;
 
     // Variable Initialization
@@ -84310,6 +84430,10 @@ bool gt_OSRoleSelect_Func (bool testConds, bool runActions) {
                 gv_roleSelection = 30;
             }
 
+            if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 32)) {
+                gv_roleSelection = 38;
+            }
+
         }
 
     }
@@ -84734,6 +84858,7 @@ bool gt_OSMenus_Func (bool testConds, bool runActions) {
                 DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/D89BFDF1") + gv_roleNameArray[gv_roleCategory][28] + StringExternal("Param/Value/258B2E40")));
                 DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/D89BFDF1") + gv_roleNameArray[gv_roleCategory][29] + StringExternal("Param/Value/258B2E40")));
                 DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/D89BFDF1") + gv_roleNameArray[gv_roleCategory][30] + StringExternal("Param/Value/258B2E40")));
+                DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/D89BFDF1") + gv_roleNameArray[gv_roleCategory][38] + StringExternal("Param/Value/258B2E40")));
             }
 
         }
@@ -94137,6 +94262,10 @@ if ((PlayerGroupHasPlayer(gv_alivePlayers, gv_visitation[lv_a]) == false)) {
 
             if ((StringSub(gv_deathMethod[gv_visitation[lv_a]], lv_b, lv_b) == "F")) {
                 gf_CBSystemMessage(StringExternal("Param/Value/GRDM"), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0,0,0));
+            }
+
+            if ((StringSub(gv_deathMethod[gv_visitation[lv_a]], lv_b, lv_b) == "W")) {
+                gf_CBSystemMessage(StringExternal("Param/Value/CJDM"), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0,0,0));
             }
 
             if ((StringSub(gv_deathMethod[gv_visitation[lv_a]], lv_b, lv_b) == "Y")) {
@@ -106176,7 +106305,7 @@ void gf_ETJingshenWin () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((gf_JSWon(lv_a) == true)))) || (gf_GKWon(lv_a, 0) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((gf_JSWon(lv_a) == true)))) || (gf_GKWon(lv_a, 0) == true))) {
             gv_won[lv_a] = true;
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(91.00, 22.00, 28.00), lv_a, 2.0, 0.0);
@@ -106256,7 +106385,7 @@ void gf_ETYanluoWin () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || (((((gf_XRGangShare(lv_a, 26) == true) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 26)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || (((((gf_XRGangShare(lv_a, 26) == true) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 26)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true))) {
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(55.69, 10.59, 22.75), lv_a, 2.0, 0.0);
             libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/7466C49C"), PlayerGroupSingle(lv_a));
@@ -107196,7 +107325,7 @@ void gf_ETZhongcaiWin () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || (((((gf_XRGangShare(lv_a, 27) == true) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 27)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || (((((gf_XRGangShare(lv_a, 27) == true) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 27)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true))) {
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(55.69, 10.59, 22.75), lv_a, 2.0, 0.0);
             libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/7466C49C"), PlayerGroupSingle(lv_a));
@@ -109528,7 +109657,7 @@ void gf_ETEgunWin () {
             continue;
         }
 
-        if (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true)) {
+        if ((gf_CJWon(lv_a) == true) || (((gf_GKIs(lv_a) == false) && ((gf_EGWon(lv_a) == true) || ((((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 2)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 16)) || ((gv_e8B58CE9ACBCE782B9E695B0[lv_a] >= 3) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 17)) || ((gv_executed[lv_a] == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 3)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 4)) || ((gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 6) && (gv_executionWin[lv_a] == true) && ((gv_roleOptions[3][6][2] == false) || (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true))) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 7)) || (gv_ttWon[lv_a] == true) || (gf_JSWon(lv_a) == true) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && (gf_LMRole(lv_a) == 11)) || ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (gf_LMCat(lv_a) == 3) && ((gf_LMRole(lv_a) == 12) || (gf_LMRole(lv_a) == 19))))))) || (gf_GKWon(lv_a, 0) == true))) {
             SoundPlay(SoundLink("UI_MissionComplete", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
             gf_FlashScreen(Color(76.86, 47.84, 26.67), lv_a, 2.0, 0.0);
             libNtve_gf_SetDialogItemText(gv_endButtonItem, StringExternal("Param/Value/EGWIN"), PlayerGroupSingle(lv_a));
@@ -111829,6 +111958,10 @@ void gf_GKSetRoleField (int lp_player, int lp_field, int lp_value) {
         return;
     }
 
+    if ((gf_CJIs(lp_player) == true) && (gv_roles[lp_player][lp_field] != lp_value)) {
+        gf_CJChangingRole(lp_player);
+    }
+
     gv_roles[lp_player][lp_field] = lp_value;
 }
 
@@ -113067,5 +113200,466 @@ void gf_XZFlushDawn () {
         }
 
         lv_a += 1;
+    }
+}
+
+// 裁决者（3/38，中立混乱）。日期采用原生时钟：夜 N -> 白天 N+1 -> 夜 N+1。
+bool gf_CJIs (int p) {
+    if ((p < 1) || (p > 15)) {
+        return false;
+    }
+
+    return ((gv_roles[p][1] == 3) && (gv_roles[p][0] == 38));
+}
+
+bool gf_CJWon (int p) {
+    if ((p < 1) || (p > 15)) {
+        return false;
+    }
+
+    return gv_cjWon[p];
+}
+
+bool gf_CJLive (int p) {
+    return ((gf_CJIs(p) == true) && (gf_GKLive(p) == true) && (gv_diedAtNight[p] == false) && (gv_cjWon[p] == false) && (gv_cjLeaving[p] == false));
+}
+
+void gf_CJTellAll (text message) {
+    int p;
+
+    p = 1;
+    while ((p <= 15)) {
+        if ((PlayerGroupHasPlayer(gv_currentPlayers, p) == true)) {
+            gf_CBSystemMessage(message, p, 0, 0, SoundLink("Silent", -1), Color(0,0,0));
+        }
+
+        p += 1;
+    }
+}
+
+// Transient state is deliberately separate from the irrevocable personal win.
+void gf_CJClearRound (int p) {
+    gv_cjPending[p][0] = 0;
+    gv_cjPending[p][1] = 0;
+    gv_cjPendingNight[p] = 0;
+    gv_cjList[p][0] = 0;
+    gv_cjList[p][1] = 0;
+    gv_cjListDay[p] = 0;
+    gv_cjRestNight[p] = 0;
+    gv_cjMode[p] = 0;
+    gv_cjSatisfied[p] = false;
+}
+
+void gf_CJReset () {
+    int p;
+
+    p = 0;
+    while ((p <= 15)) {
+        gf_CJClearRound(p);
+        gf_BHVisitNone(p);
+        gv_cjInitialized[p] = false;
+        gv_cjWon[p] = false;
+        gv_cjLeaving[p] = false;
+        gv_cjScore[p] = 0;
+        gv_cjExecution[p] = false;
+        gv_cjResolvedNight[p] = 0;
+        p += 1;
+    }
+}
+
+void gf_CJInitPlayer (int p) {
+    if ((gf_CJLive(p) == false) || (gv_cjInitialized[p] == true)) {
+        return;
+    }
+
+    gf_CJClearRound(p);
+    gv_cjInitialized[p] = true;
+    // Use the native consumable defense; never restore it every night/revival.
+    gv_immuneChance[p] += 1;
+    gf_CJTellAll((StringExternal("Param/Value/CJINTRO1") + gf_EGName(p) + StringExternal("Param/Value/CJINTRO2")));
+}
+
+void gf_CJStart () {
+    int p;
+
+    p = 1;
+    while ((p <= 15)) {
+        gf_CJInitPlayer(p);
+        p += 1;
+    }
+}
+
+// All role writes pass GKSetRoleField. No old list/score/defense follows a new job.
+void gf_CJChangingRole (int p) {
+    gf_CJClearRound(p);
+    gf_BHVisitNone(p);
+    gv_cjScore[p] = 0;
+    gv_cjResolvedNight[p] = 0;
+    if ((gv_cjInitialized[p] == true) && (gv_immuneChance[p] > 0)) {
+        gv_immuneChance[p] -= 1;
+    }
+
+    gv_cjInitialized[p] = false;
+    gv_action[p][0] = 0;
+    gv_action[p][1] = 0;
+}
+
+bool gf_CJSelectable (int p, int target) {
+    if ((gf_CJLive(p) == false) || (gf_GKLive(target) == false) || (target == p) || (gv_diedAtNight[target] == true)) {
+        return false;
+    }
+
+    if ((gv_cjMode[p] == 2)) {
+        return ((target != gv_cjPending[p][0]) && (target != gv_cjPending[p][1]));
+    }
+
+    return (gv_cjMode[p] == 1);
+}
+
+void gf_CJPanel (int p) {
+    int target;
+    int slot;
+    int control;
+    bool visible;
+
+    gf_RANoActions(p);
+    DialogControlSetEnabled(gv_switchButtonItem, PlayerGroupSingle(p), false);
+    target = 1;
+    while ((target <= 15)) {
+        slot = 0;
+        while ((slot <= 1)) {
+            control = gv_actionDialogItem[target][5 + slot];
+            visible = ((gf_CJSelectable(p, target) == true) && ((gv_cjMode[p] == 1) || (slot == 0)));
+            if ((target == p) && (gv_action[p][slot] != 0) && (gf_CJLive(p) == true) && (gv_cjMode[p] != 0)) {
+                visible = true;
+            }
+
+            DialogControlSetVisible(control, PlayerGroupSingle(p), visible);
+            DialogControlSetSize(control, PlayerGroupSingle(p), 60, 30);
+            DialogControlSetPosition(control, PlayerGroupSingle(p), c_anchorTopRight, (120 - 60 * slot), (15 + 30 * (gv_playerSpot[target] - 1)));
+            libNtve_gf_SetDialogItemImage(control, "ActionSmallNormal.dds", PlayerGroupSingle(p));
+            libNtve_gf_SetDialogItemImage2(control, "ActionSmallHighlight.dds", PlayerGroupSingle(p));
+            libNtve_gf_SetDialogItemColor(control, Color(80.0, 62.0, 35.0), PlayerGroupSingle(p));
+            if ((target == p) || (gv_action[p][slot] == target)) {
+                libNtve_gf_SetDialogItemTooltip(control, StringExternal("Param/Value/CJCANCEL"), PlayerGroupSingle(p));
+            }
+            else if ((gv_cjMode[p] == 2)) {
+                libNtve_gf_SetDialogItemTooltip(control, StringExternal("Param/Value/CJATTACKTIP"), PlayerGroupSingle(p));
+            }
+            else {
+                libNtve_gf_SetDialogItemTooltip(control, StringExternal("Param/Value/CJLISTTIP"), PlayerGroupSingle(p));
+            }
+
+            slot += 1;
+        }
+
+        target += 1;
+    }
+}
+
+void gf_CJNightSetup (int p) {
+    if ((gf_CJIs(p) == false)) {
+        return;
+    }
+
+    gf_CJInitPlayer(p);
+    gv_cjMode[p] = 1;
+    if ((gv_cjRestNight[p] == gv_dayNumber)) {
+        gv_cjMode[p] = 0;
+        if ((gv_cjSatisfied[p] == false)) {
+            gv_cjMode[p] = 2;
+            gf_BHNotify(StringExternal("Param/Value/CJREVENGE"), p, SoundLink("UI_TipSelect", -1));
+        }
+        else {
+            gf_BHNotify(StringExternal("Param/Value/CJREST"), p, SoundLink("UI_TipSelect", -1));
+        }
+    }
+    else {
+        gf_BHNotify(StringExternal("Param/Value/CJLISTHINT"), p, SoundLink("UI_TipSelect", -1));
+    }
+
+    if ((gv_jailed[p] != 0) || (gf_CJLive(p) == false)) {
+        gv_cjMode[p] = 0;
+    }
+
+    gv_variableOptions[p][0] = 1;
+    gv_variableOptions[p][1] = 1;
+    gf_CJPanel(p);
+}
+
+void gf_CJPick (int p, int target, int slot) {
+    if ((slot < 0) || (slot > 1) || (gf_CJLive(p) == false) || (gv_isNight == false) || (gv_jailed[p] != 0) || (gv_cjMode[p] == 0) || ((gv_cjMode[p] == 2) && (slot == 1))) {
+        return;
+    }
+
+    if ((target == p) || (target == gv_action[p][slot])) {
+        gv_action[p][slot] = 0;
+        gf_BHNotify(StringExternal("Param/Value/CJCANCEL"), p, SoundLink("UI_TipSelect", -1));
+    }
+    else {
+        if ((gf_CJSelectable(p, target) == false) || (target == gv_action[p][1 - slot])) {
+            return;
+        }
+
+        gv_action[p][slot] = target;
+        gf_BHNotify((StringExternal("Param/Value/CJSELECT") + gf_EGName(target)), p, SoundLink("UI_TipSelect", -1));
+    }
+
+    gf_CJPanel(p);
+}
+
+// Before witch/bus/roleblock: both slots are real visits, no crimes for lists.
+void gf_CJPrepareVisits () {
+    int p;
+
+    p = 1;
+    while ((p <= 15)) {
+        if ((gf_CJLive(p) == true)) {
+            gf_BHVisitNone(p);
+            if ((gv_jailed[p] == 0) && (gv_cjMode[p] != 0)) {
+                if ((gv_cjMode[p] == 2) || ((gv_action[p][0] > 0) && (gv_action[p][1] > 0))) {
+                    gf_BHVisitAction(p);
+                    if ((gv_cjMode[p] == 1)) {
+                        gf_BHVisit2(p, gv_action[p][1]);
+                    }
+                }
+            }
+        }
+
+        p += 1;
+    }
+}
+
+// At the post-roleblock swap pass, secondary destinations follow the same bus map.
+void gf_CJRedirectSecond (int p) {
+    if ((gf_CJLive(p) == true) && (gv_visitation2[p] > 0) && (gv_switched[gv_visitation2[p]] > 0)) {
+        gf_BHVisit2(p, gv_switched[gv_visitation2[p]]);
+    }
+
+    if ((gf_CJIs(p) == true) && (gv_visitation2[p] == gv_visitation[p])) {
+        gf_BHVisit2(p, 0);
+    }
+}
+
+void gf_CJAttack (int p, int target) {
+    int guard;
+
+    // Recheck final redirected destination and owner immediately before striking.
+    if ((gf_CJLive(p) == false) || (gf_EGCanAct(p) == false) || (gf_CJSelectable(p, target) == false) || (gv_cjMode[p] != 2)) {
+        return;
+    }
+
+    gf_BHCrimeMurder(p);
+    guard = gv_guarded[target];
+    if ((guard > 0) && (gv_visitation[guard] == target)) {
+        gv_guarded[target] = 0;
+        gv_damage[guard] += 1;
+        gv_damage[p] += 1;
+        gf_ESBodyguardKill(p, guard);
+        return;
+    }
+
+    // Native death/cleanup pipeline; bypass defense/healing without mutating them.
+    gv_damage[target] += 1;
+    gv_deathMethod[target] = (gv_deathMethod[target] + "W");
+    gv_deathText[target] = (gv_deathText[target] + StringExternal("Param/Value/CJNIGHT"));
+    if ((gv_nightSequence == true)) {
+        gf_CJTellAll(StringExternal("Param/Value/CJNIGHT"));
+        SoundPlay(SoundLink("BHCJExecution", -1), PlayerGroupAll(), 100.0, 0.0);
+        Wait(4.04, c_timeGame);
+    }
+
+    gf_BHNotify(StringExternal("Param/Value/CJVICTIM"), target, SoundLink("Silent", -1));
+    gf_BHRecordNightKiller(target, p);
+    gv_diedAtNight[target] = true;
+    gf_KillPlayer(target, false);
+}
+
+// After roleblock/witch/bus, before killing: snapshot lists independently of attacks.
+void gf_CJResolveNight () {
+    int p;
+    int first;
+    int second;
+
+    p = 1;
+    while ((p <= 15)) {
+        if ((gf_CJLive(p) == true) && (gf_EGCanAct(p) == true) && (gv_cjResolvedNight[p] != gv_dayNumber)) {
+            gv_cjResolvedNight[p] = gv_dayNumber;
+            if ((gv_cjMode[p] == 1) && (gv_action[p][0] > 0) && (gv_action[p][1] > 0)) {
+                first = gv_visitation[p];
+                second = gv_visitation2[p];
+                if ((first == p) || (first < 1) || (first > 15)) {
+                    first = 0;
+                }
+
+                if ((second == p) || (second < 1) || (second > 15) || (second == first)) {
+                    second = 0;
+                }
+
+                gv_cjPending[p][0] = first;
+                gv_cjPending[p][1] = second;
+                gv_cjPendingNight[p] = gv_dayNumber;
+            }
+        }
+
+        p += 1;
+    }
+}
+
+// Attack stage is later than the list snapshot; dead owners cannot open doors.
+void gf_CJRevengeNight () {
+    int p;
+
+    p = 1;
+    while ((p <= 15)) {
+        if ((gf_CJLive(p) == true) && (gf_EGCanAct(p) == true) && (gv_cjMode[p] == 2) && (gv_cjRestNight[p] == gv_dayNumber)) {
+            // One immediate-next-night chance, consumed even on an invalid redirect.
+            gv_cjMode[p] = 3;
+            if ((gv_cjResolvedNight[p] != (0 - gv_dayNumber))) {
+                gv_cjResolvedNight[p] = (0 - gv_dayNumber);
+                gv_cjMode[p] = 2;
+                gf_CJAttack(p, gv_visitation[p]);
+                gv_cjMode[p] = 3;
+            }
+        }
+
+        p += 1;
+    }
+}
+
+// Runs after the complete dawn death report, with dayNumber already incremented.
+void gf_CJMorning () {
+    int p;
+    int first;
+    int second;
+    text message;
+
+    p = 1;
+    while ((p <= 15)) {
+        if ((gv_cjPendingNight[p] > 0) && ((gv_cjPendingNight[p] + 1) == gv_dayNumber)) {
+            first = gv_cjPending[p][0];
+            second = gv_cjPending[p][1];
+            gv_cjPendingNight[p] = 0;
+            if ((gf_GKLive(first) == false) || (gv_diedAtNight[first] == true)) {
+                first = 0;
+            }
+
+            if ((gf_GKLive(second) == false) || (gv_diedAtNight[second] == true)) {
+                second = 0;
+            }
+
+            if ((first == 0)) {
+                first = second;
+                second = 0;
+            }
+
+            if ((gf_CJLive(p) == true) && (first != 0)) {
+                gv_cjList[p][0] = first;
+                gv_cjList[p][1] = second;
+                gv_cjListDay[p] = gv_dayNumber;
+                gv_cjRestNight[p] = gv_dayNumber;
+                gv_cjSatisfied[p] = false;
+                message = (StringExternal("Param/Value/CJDAWN1") + gf_EGName(first));
+                if ((second != 0)) {
+                    message = (message + StringExternal("Param/Value/CJAND") + gf_EGName(second) + StringExternal("Param/Value/CJDAWN2"));
+                }
+                else {
+                    message = (message + StringExternal("Param/Value/CJDAWNONE"));
+                }
+
+                gf_CJTellAll(message);
+            }
+            // Empty/failed lists do not reserve a resting night.
+        }
+
+        p += 1;
+    }
+}
+
+// Only the native removal following a real EExecution sets/consumes this token.
+void gf_CJOnDeath (int dead) {
+    int p;
+
+    if ((gv_cjExecution[dead] == true)) {
+        gv_cjExecution[dead] = false;
+        if ((gv_isNight == false) && (PlayerGroupHasPlayer(gv_alivePlayers, dead) == false)) {
+            p = 1;
+            while ((p <= 15)) {
+                if ((gf_CJLive(p) == true) && (gv_cjListDay[p] == gv_dayNumber) && ((gv_cjList[p][0] == dead) || (gv_cjList[p][1] == dead))) {
+                    gv_cjSatisfied[p] = true;
+                    gv_cjScore[p] += 1;
+                    if ((gv_cjScore[p] >= 2)) {
+                        gv_cjWon[p] = true;
+                        gf_CJTellAll(StringExternal("Param/Value/CJWIN"));
+                        gf_RANoActions(p);
+                    }
+                }
+
+                p += 1;
+            }
+        }
+    }
+
+    if ((gf_CJIs(dead) == true)) {
+        gf_CJClearRound(dead);
+    }
+}
+
+// Common immunity predicate is also checked at the Trial guilty branch.
+bool gf_CJSpare (int p) {
+    if ((gf_CJIs(p) == false)) {
+        return false;
+    }
+
+    gf_CJTellAll(StringExternal("Param/Value/CJIMMUNE"));
+    if ((gv_isNight == false) && (gv_gameOver == false)) {
+        if ((gv_dayOver == true)) {
+            // Reuse the independent native day-end scheduler. Returning to the
+            // already exhausted DaySequence would leave an endless daytime.
+            gf_LSEndDay(p);
+        }
+        else {
+            if ((gv_trialOn == true) || (gv_onTrial == p)) {
+                gf_LSRelease(p);
+            }
+
+            // Returning from the podium may yield; the native timer can expire
+            // during that animation. Never resume an exhausted day.
+            if ((gv_dayOver == true)) {
+                gf_LSEndDay(p);
+                return true;
+            }
+
+            if ((gv_marshalled == true)) {
+                // Marshal pauses regardless of the ordinary trial-pause option.
+                TimerPause(gv_overtimer, false);
+                GameTimeOfDaySetLength(gv_tempLength);
+            }
+
+            gf_TXResumeDay();
+        }
+    }
+
+    return true;
+}
+
+void gf_CJDusk () {
+    int p;
+
+    p = 1;
+    while ((p <= 15)) {
+        if ((gf_CJWon(p) == true) && (PlayerGroupHasPlayer(gv_alivePlayers, p) == true) && (gv_cjLeaving[p] == false)) {
+            gv_cjLeaving[p] = true;
+            gf_CJClearRound(p);
+            gf_BHVisitNone(p);
+            gv_action[p][0] = 0;
+            gv_action[p][1] = 0;
+            gf_KillPlayer(p, false);
+        }
+        else if ((gf_CJLive(p) == true) && (gv_cjListDay[p] == gv_dayNumber) && (gv_cjSatisfied[p] == false)) {
+            gf_CJTellAll(StringExternal("Param/Value/CJDISOBEY"));
+        }
+
+        p += 1;
     }
 }

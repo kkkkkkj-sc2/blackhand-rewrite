@@ -4,7 +4,9 @@
 Reads current source only. Compiles the complete gf_EGWoundDeath, gf_EGWon,
 gf_CheckEnd and baseline gf_CheckEnd (git e9e1c36 by default), not rewritten
 versions. Only Galaxy array syntax and Galaxy's implicit local zero initialization
-are translated. SC2 presentation calls are instrumented engine doubles.
+are translated. SC2 presentation calls are instrumented engine doubles. Award
+qualification executes all 25 current expressions and pinned pre-CJ 03e6eef
+expressions, preserving GK proxy guards and identity-independent CJ shared wins.
 """
 from __future__ import annotations
 
@@ -15,6 +17,10 @@ import tempfile
 from pathlib import Path
 
 from test_egun import ROOT, SCRIPT, function, mask, translate
+from test_faction_conversion import with_guoke_dependencies
+
+# Immutable pre-CJ shipping award expressions, already containing GK guards.
+AWARD_BASELINE = '03e6eef'
 
 
 def end_block(source: str, start: int) -> int:
@@ -44,7 +50,12 @@ def integration(source: str) -> list[str]:
         winning = body[brace:close]
         assert 'gv_won[lv_a] = true;' in winning, (name, 'EG branch does not award win')
         assert not re.search(r'gv_bankGeneralIntegers\[lv_a\]\[7\]\s*\+=', winning), (name, 'EG included in loss branch')
-        assert re.match(r'\(\(gf_EGWon\(lv_a\) == true\)\s*\|\|', match[1]), (name, 'must be top-level OR')
+        # GK qualification already wrapped EG before CJ was added. Positional
+        # "starts with EG ||" is obsolete, not a production regression. Below,
+        # testAwardQualification executes every actual expression against the
+        # pinned pre-CJ expression AND explicit independent GK/CJ/EG fixtures.
+        assert len(re.findall(r'\bgf_EGWon\(lv_a\)\s*==\s*true', match[1])) == 1, \
+            (name, 'missing/duplicate actual EG qualification; execution checks follow')
         tail = body[close:]
         assert re.match(r'\s*else\s*\{', tail), (name, 'winner must have its original else')
         else_start = close + tail.index('{')
@@ -72,19 +83,34 @@ def integration(source: str) -> list[str]:
     assert 'gv_won[lv_a] = true;' in dq[gate_brace:end_block(dq, gate_brace)]
     wrappers.append(f'bool dqShareGate(int lv_a, int lp_end) {{ return ({outer[1]} && {gate[1]}); }}')
     assert 'gf_DQShareWin(lp_end);' in end
-    print('PASS: all 25 actual ET winner OR branches, true/else accounting, EndGame28, DQ neutral share28, coroner g, Prepare/Resolve ordering', flush=True)
+    print('PASS: all 25 actual ET qualification branches, true/else accounting, EndGame28, DQ neutral share28, coroner g, Prepare/Resolve ordering', flush=True)
     return wrappers
 
 
-def harness(source: str, baseline: str) -> str:
+def harness(source: str, baseline: str, award_baseline: str) -> str:
     wrappers = integration(source)
+    award_names = re.findall(r'^bool award_(\w+)', '\n'.join(wrappers), re.M)
+    old_wrappers, winner_codes = [], []
+    for name in award_names:
+        old_body = function(award_baseline, name)
+        matches = list(re.finditer(r'\bif\s*(\([^\n{]+gf_EGWon\([^\n{]+)\s*\{', old_body))
+        assert len(matches) == 1, (name, 'missing/ambiguous pinned pre-CJ qualification')
+        expression = matches[0][1]
+        old_wrappers.append(f'bool prior_award_{name}(int lv_a) {{ int lv_ci=0; int lv_shw=0; int lv_tx=0; return {expression}; }}')
+        codes = re.findall(r'\bgf_GKWon\(lv_a,\s*(\d+)\)', expression)
+        assert len(codes) == 1 and int(codes[0]) in (0, 1, 2, 5), (name, 'pinned GK winner mapping', codes)
+        winner_codes.append(codes[0])
+
     names = ('gf_BHConverted', 'gf_BHFaction',
              'gf_LMCat', 'gf_LMRole', 'gf_JSIs', 'gf_JSWon', 'gf_EGWon',
              'gf_EGWoundDeath', 'gf_CheckEnd')
+    award_calls = set(re.findall(r'\b(gf_GK\w+|gf_CJ\w+|gf_BHNoVoteOrCount|gf_BHVisit\w*)\s*\(',
+                                mask('\n'.join(wrappers + old_wrappers))))
+    names = with_guoke_dependencies(source, (*names, *sorted(award_calls)))
     bodies = [function(source, name) for name in names]
     old = function(baseline, 'gf_CheckEnd')
     bodies.append(old.replace('gf_CheckEnd', 'baseline_CheckEnd'))
-    code = '\n\n'.join(bodies + wrappers)
+    code = '\n\n'.join(bodies + wrappers + old_wrappers)
     death = mask(function(source, 'gf_EGWoundDeath'))
     for forbidden in ('gv_healing', 'gv_immune', 'gv_immuneChance', 'gv_guarded',
                       'gf_BHCrime', 'gf_BHCrimeMurder', 'gf_BHRecordNightKiller',
@@ -117,6 +143,8 @@ def harness(source: str, baseline: str) -> str:
     assert not calls-defined-known, ('unknown calls', calls-defined-known)
     predicate_names = re.findall(r'^bool (award_\w+)', '\n'.join(wrappers), re.M)
     predicate_array = ','.join(predicate_names)
+    prior_predicate_array = ','.join('prior_' + name for name in predicate_names)
+    winner_code_array = ','.join(winner_codes)
     return r'''
 #include <algorithm>
 #include <array>
@@ -140,7 +168,12 @@ int kills,notifies,flashes,checks;
 double clockTime;
 template<class T> void clearValue(T& x) { x=T{}; }
 template<class T,size_t N> void clearValue(T (&x)[N]) { for(auto& i:x) clearValue(i); }
-void check(bool value) { ++checks; assert(value); }
+void checkAt(bool value,int line,const char* expression) {
+    ++checks;
+    if(!value) std::cerr<<"FAIL generated line "<<line<<": "<<expression<<std::endl;
+    assert(value);
+}
+#define check(value) checkAt((value),__LINE__,#value)
 bool PlayerGroupHasPlayer(playergroup group,int p) {
     assert(p>=1 && p<=15); return (group & (1u<<p))!=0;
 }
@@ -268,6 +301,66 @@ void testWonAndEnd() {
     reset(); add(1,1,1); gv_lmWin[1][1]=3; gv_lmWin[1][0]=28;
     check(gf_EGWon(1));
 }
+void testAwardQualification() {
+    bool (*current[])(int)={''' + predicate_array + r'''};
+    bool (*prior[])(int)={''' + prior_predicate_array + r'''};
+    const int winnerCodes[]={''' + winner_code_array + r'''};
+    static_assert(sizeof(current)==sizeof(prior));
+    static_assert(sizeof(current)/sizeof(current[0])==25);
+    for(int p:{1,8,15}) {
+        // Actual EG alone is sufficient only after its real Town0 objective.
+        reset(); add(p,3,28); check(gf_EGWon(p) && !gf_GKIs(p));
+        for(auto predicate:current) check(predicate(p));
+        add(p==1?15:1,1,1); check(!gf_EGWon(p));
+        for(auto predicate:current) check(!predicate(p));
+
+        for(int faction:{0,1,2,3,5}) for(bool alive:{false,true}) {
+            reset(); add(p,3,28); gv_gkRole[p]=33; gv_gkFaction[p]=faction;
+            gv_lmWin[p][1]=3; gv_lmWin[p][0]=28; // retain stale EG snapshot
+            if(!alive) gv_alivePlayers&=~(1u<<p);
+            check(gf_GKIs(p));
+            // Actual LMRole already suppresses a GK's stale EG profession.
+            check(!gf_EGWon(p));
+            for(int i=0;i<25;++i) {
+                const bool factionBound=faction==1 || faction==2 || faction==5;
+                const bool expected=factionBound?faction==winnerCodes[i]:alive;
+                check(current[i](p)==expected);
+                check(current[i](p)==prior[i](p));
+            }
+            // CJ's irrevocable personal win remains independent of identity,
+            // alive status and the GK proxy's winning/losing faction.
+            gv_cjWon[p]=true;
+            for(auto predicate:current) check(predicate(p));
+        }
+    }
+
+    // Preserve EVERY old qualification term against 25 independently pinned
+    // actual shipping expressions, not just selected EG success fixtures.
+    std::mt19937 rng(0xC0A628F1);
+    const std::pair<int,int> roles[]={{1,1},{2,1},{5,1},{3,1},{3,2},{3,3},{3,4},{3,5},{3,6},{3,7},{3,8},{3,9},{3,10},{3,11},{3,12},{3,13},{3,14},{3,15},{3,16},{3,17},{3,19},{3,20},{3,21},{3,22},{3,23},{3,24},{3,25},{3,26},{3,27},{3,28},{3,30},{3,31},{3,32},{3,33},{3,34},{3,35},{3,36},{3,37},{3,38}};
+    const int factions[]={0,1,2,3,5};
+    for(int fixture=0;fixture<2000;++fixture) {
+        reset();
+        for(int p=1;p<=15;++p) {
+            auto r=roles[rng()%(sizeof(roles)/sizeof(roles[0]))];
+            gv_roles[p][1]=r.first; gv_roles[p][0]=r.second;
+            if(rng()%2) gv_alivePlayers|=1u<<p;
+            if(rng()%6==0) gv_gkRole[p]=33+rng()%5;
+            gv_gkFaction[p]=factions[rng()%5];
+            if(rng()%5==0) { r=roles[rng()%(sizeof(roles)/sizeof(roles[0]))]; gv_lmWin[p][1]=r.first; gv_lmWin[p][0]=r.second; }
+            gv_executed[p]=rng()%2; gv_executionWin[p]=rng()%2;
+            gv_e8B58CE9ACBCE782B9E695B0[p]=rng()%5; gv_jsKills[p]=rng()%4;
+            gv_ttWon[p]=rng()%2; gv_grChild[p]=rng()%16;
+        }
+        gv_roleOptions[3][6][2]=rng()%2;
+        for(int p=1;p<=15;++p) {
+            for(int i=0;i<25;++i) check(current[i](p)==prior[i](p));
+            gv_cjWon[p]=true;
+            for(auto predicate:current) check(predicate(p));
+            gv_cjWon[p]=false;
+        }
+    }
+}
 void baselineComparison() {
     std::mt19937 rng(0xE628F1);
     const std::pair<int,int> roles[]={{1,1},{1,3},{1,12},{2,1},{2,2},{5,1},{5,2},{3,1},{3,2},{3,3},{3,4},{3,5},{3,6},{3,7},{3,8},{3,9},{3,10},{3,11},{3,12},{3,13},{3,14},{3,15},{3,16},{3,17},{3,19},{3,20},{3,22},{3,23},{3,24},{3,25},{3,26},{3,27},{3,31},{3,32}};
@@ -291,8 +384,9 @@ void baselineComparison() {
     }
 }
 int main() {
-    testDeath(); testWonAndEnd(); baselineComparison();
+    testDeath(); testWonAndEnd(); testAwardQualification(); baselineComparison();
     std::cout<<"PASS: full actual death/Won/CheckEnd; sex-specific sound ordering; bounds/idempotence; strictTown0; 25 ET winner predicates; original faction priority"<<std::endl;
+    std::cout<<"PASS: 25 actual award expressions vs pinned pre-CJ 03e6eef over 2000 seeded populations; explicit incomplete EG/GK proxy/CJ identity-independent wins"<<std::endl;
     std::cout<<"PASS: 5000 no-egun baseline comparisons (return + side effects); "<<checks<<" assertions; UBSan/bounds"<<std::endl;
 }
 '''
@@ -307,7 +401,9 @@ def main() -> None:
     source = args.script.read_text()
     baseline = subprocess.run(['git', 'show', f'{args.baseline}:work/blackhand/CustomLogic.galaxy'], cwd=ROOT,
                               text=True, capture_output=True, check=True).stdout
-    code = harness(source, baseline)
+    award_baseline = subprocess.run(['git', 'show', f'{AWARD_BASELINE}:work/blackhand/CustomLogic.galaxy'], cwd=ROOT,
+                                    text=True, capture_output=True, check=True).stdout
+    code = harness(source, baseline, award_baseline)
     with tempfile.TemporaryDirectory(prefix='bh-egun-finish-') as tmp:
         cpp, exe = Path(tmp)/'finish.cpp', Path(tmp)/'finish'
         cpp.write_text(code)

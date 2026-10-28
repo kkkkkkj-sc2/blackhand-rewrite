@@ -183,6 +183,9 @@ JS_STREAK_SOUNDS = [
 CUSTOM_SOUNDS = [
     ('BHLaugh', DDS_DIR / 'BHLaugh.ogg', r'Assets\Sounds\BHLaugh.ogg', LAUGH_SOUND),
     ('BHNightMusic', DDS_DIR / 'BHNightMusic.ogg', r'Assets\Sounds\BHNightMusic.ogg', NIGHT_SOUND),
+    # 裁决者：原创合成破门/纸张/窒息闷响；2D 单次，不借雷击或爆炸音效。
+    ('BHCJExecution', DDS_DIR / 'BHCJExecution.ogg', r'Assets\Sounds\BHCJExecution.ogg',
+     dialogue_csound('BHCJExecution', 'BHCJExecution.ogg')),
     *[
         (sid, DDS_DIR / filename, rf'Assets\Sounds\{filename}', dialogue_csound(sid, filename))
         for sid, filename in JS_STREAK_SOUNDS
