@@ -1,28 +1,34 @@
-Param/Value/CJNAME=<c val="CC9E59">裁决者</c>
-Param/Value/CJHEAD=<c val="CC9E59">裁决者</c> 中立混乱
+Param/Value/CJNAME=<c val="8FAADC">裁决者</c>
+Param/Value/CJHEAD=<c val="8FAADC">无（混乱）</c>
 Param/Value/CJDESC=一位凌驾于法律之上的专横法官，利用其不可撼动的特权强迫全镇执行他的处决命令，并秘密处死敢于违抗他意志的人。<n/><n/><c val="BBDDFF">每两晚，这个角色可以选择两个人，这两个人的其中之一需要在白天被处决。否则，裁决者会展开报复，当晚裁决者可以选择一个未被他选择的过的人，其死亡。</c>
 Param/Value/CJBOX1=每两晚，你可以选择两个人，他们中的其中之一需要在明天白天被处决。否则，明天夜晚你可以选择一个人，他死亡。
-Param/Value/CJBOX2=所有人都会知道你是谁和你选择了谁。你无法在白天被处决。在你胜利后，你会离开小镇（视作死亡）。你拥有一次夜间无敌机会。你的能力无视无敌和救治。
+Param/Value/CJBOX2=- 所有人都会知道你是谁和你选择了谁。<n/>- 你无法在白天被处决。<n/>- 在你胜利后，你会离开小镇（视作死亡）。<n/>- 你拥有一次夜间无敌机会。<n/>- 你的能力无视无敌和救治。
 Param/Value/CJBOX6=有两个被你选择的人死于处决，然后你离开小镇。
 Param/Value/CJWHITE=裁决者
-Param/Value/CJCARD=<c val="CC9E59">C</c>
-Param/Value/CJINV1=你发现了被反复盖印的判决书。
-Param/Value/CJINV2=你的目标似乎拥有凌驾于法律之上的权力。
-Param/Value/CJCRIME=谋杀
+Param/Value/CJCARD=<c val="8FAADC">C</c>
+Param/Value/CJINV1=你的目标是一个堕落的法官，他早已扭曲 - 你的目标是一个裁决者。
+Param/Value/CJINV2=你的目标是一个堕落的法官，他早已扭曲 - 你的目标是一个裁决者。
+Param/Value/CJCRIME=操纵审判，谋杀
 Param/Value/CJINTRO1=法槌重重落下，
-Param/Value/CJINTRO2=亮明了他作为「裁决者」的特权身份。<n/>他手握凌驾于律法之上的绝对豁免权——他无法被处决。
+Param/Value/CJINTRO2=亮明了他作为「裁决者」的特权身份。
+Param/Value/CJINTRO3=他手握凌驾于律法之上的绝对豁免权——他无法被处决。
 Param/Value/CJDAWN1=裁决者签署了今日的清算名单：
 Param/Value/CJAND=与
-Param/Value/CJDAWN2=。<n/>今天日落之前，他们二人中必须有一人被处决！<n/>若天黑前两人均未被处决，今夜必将有一名违逆者在暗夜中被清除。
-Param/Value/CJDAWNONE=。<n/>今天日落之前，此人必须被处决！<n/>若天黑前此人未被处决，今夜必将有一名违逆者在暗夜中被清除。
+Param/Value/CJDAWN2=。
+Param/Value/CJDAWNONE=。
+Param/Value/CJDAWNREQ=今天日落之前，他们二人中必须有一人被处决！
+Param/Value/CJDAWNFAIL=若天黑前两人均未被处决，今夜必将有一名违逆者在暗夜中被清除。
+Param/Value/CJDAWNONEREQ=今天日落之前，此人必须被处决！
+Param/Value/CJDAWNONEFAIL=若天黑前此人未被处决，今夜必将有一名违逆者在暗夜中被清除。
 Param/Value/CJDISOBEY=你们在白天嘲弄了律法，那就用黑夜的鲜血来偿还。
 Param/Value/CJREST=城镇不错地满足了你的要求，你决定给他们以喘息的时间。
 Param/Value/CJREVENGE=镇民藐视法庭的行为令你愤怒，今晚你可以清除一名忤逆者。
-Param/Value/CJNIGHT=你听见深夜的街上传来急促沉重的破门声，伴随着冰冷的宣判与窒息的闷响……
+Param/Value/CJNIGHT=<c val="FF0000">你听见深夜的街上传来急促沉重的破门声，伴随着冰冷的宣判与窒息的闷响……</c>
 Param/Value/CJVICTIM=有人强行踢开了你的房门。裁决者面无表情地向你宣读了藐视法庭的死刑判决书——你被处决了。
 Param/Value/CJWIN=第二具受审者的尸体已在绞架上摇晃。裁决者缓缓合上了血迹斑斑的卷宗。正义已按照他的意志执行完毕，他会在入夜前离开城镇。
 Param/Value/CJIMMUNE=裁决者拥有凌驾于律法之上的绝对豁免权——他无法被处决。
-Param/Value/CJDM=这具尸体死于裁决者的秘密处决。
+Param/Value/CJDEATH=<c val="FFFFFF">他暴毙于家中，胸口被法槌和铁钉贯穿。</c>
+Param/Value/CJDM=<c val="FFFFFF">这具尸体死于裁决者的秘密处决。</c>
 Param/Value/CJLISTHINT=今夜你可以选择两名不同的其他活人，公布明日的清算名单。
 Param/Value/CJLISTTIP=选择名单目标（再次点击取消）。
 Param/Value/CJATTACKTIP=报复清除：不能选择上一夜实际名单目标（包括晨报前死亡后又复活的人）。

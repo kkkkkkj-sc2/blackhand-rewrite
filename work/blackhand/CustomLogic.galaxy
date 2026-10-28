@@ -337,10 +337,14 @@ int[16] gv_cjPendingNight;
 int[16][2] gv_cjPending;
 int[16][2] gv_cjList;
 int[16] gv_cjListDay;
+text gv_investigatorCJINV1;
+text gv_investigatorCJINV2;
 bool gf_CJIs (int p);
 bool gf_CJWon (int p);
 bool gf_CJLive (int p);
 void gf_CJTellAll (text message);
+void gf_CJTellAllColor (text message, color tint);
+void gf_CJNotify (text message, int p, soundlink cue);
 void gf_CJClearRound (int p);
 void gf_CJReset ();
 void gf_CJInitPlayer (int p);
@@ -6908,8 +6912,10 @@ void gf_InitializeVariables () {
     gf_BSQJSnapshotDefaults();
     gv_roleNameArray[3][38] = StringExternal("Param/Value/CJNAME");
     gv_roleDescriptionArray[3][38] = StringExternal("Param/Value/CJDESC");
-    gv_roleInvestigatorArray[3][38][0] = gv_investigatorE5BCBAE5A4A7E6B094E59CBA1;
-    gv_roleInvestigatorArray[3][38][1] = gv_investigatorE5BCBAE5A4A7E6B094E59CBA2;
+    gv_investigatorCJINV1 = StringExternal("Param/Value/CJINV1");
+    gv_investigatorCJINV2 = StringExternal("Param/Value/CJINV2");
+    gv_roleInvestigatorArray[3][38][0] = gv_investigatorCJINV1;
+    gv_roleInvestigatorArray[3][38][1] = gv_investigatorCJINV2;
     gv_e78AAFE7BDAAE58FAFE883BD[3][38] = StringExternal("Param/Value/CJCRIME");
     gv_roleOptions[3][38][10] = true;
     gv_roleWeights[3][38] = 0.0;
@@ -113225,12 +113231,20 @@ bool gf_CJLive (int p) {
 }
 
 void gf_CJTellAll (text message) {
+    gf_CJTellAllColor(message, Color(56.0784, 66.6667, 86.2745));
+}
+
+void gf_CJNotify (text message, int p, soundlink cue) {
+    gf_BHNotify(TextWithColor(message, Color(56.0784, 66.6667, 86.2745)), p, cue);
+}
+
+void gf_CJTellAllColor (text message, color tint) {
     int p;
 
     p = 1;
     while ((p <= 15)) {
         if ((PlayerGroupHasPlayer(gv_currentPlayers, p) == true)) {
-            gf_CBSystemMessage(message, p, 0, 0, SoundLink("Silent", -1), Color(0,0,0));
+            gf_CBSystemMessage(TextWithColor(message, tint), p, 0, 0, SoundLink("Silent", -1), Color(0,0,0));
         }
 
         p += 1;
@@ -113276,7 +113290,9 @@ void gf_CJInitPlayer (int p) {
     gv_cjInitialized[p] = true;
     // Use the native consumable defense; never restore it every night/revival.
     gv_immuneChance[p] += 1;
+    // Chat rows have a fixed single-line height: send every line separately.
     gf_CJTellAll((StringExternal("Param/Value/CJINTRO1") + gf_EGName(p) + StringExternal("Param/Value/CJINTRO2")));
+    gf_CJTellAll(StringExternal("Param/Value/CJINTRO3"));
 }
 
 void gf_CJStart () {
@@ -113329,7 +113345,7 @@ void gf_CJPanel (int p) {
         slot = 0;
         while ((slot <= 1)) {
             control = gv_actionDialogItem[target][5 + slot];
-            visible = ((gf_CJSelectable(p, target) == true) && ((gv_cjMode[p] == 1) || (slot == 0)));
+            visible = ((gf_CJSelectable(p, target) == true) && ((gv_cjMode[p] == 1) || (slot == 0)) && (target != gv_action[p][0]) && (target != gv_action[p][1]));
             if ((target == p) && (gv_action[p][slot] != 0) && (gf_CJLive(p) == true) && (gv_cjMode[p] != 0)) {
                 visible = true;
             }
@@ -113339,8 +113355,10 @@ void gf_CJPanel (int p) {
             DialogControlSetPosition(control, PlayerGroupSingle(p), c_anchorTopRight, (120 - 60 * slot), (15 + 30 * (gv_playerSpot[target] - 1)));
             libNtve_gf_SetDialogItemImage(control, "ActionSmallNormal.dds", PlayerGroupSingle(p));
             libNtve_gf_SetDialogItemImage2(control, "ActionSmallHighlight.dds", PlayerGroupSingle(p));
-            libNtve_gf_SetDialogItemColor(control, Color(80.0, 62.0, 35.0), PlayerGroupSingle(p));
-            if ((target == p) || (gv_action[p][slot] == target)) {
+            libNtve_gf_SetDialogItemColor(control, Color(56.0784, 66.6667, 86.2745), PlayerGroupSingle(p));
+            if ((target == p)) {
+                // A visible self button is cancellation only, never self-targeting.
+                libNtve_gf_SetDialogItemColor(control, Color(50.0, 50.0, 50.0), PlayerGroupSingle(p));
                 libNtve_gf_SetDialogItemTooltip(control, StringExternal("Param/Value/CJCANCEL"), PlayerGroupSingle(p));
             }
             else if ((gv_cjMode[p] == 2)) {
@@ -113368,14 +113386,14 @@ void gf_CJNightSetup (int p) {
         gv_cjMode[p] = 0;
         if ((gv_cjSatisfied[p] == false)) {
             gv_cjMode[p] = 2;
-            gf_BHNotify(StringExternal("Param/Value/CJREVENGE"), p, SoundLink("UI_TipSelect", -1));
+            gf_CJNotify(StringExternal("Param/Value/CJREVENGE"), p, SoundLink("UI_TipSelect", -1));
         }
         else {
-            gf_BHNotify(StringExternal("Param/Value/CJREST"), p, SoundLink("UI_TipSelect", -1));
+            gf_CJNotify(StringExternal("Param/Value/CJREST"), p, SoundLink("UI_TipSelect", -1));
         }
     }
     else {
-        gf_BHNotify(StringExternal("Param/Value/CJLISTHINT"), p, SoundLink("UI_TipSelect", -1));
+        gf_CJNotify(StringExternal("Param/Value/CJLISTHINT"), p, SoundLink("UI_TipSelect", -1));
     }
 
     if ((gv_jailed[p] != 0) || (gf_CJLive(p) == false)) {
@@ -113394,7 +113412,7 @@ void gf_CJPick (int p, int target, int slot) {
 
     if ((target == p) || (target == gv_action[p][slot])) {
         gv_action[p][slot] = 0;
-        gf_BHNotify(StringExternal("Param/Value/CJCANCEL"), p, SoundLink("UI_TipSelect", -1));
+        gf_CJNotify(StringExternal("Param/Value/CJCANCEL"), p, SoundLink("UI_TipSelect", -1));
     }
     else {
         if ((gf_CJSelectable(p, target) == false) || (target == gv_action[p][1 - slot])) {
@@ -113402,13 +113420,13 @@ void gf_CJPick (int p, int target, int slot) {
         }
 
         gv_action[p][slot] = target;
-        gf_BHNotify((StringExternal("Param/Value/CJSELECT") + gf_EGName(target)), p, SoundLink("UI_TipSelect", -1));
+        gf_CJNotify((StringExternal("Param/Value/CJSELECT") + gf_EGName(target)), p, SoundLink("UI_TipSelect", -1));
     }
 
     gf_CJPanel(p);
 }
 
-// Before witch/bus/roleblock: both slots are real visits, no crimes for lists.
+// Before witch/bus/roleblock: both slots are real visits; list crimes resolve later.
 void gf_CJPrepareVisits () {
     int p;
 
@@ -113449,7 +113467,6 @@ void gf_CJAttack (int p, int target) {
         return;
     }
 
-    gf_BHCrimeMurder(p);
     guard = gv_guarded[target];
     if ((guard > 0) && (gv_visitation[guard] == target)) {
         gv_guarded[target] = 0;
@@ -113462,14 +113479,14 @@ void gf_CJAttack (int p, int target) {
     // Native death/cleanup pipeline; bypass defense/healing without mutating them.
     gv_damage[target] += 1;
     gv_deathMethod[target] = (gv_deathMethod[target] + "W");
-    gv_deathText[target] = (gv_deathText[target] + StringExternal("Param/Value/CJNIGHT"));
+    gv_deathText[target] = (gv_deathText[target] + StringExternal("Param/Value/CJDEATH"));
     if ((gv_nightSequence == true)) {
-        gf_CJTellAll(StringExternal("Param/Value/CJNIGHT"));
+        gf_CJTellAllColor(StringExternal("Param/Value/CJNIGHT"), Color(100.0, 0.0, 0.0));
         SoundPlay(SoundLink("BHCJExecution", -1), PlayerGroupAll(), 100.0, 0.0);
         Wait(4.04, c_timeGame);
     }
 
-    gf_BHNotify(StringExternal("Param/Value/CJVICTIM"), target, SoundLink("Silent", -1));
+    gf_CJNotify(StringExternal("Param/Value/CJVICTIM"), target, SoundLink("Silent", -1));
     gf_BHRecordNightKiller(target, p);
     gv_diedAtNight[target] = true;
     gf_KillPlayer(target, false);
@@ -113499,6 +113516,9 @@ void gf_CJResolveNight () {
                 gv_cjPending[p][0] = first;
                 gv_cjPending[p][1] = second;
                 gv_cjPendingNight[p] = gv_dayNumber;
+                if ((first != 0) || (second != 0)) {
+                    gf_BHCrime(p, 10); // Manipulating the trial: a valid resolved list.
+                }
             }
         }
 
@@ -113568,6 +113588,14 @@ void gf_CJMorning () {
                 }
 
                 gf_CJTellAll(message);
+                if ((second != 0)) {
+                    gf_CJTellAll(StringExternal("Param/Value/CJDAWNREQ"));
+                    gf_CJTellAll(StringExternal("Param/Value/CJDAWNFAIL"));
+                }
+                else {
+                    gf_CJTellAll(StringExternal("Param/Value/CJDAWNONEREQ"));
+                    gf_CJTellAll(StringExternal("Param/Value/CJDAWNONEFAIL"));
+                }
             }
             // Empty/failed lists do not reserve a resting night.
         }
@@ -113579,6 +113607,12 @@ void gf_CJMorning () {
 // Only the native removal following a real EExecution sets/consumes this token.
 void gf_CJOnDeath (int dead) {
     int p;
+
+    // The canonical killer attribution is set immediately before actual killing.
+    // Record murder only after native removal, not on selection or an attempted hit.
+    if ((gv_isNight == true) && (gf_CJIs(gv_bhNightKiller[dead]) == true) && (PlayerGroupHasPlayer(gv_alivePlayers, dead) == false)) {
+        gf_BHCrimeMurder(gv_bhNightKiller[dead]);
+    }
 
     if ((gv_cjExecution[dead] == true)) {
         gv_cjExecution[dead] = false;

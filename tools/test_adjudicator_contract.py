@@ -3,9 +3,10 @@
 
 Run: python3 tools/test_adjudicator_contract.py
 Read the actual gf_RTNeutralRoleText 38 branch, follow its StringExternal keys
-through preset_gen.load_strings(), and compare final card fields 1/2/4/6.
+through preset_gen.load_strings(), and compare final card fields 0/1/2/4/6.
 Missing production files/branches fail normally (never skip or wait for them).
-Only layout whitespace, visual bullet prefixes and valid style tags are ignored.
+Prose comparison ignores style/bullets; trait layout additionally requires five
+separate rendered lines, so concatenating the five sentences cannot pass.
 """
 from __future__ import annotations
 
@@ -31,11 +32,15 @@ TRAITS = (
 VICTORY = '有两个被你选择的人死于处决，然后你离开小镇。'
 BACKGROUND = '一位凌驾于法律之上的专横法官，利用其不可撼动的特权强迫全镇执行他的处决命令，并秘密处死敢于违抗他意志的人。'
 INTRODUCTION = '每两晚，这个角色可以选择两个人，这两个人的其中之一需要在白天被处决。否则，裁决者会展开报复，当晚裁决者可以选择一个未被他选择的过的人，其死亡。'
-FIELDS = (1, 2, 4, 6)
+FIELDS = (0, 1, 2, 4, 6)
+ROLE_COLOR = '8FAADC'
+INVESTIGATOR = '你的目标是一个堕落的法官，他早已扭曲 - 你的目标是一个裁决者。'
+DEATH = '他暴毙于家中，胸口被法槌和铁钉贯穿。'
+NIGHT = '你听见深夜的街上传来急促沉重的破门声，伴随着冰冷的宣判与窒息的闷响……'
 
 
-def visible_text(value: str) -> str:
-    """Ignore presentation only; unknown/broken markup cannot hide wrong prose."""
+def visible_lines(value: str) -> tuple[str, ...]:
+    """Preserve rendered line boundaries; reject unknown or broken markup."""
     stack = []
 
     def replace_tag(match):
@@ -67,7 +72,25 @@ def visible_text(value: str) -> str:
         if line:
             lines.append(re.sub(r'\s+', '', line))
 
-    return ''.join(lines)
+    return tuple(lines)
+
+
+def visible_text(value: str) -> str:
+    return ''.join(visible_lines(value))
+
+
+def assert_trait_layout(value: str) -> None:
+    lines = visible_lines(value)
+    assert lines == TRAITS, f'trait layout must be five separate lines: {lines!r}'
+
+
+def live_match(source: str, pattern: str):
+    """A matching string/comment alone cannot satisfy a production wiring check."""
+    live = mask(source)
+    matches = [match for match in re.finditer(pattern, source)
+               if live[match.start():match.start() + 1].strip()]
+    assert len(matches) == 1, f'expected unique live wiring for {pattern!r}, got {len(matches)}'
+    return matches[0]
 
 
 def actual_role_branch(source: str) -> tuple[str, str]:
@@ -181,7 +204,7 @@ def wired_fields(branch: str, player: str, strings: dict) -> dict:
     assert set(values) == set(FIELDS), f'actual 3/38 card fields missing: {set(FIELDS) - values.keys()}'
     # Do not overlook += or other unsupported writes after a correct assignment.
     for match in re.finditer(r'\bgv_roleBoxText\[\s*' + re.escape(player)
-                             + r'\s*\]\[\s*([1246])\s*\]\s*([+*/-]=|\+\+|--)', live):
+                             + r'\s*\]\[\s*([01246])\s*\]\s*([+*/-]=|\+\+|--)', live):
         raise AssertionError(f'unsupported mutation of actual field [{match[1]}]')
 
     return values
@@ -189,10 +212,12 @@ def wired_fields(branch: str, player: str, strings: dict) -> dict:
 
 def assert_card_wording(fields: dict) -> None:
     """Exact expectations shared by positive checks and in-memory mutations."""
-    expected = {1: ABILITY, 2: ''.join(TRAITS), 4: '裁决者', 6: VICTORY}
+    expected = {0: '无（混乱）', 1: ABILITY, 2: ''.join(TRAITS), 4: '裁决者', 6: VICTORY}
     for field, text in expected.items():
         actual = visible_text(fields[field][0])
         assert actual == text, f'actual card field [{field}] differs: {actual!r} != {text!r}'
+
+    assert_trait_layout(fields[2][0])
 
 
 class ActualAdjudicatorContract(unittest.TestCase):
@@ -211,6 +236,16 @@ class ActualAdjudicatorContract(unittest.TestCase):
 
     def test_actual_five_traits_field_2_in_order(self):
         self.assertEqual(visible_text(self.fields[2][0]), ''.join(TRAITS))
+        assert_trait_layout(self.fields[2][0])
+
+    def test_negative_actual_traits_collapsed_to_one_line(self):
+        branch, player = actual_role_branch(self.source)
+        changed = dict(self.strings)
+        for key in self.fields[2][1]:
+            changed[key] = visible_text(changed[key])
+
+        with self.assertRaisesRegex(AssertionError, 'trait layout'):
+            assert_card_wording(wired_fields(branch, player, changed))
 
     def test_actual_white_role_name_field_4(self):
         # Field 4 is the white role-name text; background/introduction belong
@@ -284,6 +319,67 @@ class ActualAdjudicatorContract(unittest.TestCase):
         self.assertIsNotNone(registered, 'spec.desc_key is not used by actual 3/38 description array')
         self.assertIn('gv_roleDescriptionArray', mask(self.source)[registered.start():registered.end()])
 
+    def test_actual_role_type_and_name_colors(self):
+        self.assertEqual(visible_text(self.fields[0][0]), '无（混乱）')
+        for key, text in (('CJNAME', '裁决者'), ('CJHEAD', '无（混乱）'), ('CJCARD', 'C')):
+            with self.subTest(key=key):
+                self.assertEqual(self.strings['Param/Value/' + key],
+                                 f'<c val="{ROLE_COLOR}">{text}</c>')
+
+    def test_actual_investigator_both_modes_keep_complete_original_sentence(self):
+        spec = json.loads((ROOT / 'roles' / 'caijuezhe.json').read_text(encoding='utf-8'))
+        self.assertEqual(spec['investigator'], ['CJINV1', 'CJINV2'])
+        for slot, key in enumerate(spec['investigator']):
+            with self.subTest(slot=slot):
+                # Exact raw comparison preserves the user's internal " - ".
+                self.assertEqual(self.strings['Param/Value/' + key], INVESTIGATOR)
+                live_match(self.source, r'gv_roleInvestigatorArray\[3\]\[38\]\[' + str(slot)
+                           + r'\]\s*=\s*gv_investigator' + key + r'\s*;')
+                live_match(self.source, r'gv_investigator' + key
+                           + r'\s*=\s*StringExternal\("Param/Value/' + key + r'"\)\s*;')
+
+    def test_actual_crime_description_registration(self):
+        self.assertEqual(self.strings['Param/Value/CJCRIME'], '操纵审判，谋杀')
+        live_match(self.source, r'gv_e78AAFE7BDAAE58FAFE883BD\[3\]\[38\]\s*=\s*'
+                   r'StringExternal\("Param/Value/CJCRIME"\)\s*;')
+
+    def test_actual_death_narrative_is_not_night_announcement(self):
+        attack = function(self.source, 'gf_CJAttack')
+        self.assertEqual(self.strings['Param/Value/CJDEATH'], f'<c val="FFFFFF">{DEATH}</c>')
+        self.assertEqual(self.strings['Param/Value/CJDM'],
+                         '<c val="FFFFFF">这具尸体死于裁决者的秘密处决。</c>')
+        live_match(attack, r'gv_deathText\[target\]\s*=\s*\(gv_deathText\[target\]\s*\+\s*'
+                   r'StringExternal\("Param/Value/CJDEATH"\)\)\s*;')
+        self.assertNotRegex(attack, r'gv_deathText\[target\][^;]*Param/Value/CJNIGHT')
+
+    def test_actual_night_announcement_stays_red(self):
+        self.assertEqual(self.strings['Param/Value/CJNIGHT'], f'<c val="FF0000">{NIGHT}</c>')
+        attack = function(self.source, 'gf_CJAttack')
+        # The public role-color wrapper must not repaint the red killing cue.
+        self.assertNotRegex(attack, r'gf_CJTellAll\([^;]*Param/Value/CJNIGHT')
+        live_match(attack, r'StringExternal\("Param/Value/CJNIGHT"\)')
+
+    def test_split_public_announcements_are_plain_individual_messages(self):
+        messages = {
+            'CJINTRO2': '亮明了他作为「裁决者」的特权身份。',
+            'CJINTRO3': '他手握凌驾于律法之上的绝对豁免权——他无法被处决。',
+            'CJDAWN2': '。',
+            'CJDAWNONE': '。',
+            'CJDAWNREQ': '今天日落之前，他们二人中必须有一人被处决！',
+            'CJDAWNFAIL': '若天黑前两人均未被处决，今夜必将有一名违逆者在暗夜中被清除。',
+            'CJDAWNONEREQ': '今天日落之前，此人必须被处决！',
+            'CJDAWNONEFAIL': '若天黑前此人未被处决，今夜必将有一名违逆者在暗夜中被清除。',
+        }
+        for key, text in messages.items():
+            with self.subTest(key=key):
+                self.assertEqual(self.strings['Param/Value/' + key], text)
+
+        start = function(self.source, 'gf_CJInitPlayer')
+        live_match(start, r'gf_CJTellAll\(StringExternal\("Param/Value/CJINTRO3"\)\)\s*;')
+        morning = function(self.source, 'gf_CJMorning')
+        for key in ('CJDAWNREQ', 'CJDAWNFAIL', 'CJDAWNONEREQ', 'CJDAWNONEFAIL'):
+            live_match(morning, r'gf_CJTellAll\(StringExternal\("Param/Value/' + key + r'"\)\)\s*;')
+
 
 class ContractParserSafety(unittest.TestCase):
     def test_layout_only_normalization(self):
@@ -295,6 +391,12 @@ class ContractParserSafety(unittest.TestCase):
                 visible_text(invalid)
 
         self.assertNotEqual(visible_text(ABILITY + '<n/>- 你的能力可以被救治。'), ABILITY)
+
+    def test_trait_layout_rejects_collapsed_sentences_without_changing_words(self):
+        assert_trait_layout('<n/>'.join('- ' + trait for trait in TRAITS))
+        for collapsed in (''.join(TRAITS), '<n/>'.join(TRAITS[:3]) + ''.join(TRAITS[3:])):
+            with self.subTest(collapsed=collapsed), self.assertRaisesRegex(AssertionError, 'five separate lines'):
+                assert_trait_layout(collapsed)
 
     def test_orphan_strings_and_dead_guards_cannot_satisfy_contract(self):
         with self.assertRaisesRegex(AssertionError, '尚未实现'):

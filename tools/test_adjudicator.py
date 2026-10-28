@@ -43,12 +43,12 @@ HELPERS = (
 NOOP = '''
 ActorSend CameraApplyInfo CameraLockInput CameraSetBounds CameraSetCameraMouseRotation
 CinematicFade DialogControlSetEnabled DialogControlSetPosition DialogControlSetSize
-DialogControlSetVisible DialogSetVisible PlayerSetCameraFollow
+DialogSetVisible PlayerSetCameraFollow
 SoundPlay SoundSetReverb SoundSetVolume TextTagDestroy TriggerEnable TriggerStop
 UIClearMessages UIDisplayMessage UnitIssueOrder UnitRemove UnitSetFacing UnitSetPosition
 UnitSetState UnitSetCustomValue UnitSetPropertyFixed UnitSetScale
 libNtve_gf_CreateModelAtPoint libNtve_gf_PauseUnit libNtve_gf_PlayAnimation
-libNtve_gf_SetAnimationTimeScale libNtve_gf_SetDialogItemColor libNtve_gf_SetDialogItemImage
+libNtve_gf_SetAnimationTimeScale libNtve_gf_SetDialogItemImage
 libNtve_gf_SetDialogItemImage2 libNtve_gf_SetDialogItemText libNtve_gf_SetDialogItemTooltip
 libNtve_gf_ShowHideDoodadsInRegion
 libNtve_gf_SetDialogItemChecked libNtve_gf_SetDialogItemTextColor
@@ -117,6 +117,10 @@ def integration(source: str) -> list[str]:
     death = function(source, 'gf_GSKillPlayerDirect')
     assert death.index('PlayerGroupRemove(gv_alivePlayers, lp_player);') < death.index('gf_CJOnDeath(lp_player);')
     assert 'gf_BHVisitNone' not in function(source, 'gf_CJClearRound')
+    attack, callback = (function(source, name) for name in ('gf_CJAttack', 'gf_CJOnDeath'))
+    assert 'gf_BHCrimeMurder' not in attack, 'attempts must not award murder before a native death'
+    assert attack.index('gf_BHRecordNightKiller(target, p);') < attack.index('gf_KillPlayer(target, false);')
+    assert callback.index('PlayerGroupHasPlayer(gv_alivePlayers, dead) == false') < callback.index('gf_BHCrimeMurder')
     execute = function(source, 'auto_gf_EExecution_TriggerFunc')
     assert execute.index('gf_ERunDeathType(lp_player);') < execute.index('gv_cjExecution[lp_player] =') < execute.index('gf_KillPlayer(lp_player, false);')
     assert 'gv_deathMethod[gv_visitation[lv_a]]' in function(source, 'gf_SKF_1_fayi')
@@ -178,6 +182,7 @@ def harness(source: str) -> str:
     defined = set(re.findall(r'^(?:void|bool|int|text|fixed) (\w+)\s*\(', code, re.M))
     calls = set(re.findall(r'\b(\w+)\s*\(', re.sub(r'//[^\n]*|"(?:\\.|[^"\\])*"', '', code)))
     explicit = '''if while for return Color SoundLink StringExternal StringToText TextWithColor
+DialogControlSetVisible libNtve_gf_SetDialogItemColor
 PlayerGroupAll PlayerGroupSingle PlayerGroupHasPlayer PlayerGroupNextPlayer PlayerGroupRemove
 PlayerGroupCount PlayerGroupAdd TriggerCreate TriggerExecute Wait RandomInt RandomFixed AbsI ModI
 IntToText UnitGetType TimerGetRemaining gf_BHNotify gf_CBSystemMessage gf_GKIs gf_GKLabel
@@ -198,6 +203,7 @@ IntToText UnitGetType TimerGetRemaining gf_BHNotify gf_CBSystemMessage gf_GKIs g
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <cstdio>
 #include <functional>
 #include <iostream>
 #include <map>
@@ -215,16 +221,36 @@ std::map<string,string> strings={
 ''' + rows + r'''
 };
 std::map<std::pair<int,int>,bool> visible;
+std::map<std::pair<int,int>,color> buttonColors;
+struct TintEvent { string value; color tint; };
+std::vector<TintEvent> tintEvents;
+const color roleBlue=0x8FAADC, nightRed=0xFF0000, cancelGray=0x808080;
 std::map<string,int> triggerNames;
 std::map<int,string> triggerIds;
 std::vector<int> queue;
 int resumes=0, checks=0, substitutes=0, forcedSubstitute=0, animationDeath=0;
 bool timerPaused=false, expireOnWait=false; double timeLength=120.0;
-int Color(double,double,double) {return 0;}
+std::function<void()> onNextWait;
+int Color(double r,double g,double b) {
+    return ((int)std::lround(r*255.0/100.0)<<16) | ((int)std::lround(g*255.0/100.0)<<8) | (int)std::lround(b*255.0/100.0);
+}
 int SoundLink(string,int) {return 0;}
 text StringExternal(string key) {assert(strings.count(key)); return strings.at(key);}
 text StringToText(string value) {return value;}
-text TextWithColor(string value,int) {return value;}
+text paint(string value,color tint) {
+    char hex[7]; std::snprintf(hex,sizeof(hex),"%06X",tint&0xFFFFFF);
+    return string("<c val=\"")+hex+"\">"+value+"</c>";
+}
+text TextWithColor(string value,color tint) {
+    tintEvents.push_back({value,tint});
+    return paint(value,tint);
+}
+void DialogControlSetVisible(int control,int group,bool show) {
+    for(int p=1;p<=15;++p) if(group&(1<<p)) visible[{control,p}]=show;
+}
+void libNtve_gf_SetDialogItemColor(int control,color tint,int group) {
+    for(int p=1;p<=15;++p) if(group&(1<<p)) buttonColors[{control,p}]=tint;
+}
 text IntToText(int value) {return std::to_string(value);}
 int libNtve_gf_ConvertPlayerColorToColor(int n) {return n;}
 int PlayerGroupAll() {return 65534;}
@@ -279,6 +305,7 @@ int gf_LMRole(int p) {return gv_roles[p][0];}
 void gf_BHHistRoleWritten(int,int,int) {}
 void gf_BHHistRecordRole(int,int,int) {}
 void Wait(double,int) {
+    if(onNextWait) {auto check=std::move(onNextWait);onNextWait={};check();}
     if(expireOnWait) {expireOnWait=false;gv_dayOver=true;}
     // Optional concurrent non-execution death during a long execution animation.
     if(animationDeath) {int p=animationDeath; animationDeath=0; gf_KillPlayer(p,false);}
@@ -302,8 +329,8 @@ void gf_NightTransition();
 void gf_NightTransition() {gf_CJDusk();gv_isNight=true;gv_dayOver=false;for(int p=1;p<=15;++p) {gv_action[p][0]=0;gv_action[p][1]=0;gf_CJNightSetup(p);}}
 void reset() {
 ''' + resets + r'''
-    messages.clear();queue.clear();triggerNames.clear();triggerIds.clear();visible.clear();
-    resumes=checks=substitutes=forcedSubstitute=animationDeath=0;timerPaused=expireOnWait=false;timeLength=120;
+    messages.clear();queue.clear();triggerNames.clear();triggerIds.clear();visible.clear();buttonColors.clear();tintEvents.clear();
+    resumes=checks=substitutes=forcedSubstitute=animationDeath=0;timerPaused=expireOnWait=false;timeLength=120;onNextWait={};
     gv_alivePlayers=gv_currentPlayers=gv_players=PlayerGroupAll();gv_dayNumber=1;gv_isNight=true;
     for(int p=1;p<=15;++p) {
         gv_roles[p][1]=1;gv_roles[p][0]=1;gv_name[p]="镇民"+std::to_string(p);gv_number[p]=std::to_string(p+6);
@@ -318,9 +345,110 @@ void nextNight() {gf_NightTransition();}
 void execute(int p) {gf_EExecution(p);drain();}
 void prepareRound() {pick();resolve();morning();}
 int cases=0;
+string key(string suffix) {return strings.at("Param/Value/"+suffix);}
+void assertCrimes(int p,std::initializer_list<int> expected) {
+    for(int i=0;i<=10;++i) {
+        bool wanted=std::find(expected.begin(),expected.end(),i)!=expected.end();
+        if(gv_e78AAFE7BDAAE4BA8BE5AE9E[p][i]!=wanted) std::cerr<<"case="<<cases<<" crime="<<i<<" expected="<<wanted<<"\n";
+        assert(gv_e78AAFE7BDAAE4BA8BE5AE9E[p][i]==wanted);
+    }
+}
+bool button(int target,int slot,int owner=1) {return visible.at({gv_actionDialogItem[target][5+slot],owner});}
+color buttonColor(int target,int slot,int owner=1) {return buttonColors.at({gv_actionDialogItem[target][5+slot],owner});}
+void assertBroadcast(const std::vector<string>& lines,color tint=roleBlue) {
+    int recipients=0;
+    for(int p=1;p<=15;++p) {
+        std::vector<string> received;
+        for(auto&m:messages) if(m.recipient==p) received.push_back(m.value);
+        if(!PlayerGroupHasPlayer(gv_currentPlayers,p)) {assert(received.empty());continue;}
+        ++recipients;assert(received.size()==lines.size());
+        for(size_t i=0;i<lines.size();++i) {
+            assert(received[i]==paint(lines[i],tint));
+            assert(received[i].find("<n/>")==string::npos && received[i].find('\n')==string::npos);
+        }
+    }
+    assert(messages.size()==recipients*lines.size());
+}
+std::vector<string> dawnLines(int first,int second=0) {
+    string names=key("CJDAWN1")+gf_EGName(first);
+    if(second) names+=key("CJAND")+gf_EGName(second)+key("CJDAWN2");
+    else names+=key("CJDAWNONE");
+    return {names,key(second?"CJDAWNREQ":"CJDAWNONEREQ"),key(second?"CJDAWNFAIL":"CJDAWNONEFAIL")};
+}
 void assertCount(int n) {if(gv_cjScore[1]!=n)std::cerr<<"case="<<cases<<" score="<<gv_cjScore[1]<<" expected="<<n<<" day="<<gv_dayNumber<<" night="<<gv_isNight<<"\n";assert(gv_cjScore[1]==n);}
 int main() {
     reset();assert(gv_immuneChance[1]==1);gf_CJStart();gf_CJNightSetup(1);assert(gv_immuneChance[1]==1);++cases;
+
+    // A completed real two-target ability records only trial manipulation.
+    reset();pick();assertCrimes(1,{});gf_CJPrepareVisits();assertCrimes(1,{});gf_CJResolveNight();assertCrimes(1,{10});gf_CJResolveNight();assertCrimes(1,{10});++cases;
+    for(int selection=0;selection<3;++selection) {
+        reset();if(selection==1)gf_CJPick(1,2,0);if(selection==2)gf_CJPick(1,3,1);
+        resolve();assertCrimes(1,{});assert(gv_cjPendingNight[1]==0);++cases;
+    }
+    for(int block=0;block<3;++block) {
+        reset();pick();if(block==0)gv_roleblocked[1]=2;if(block==1)gv_jailed[1]=2;if(block==2)gv_veteraned[1]=true;
+        resolve();assertCrimes(1,{});assert(gv_cjPendingNight[1]==0);++cases;
+    }
+    reset();pick();gf_CJPrepareVisits();gf_BHVisitNone(1);gf_CJResolveNight();assertCrimes(1,{});++cases;
+
+    // Opening broadcasts are two separate complete rows for every current player,
+    // including dead spectators, and exclude disconnected recipients.
+    reset();PlayerGroupRemove(gv_currentPlayers,15);PlayerGroupRemove(gv_alivePlayers,14);
+    gv_cjInitialized[1]=false;messages.clear();tintEvents.clear();gf_CJStart();
+    assertBroadcast({key("CJINTRO1")+gf_EGName(1)+key("CJINTRO2"),key("CJINTRO3")});
+    assert(std::count_if(tintEvents.begin(),tintEvents.end(),[](auto&e){return e.tint==roleBlue;})==28);++cases;
+    reset();pick();resolve();PlayerGroupRemove(gv_currentPlayers,15);messages.clear();morning();assertBroadcast(dawnLines(2,3));++cases;
+    reset();pick();resolve();gf_KillPlayer(3,false);messages.clear();morning();assertBroadcast(dawnLines(2));++cases;
+
+    // Default buttons exclude self; all other candidates remain blue and usable.
+    reset();assert(!button(1,0) && !button(1,1));
+    for(int target=2;target<=15;++target) for(int slot=0;slot<=1;++slot) {assert(button(target,slot));assert(buttonColor(target,slot)==roleBlue);}++cases;
+    reset();gf_CJPick(1,2,0);assert(button(1,0) && !button(1,1));assert(buttonColor(1,0)==cancelGray);
+    assert(!button(2,0) && !button(2,1));assert(button(3,0) && button(3,1));++cases;
+    reset();pick();assert(button(1,0) && button(1,1));assert(buttonColor(1,0)==cancelGray && buttonColor(1,1)==cancelGray);
+    for(int target: {2,3}) for(int slot=0;slot<=1;++slot) assert(!button(target,slot));
+    assert(button(4,0) && button(4,1));gf_CJPick(1,3,0);assert(gv_action[1][0]==2 && gv_action[1][1]==3);++cases;
+    for(int cancel=0;cancel<=1;++cancel) {
+        reset();pick();gf_CJPick(1,1,cancel);assert(gv_action[1][cancel]==0);
+        int restored=cancel==0?2:3,other=cancel==0?3:2;
+        assert(button(restored,0) && button(restored,1));assert(!button(other,0) && !button(other,1));
+        assert(!button(1,cancel) && button(1,1-cancel));assert(buttonColor(1,1-cancel)==cancelGray);
+        gf_CJPick(1,4,cancel);assert(gv_action[1][cancel]==4 && gv_action[1][1-cancel]==other);
+        gf_CJPick(1,1,0);gf_CJPick(1,1,1);assert(!button(1,0) && !button(1,1));
+        for(int target: {2,3,4}) assert(button(target,0) && button(target,1));++cases;
+    }
+    reset();pick();gf_CJPick(1,4,0);assert(button(2,0) && button(2,1));assert(!button(3,0) && !button(3,1));assert(!button(4,0) && !button(4,1));++cases;
+    reset();prepareRound();execute(2);assert(gv_cjMode[1]==0);
+    for(int target=1;target<=15;++target) for(int slot=0;slot<=1;++slot) assert(!button(target,slot));++cases;
+    reset();prepareRound();nextNight();assert(gv_cjMode[1]==2);
+    for(int target=1;target<=15;++target) assert(!button(target,1));
+    assert(!button(1,0) && !button(2,0) && !button(3,0) && button(4,0));
+    gf_CJPick(1,4,0);assert(button(1,0) && buttonColor(1,0)==cancelGray);assert(!button(4,0));
+    gf_CJPick(1,5,1);assert(gv_action[1][1]==0);gf_CJPick(1,1,0);assert(!button(1,0) && button(4,0));++cases;
+
+    // Murder appears only after the native death removal, never at selection,
+    // attempted attack, an early callback with attribution, or an invalid redirect.
+    reset();prepareRound();nextNight();gv_bhNightKiller[4]=1;gf_CJOnDeath(4);assertCrimes(1,{10});++cases;
+    reset();prepareRound();nextNight();gf_CJPick(1,4,0);gv_nightSequence=true;messages.clear();
+    onNextWait=[](){assertCrimes(1,{10});assert(PlayerGroupHasPlayer(gv_alivePlayers,4));};
+    resolve();assert(!onNextWait);assertCrimes(1,{1,10});assert(!PlayerGroupHasPlayer(gv_alivePlayers,4));
+    assert(gv_deathText[4]==key("CJDEATH") && gv_deathText[4].find("FFFFFF")!=string::npos);
+    assert(gv_deathText[4].find("FF0000")==string::npos && gv_deathText[4].find("破门声")==string::npos);
+    std::vector<Message> attackMessages=messages;messages.clear();
+    for(auto&m:attackMessages) if(m.value==paint(key("CJNIGHT"),nightRed)) messages.push_back(m);
+    assertBroadcast({key("CJNIGHT")},nightRed);assert(messages.size()==15);
+    assert(std::none_of(attackMessages.begin(),attackMessages.end(),[](auto&m){return m.value==paint(key("CJNIGHT"),roleBlue);}));
+    assert(std::any_of(attackMessages.begin(),attackMessages.end(),[](auto&m){return m.recipient==4 && m.value==paint(key("CJVICTIM"),roleBlue);}));++cases;
+    reset();prepareRound();nextNight();resolve();assertCrimes(1,{10});assert(PlayerGroupHasPlayer(gv_alivePlayers,4));++cases;
+    for(int target: {0,1,2,3,15}) {
+        reset();prepareRound();nextNight();if(target==15)PlayerGroupRemove(gv_currentPlayers,15);
+        gf_CJAttack(1,target);assertCrimes(1,{10});++cases;
+    }
+    reset();prepareRound();nextNight();gv_guarded[4]=5;gf_BHVisit(5,4);gf_CJPick(1,4,0);gv_nightSequence=true;
+    onNextWait=[](){assertCrimes(1,{10});assert(PlayerGroupHasPlayer(gv_alivePlayers,5));};
+    resolve();assert(!onNextWait);assert(PlayerGroupHasPlayer(gv_alivePlayers,4));assert(!PlayerGroupHasPlayer(gv_alivePlayers,5));
+    assert(gv_bhNightKiller[5]==1);assertCrimes(1,{1,10});++cases;
+
     reset();prepareRound();assert(gv_dayNumber==2 && gv_cjListDay[1]==2 && gv_cjRestNight[1]==2);assert(gv_cjList[1][0]==2 && gv_cjList[1][1]==3);
     execute(2);assertCount(1);assert(gv_cjSatisfied[1]);nextNight();assert(gv_cjMode[1]==0);resolve();morning();nextNight();assert(gv_dayNumber==3 && gv_cjMode[1]==1);++cases;
     // No selection/incomplete selection: no announcement, no resting round.
@@ -329,7 +457,7 @@ int main() {
     for(int survivors=0;survivors<=2;++survivors) {
         reset();pick();resolve();if(survivors<2)gf_KillPlayer(3,false);if(survivors<1)gf_KillPlayer(2,false);messages.clear();morning();
         if(survivors==0) {assert(gv_cjListDay[1]==0 && messages.empty());nextNight();assert(gv_cjMode[1]==1);}
-        else {assert(gv_cjListDay[1]==2 && gv_cjList[1][0]==2);assert(gv_cjList[1][1]==(survivors==2?3:0));for(auto&m:messages)assert(m.value.find(survivors==1?"此人必须被处决":"他们二人中必须有一人被处决")!=string::npos);}
+        else {assert(gv_cjListDay[1]==2 && gv_cjList[1][0]==2);assert(gv_cjList[1][1]==(survivors==2?3:0));assertBroadcast(dawnLines(2,survivors==2?3:0));}
         ++cases;
     }
     // Per-day tokens: night deaths/admin kill/disconnect never count; duplicate callback inert.
