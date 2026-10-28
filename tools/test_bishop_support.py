@@ -26,7 +26,8 @@ CORE = (
     'gf_RAZhujiaoActions', 'gf_SKR_1_zhujiao', 'gf_SKA_1_zhujiao',
     'gf_SKP_1_zhujiao', 'gf_SKU_1_zhujiao', 'gf_SKK_1_zhujiao', 'gf_ZJMorning',
 )
-HELPERS = ('gf_BHVoteWeight', 'gf_RANoActions', 'gf_BHVisit', 'gf_BHVisit2',
+HELPERS = ('gf_BHVoteWeight', 'gf_BHNoVoteOrCount', 'gf_GKIs',
+           'gf_RANoActions', 'gf_BHVisit', 'gf_BHVisit2',
            'gf_BHVisitAction', 'gf_BHVisitNone')
 
 
@@ -38,7 +39,10 @@ def integration(source: str) -> str:
         assert len(references) >= 3, (name, 'missing caller or forward declaration')
 
     day = function(source, 'auto_gf_DayTransition_TriggerFunc')
-    assert day.index('gf_JJResolve(') < day.index('gf_BHFeignDayMute(') < day.index('gf_ZJMorning(') < day.index('gf_CheckEnd('), 'announce after revival/fake-death handling, before victory'
+    assert day.index('gf_JJResolve(') < day.index('gf_BHFeignDayMute(') < day.index('gf_ZJMorningDefer(') < day.index('gf_CheckEnd('), 'schedule announcement after revival/fake-death handling, before victory'
+    assert 'TriggerExecute(gt_ZJMorning, false, false);' in function(source, 'gf_ZJMorningDefer')
+    delayed = function(source, 'gt_ZJMorning_Func')
+    assert delayed.index('Wait(1.5, c_timeGame);') < delayed.index('gf_ZJMorning();')
     defaults = function(source, 'gf_DefaultRoleOptions')
     default_lines = []
     for array, indices, value in (
@@ -87,8 +91,11 @@ def random_wiring(source: str) -> list[str]:
     marker = 'if ((lv_y >= gv_finalWeights[1][34]) && (lv_y < gv_finalWeights[1][35])'
     start = matrix.index(marker)
     block = matrix[start:balanced_end(matrix, matrix.index('{', start))]
-    assert 'gv_roles[lv_a][0] = 35;' in block
+    assert 'gf_GKSetRoleField(lv_a, 0, 35);' in block
     bodies.append('void bishopDraw(int lv_x, fixed lv_y) {\nint lv_a = 1;\n' + block + '\n}')
+    bodies.extend(function(source, name) for name in (
+        'gf_BHRoleFitsKind', 'gf_BHListHas', 'gf_GKSetRoleField',
+    ))
     return bodies
 
 
@@ -152,23 +159,43 @@ def harness(source: str, core: str, integrated: bool) -> str:
     assert(gf_BHVoteWeight(2)==1 && gv_votes[2]==1);
     ++cases;
 
-    // Positive medic custom weight must remain excluded after TownMax grows to 35.
-    for(int implementation=0;implementation<2;++implementation) {
+    // Both preview and actual cumulative weights; medic stays excluded.
+    for(int implementation=0;implementation<2;++implementation) for(fixed weight: {0.0,0.5,3.0}) {
         reset(); gv_townMax=35;
-        gv_roleWeights[1][1]=2.0; gv_roleWeights[1][34]=900.0; gv_roleWeights[1][35]=3.0;
+        gv_roleWeights[1][1]=2.0; gv_roleWeights[1][34]=900.0; gv_roleWeights[1][35]=weight;
         for(int role=1;role<=35;++role) {
             if(implementation==0) townCumulative0(role); else townCumulative1(role);
         }
-        assert(gv_finalWeights[1][33]==2.0 && gv_finalWeights[1][34]==2.0 && gv_finalWeights[1][35]==5.0);
+        assert(gv_finalWeights[1][33]==2.0 && gv_finalWeights[1][34]==2.0 && gv_finalWeights[1][35]==2.0+weight);
         ++cases;
-        for(int slot: {1,2,4,5}) for(bool excluded: {false,true}) {
-            gv_rolesArray[1]=slot; gv_roleOptions[4][1][2]=excluded; gv_roleOptions[4][2][1]=excluded;
-            gv_roles[1][0]=0; bishopDraw(1,2.0);
-            assert(gv_roles[1][0]==((slot==4 || ((slot==1 || slot==2) && !excluded))?35:0));
-            gv_roles[1][0]=0; bishopDraw(1,5.0); assert(gv_roles[1][0]==0);
-            gv_roles[1][0]=0; bishopDraw(1,1.99); assert(gv_roles[1][0]==0);
+        for(int slot=1;slot<=23;++slot) for(int exclusions=0;exclusions<8;++exclusions) {
+            gv_rolesArray[1]=slot;
+            gv_roleOptions[4][1][2]=(exclusions&1)!=0; // All random: exclude Town.
+            gv_roleOptions[4][2][1]=(exclusions&2)!=0; // Town random: exclude Government.
+            gv_roleOptions[4][2][4]=(exclusions&4)!=0; // Town random: exclude Power.
+            const bool eligible=slot==8 || (slot==1 && !(exclusions&1)) || (slot==2 && !(exclusions&4));
+            assert(gf_BHRoleFitsKind(slot,1,35)==eligible);
+            const fixed probes[]={2.0,2.0+weight/2,2.0+weight-1.0/4096,2.0+weight,2.0-1.0/4096};
+            for(fixed roll:probes) {
+                gv_roles[1][0]=0; gv_roles[1][1]=0;
+                bishopDraw(1,roll);
+                const bool drawn=eligible && roll>=2.0 && roll<2.0+weight;
+                assert(gv_roles[1][0]==(drawn?35:0));
+                assert(gv_roles[1][1]==(drawn?1:0));
+            }
             ++cases;
         }
+    }
+    // Individual Power exclusions refer to other professions, not the whole pool.
+    for(int exclusions=0;exclusions<16;++exclusions) {
+        reset();
+        for(int option=0;option<4;++option) gv_roleOptions[4][8][option]=(exclusions&(1<<option))!=0;
+        gv_rolesArray[1]=8; gv_finalWeights[1][34]=2; gv_finalWeights[1][35]=3;
+        assert(gf_BHRoleFitsKind(8,1,35));
+        bishopDraw(1,2.5); assert(gv_roles[1][0]==35);
+        assert(!gf_BHRoleFitsKind(4,1,17)); // Veteran is not Government either.
+        assert(gf_BHRoleFitsKind(8,1,17)==!(exclusions&1));
+        ++cases;
     }
 ''' if integrated else ''
     return r'''
