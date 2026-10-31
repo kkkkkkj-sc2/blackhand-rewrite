@@ -589,6 +589,23 @@ MUST_HAVE_KEYS = [
     'Param/Value/A51EA15F', 'Param/Value/B7F2DBC2', 'Param/Value/C84927BC',
     'Param/Value/C8AB6DDE', 'Param/Value/CF0DFBAB', 'Param/Value/CWINV2',
 
+    # 饭店老板 (1/36)：卡面、面板两档、播报与侦探收尸措辞
+    'Param/Value/FDNAME', 'Param/Value/FDALIGN', 'Param/Value/FDDESC',
+    'Param/Value/FDBOX1', 'Param/Value/FDBOX2A', 'Param/Value/FDBOX2B',
+    'Param/Value/FDFACTION',
+    'Param/Value/FDBOX2C', 'Param/Value/FDBOX2D', 'Param/Value/FDBOX2E',
+    'Param/Value/FDBOX2F', 'Param/Value/FDBOX2G', 'Param/Value/FDBOX2H',
+    'Param/Value/FDBOX4',
+    'Param/Value/FDINV1', 'Param/Value/FDINV2', 'Param/Value/FDCRIME',
+    'Param/Value/FDCOOK', 'Param/Value/FDDELIVER', 'Param/Value/FDCANCEL',
+    'Param/Value/FDCOOKTIP', 'Param/Value/FDDELIVERTIP', 'Param/Value/FDNOFOOD',
+    'Param/Value/FDPICK', 'Param/Value/FDPICKEND',
+    'Param/Value/FDLOOT', 'Param/Value/FDRECOVER', 'Param/Value/FDGRACE',
+    'Param/Value/FDVOTE',
+    'Param/Value/FDSURVIVOR',
+    'Param/Value/FDCOUNT', 'Param/Value/FDCOUNTEND',
+    'Param/Value/FDDET1', 'Param/Value/FDDET2', 'Param/Value/FDDET3', 'Param/Value/FDDET4',
+
     # 律师 / 状师
     'Param/Value/LSNAME',
     'Param/Value/DZNAME',

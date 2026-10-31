@@ -1,0 +1,46 @@
+// 饭店老板（城镇 1/36）；暖橙色，与主教翠绿区分
+Param/Value/FDNAME=<c val="00FF00">饭店老板</c>
+Param/Value/FDALIGN=<c val="00FF00">城镇（商户）</c>
+Param/Value/FDDESC=一家不起眼饭店的掌勺师傅兼老板，在形形色色的客人中总能发现某种端倪。<n/><n/><c val="BBDDFF">每个夜晚，你可以不出门做一份‘食物’；也可以出门主动给予一份‘食物’。</c>
+Param/Value/FDINV1=你发现你的目标在住所间不断移动
+Param/Value/FDINV2=- 他可能是巴士司机、保镖、护林人、饭店老板、陷阱师、天工、欺骗者/迷惑、恶棍，或者冤魂。
+Param/Value/FDCRIME=无
+Param/Value/FDFACTION=<c val="AAAAAA">商户分类：他们没有看透人心的本事，也没有专业搜查的技能，但他们往往都知晓着一些关键线索。</c>
+// 角色卡五栏
+Param/Value/FDCARD=<c val="E0862C">
+Param/Value/FDBOX1=每个夜晚，你可以不出门做一份‘食物’；也可以出门主动给予一份‘食物’。
+Param/Value/FDBOX2A=<n/>- 你的能力会对其他所有人生效
+Param/Value/FDBOX2B=<n/>- 每拥有一份‘食物’，白天他的有罪或无罪票数+1
+Param/Value/FDBOX2C=<n/>- 如果在夜晚有多数角色同时访问你进行领取时，城镇角色优先直至食物全部发放<n/>（城镇←黑手党←三合会←中立）
+Param/Value/FDBOX2D=<n/>- 带有‘食物’的角色被击杀时，击杀者会夺取他所有的‘食物’
+Param/Value/FDBOX2E=<n/>- 带有‘食物’的角色非击杀死亡时，‘食物’会回到饭店老板手中。
+Param/Value/FDBOX2F=<n/>- 生存者访问你不会消耗你拥有的‘食物’，他会多得到一份食物；他下一次给城镇的有罪票会变成无罪票
+Param/Value/FDBOX2G=<n/>- 在白天你可以获知每个人拥有的‘食物’数量
+Param/Value/FDBOX2H=<n/>- 你初始拥有两份‘食物’
+Param/Value/FDBOX4=你是这家不起眼饭店的掌勺师傅兼老板。
+// 行动面板
+Param/Value/FDCOOK=<s val="ModCenterSize20Bold">在家做饭</s>
+Param/Value/FDDELIVER=<s val="ModCenterSize20Bold">出门送饭</s>
+Param/Value/FDCANCEL=取消
+Param/Value/FDCOOKTIP=<s val="ModLeftSize16">你今晚留在家里多做一份食物。</s>
+Param/Value/FDDELIVERTIP=<s val="ModLeftSize16">你将把一份食物送到家门口。</s>
+Param/Value/FDPICK=<s val="ModLeftSize16">你今晚要给
+Param/Value/FDPICKEND=送一份食物。</s>
+Param/Value/FDNOFOOD=<s val="ModLeftSize16">你手上已经没有食物了，今晚只能在家做饭。</s>
+// 播报：击杀夺取 / 处刑回收（各只发一次）
+Param/Value/FDLOOT=<s val="ModLeftSize16"><c val="FF8C42">一名杀人犯在行使罪恶时发现了意外之喜……</c></s>
+Param/Value/FDRECOVER=<s val="ModLeftSize16"><c val="E0862C">一名饭店老板摇了摇头叹了口气……</c></s>
+// 投票结果下面补一句（食物加成过）
+Param/Value/FDVOTE=<s val="ModLeftSize16"><c val="BBDDFF">因为某些城镇的支持，有些人的投票数增加了……</c></s>
+// 生存者来老板家吃饭
+Param/Value/FDSURVIVOR=<s val="ModLeftSize16Bold"><c val="00FF00">你遇到了一位好心人，他给了你一点饭吃……</c></s>
+// 生存者恩惠
+Param/Value/FDGRACE=<s val="ModLeftSize16"><c val="FFFF00">一名生存者受到了城镇的恩惠，决定帮助一次好心人</c></s>
+// 白天私发：每人持有数
+Param/Value/FDCOUNT=<s val="ModLeftSize16">今天各人手上的食物：</s>
+Param/Value/FDCOUNTEND=份
+// 侦探看「老板去收尸」：单访问（做饭）与双访问（送饭）
+Param/Value/FDDET1=<s val="ModLeftSize16Bold"><c val="DDBB44">你的目标访问了 </c>
+Param/Value/FDDET4=<c val="DDBB44">，然后又回来了……</c></s>
+Param/Value/FDDET2=<s val="ModLeftSize16Bold"><c val="DDBB44">你的目标同时访问了 </c>
+Param/Value/FDDET3=<c val="DDBB44"> 和 </c>

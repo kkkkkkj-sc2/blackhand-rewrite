@@ -1,0 +1,34 @@
+{
+ "pool": 1,
+ "role": 36,
+ "pinyin": "fandianlaoban",
+ "cn": "饭店老板",
+ "name_key": "FDNAME",
+ "desc_key": "FDDESC",
+ "investigator": [
+  "FDINV1",
+  "FDINV2"
+ ],
+ "crime_key": "FDCRIME",
+ "options": [],
+ "flag10": false,
+ "guessable": true,
+ "help_preview": null,
+ "interactions": {
+  "swap": {
+   "text": "不受交换影响：本角色夜里只在自己家里做饭（gf_BHVisitSelf），白天发放食物不写 gv_action，女巫/巴士司机改不到它的目标。"
+  },
+  "investigate": {
+   "text": "发放食物时上门：观察者/监视者/侦探能看到它访问领取者。做饭当夜不登门（gf_BHVisitSelf），因此不会被看到出门。"
+  },
+  "restrict": {
+   "text": "可被限制：被舞娘/陪侍限制当夜不能出门发放，但仍可在家里做饭。"
+  },
+  "guessage": {
+   "text": "可猜：审查页城镇池新增下标。",
+   "in_guess_list": true
+  }
+ },
+ "note": "城镇·商户。核心是「食物」：夜间可在家做一份，或出门送一份；持有者白天有罪/无罪票数 +1；被击杀时凶手夺走其全部食物；生存者来领取后不消耗存量，但下一次给城镇的有罪票变成无罪票。初始两份食物。白天可获知每个人持有的食物数量。设计笔记见 docs/PATCH-NOTES.md（待补）。",
+ "review_status": "draft"
+}
