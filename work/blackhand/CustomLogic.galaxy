@@ -349,6 +349,22 @@ int[16] gv_cjListDay;
 int[16] gv_cjAnnouncedDay;
 text gv_investigatorFDINV1;
 text gv_investigatorFDINV2;
+text gv_investigatorVUINV1;
+text gv_investigatorVUINV2;
+text[64] gv_bpLog;           // 报纸店老板(1/38)：昨夜的信息正文
+int[64] gv_bpTag;            // 去重标签：同标签合并计数
+int[64] gv_bpCount;
+int gv_bpLogN;
+bool gv_bpPublic;            // 报纸是否已公示
+bool[16] gv_bpRead;          // 该玩家今天是否已读过报
+text gv_investigatorBPINV1;
+text gv_investigatorBPINV2;
+trigger gt_BPPaper;
+bool[16][16] gv_vuVisited;   // 流动摊贩(1/37)：每个摊贩、每位玩家是否已被拜访过
+bool[16] gv_vuBuff;          // 该玩家当前带着流动摊贩开启的额外选项
+int[16] gv_vuBuffPool;
+int[16] gv_vuBuffRole;
+int[16] gv_vuBuffIdx;
 text gv_investigatorCJINV1;
 text gv_investigatorCJINV2;
 bool gf_CJIs (int p);
@@ -1541,7 +1557,7 @@ void SH_InitGlobals () {
         }
     }
     gv_globalT = "";
-    gv_townMax = 36; // 主教(1/35)：城镇权重、选项保存与累计抽签上界
+    gv_townMax = 38; // 报纸店老板(1/38)：城镇权重、选项保存与累计抽签上界
     gv_mafiaTriadMax = 22;
     gv_neutralMax = 18;
     gv_randomMax = 19;
@@ -1663,6 +1679,30 @@ void gf_SKR_1_fandianlaoban (int lv_a);
 void gf_SKA_1_fandianlaoban (int lv_source, int lv_target);
 void gf_SKP_1_fandianlaoban_2 (int lv_a);
 void gf_SKK_1_fandianlaoban (int lv_a);
+void gf_SKR_1_liudongtanfan (int lv_a);
+void gf_SKA_1_liudongtanfan (int lv_source, int lv_target);
+void gf_SKP_1_liudongtanfan_2 (int lv_a);
+void gf_SKK_1_liudongtanfan (int lv_a);
+void gf_RAVendorActions (int lp_player);
+bool gf_VUUsedOnce (int lp_player);
+void gf_VURevertBuffs ();
+bool gf_VUInGame ();
+void gf_BHPickMerchant ();
+void gf_VUMorning ();
+void gf_BPAdd (int lp_tag, text lp_body);
+void gf_BPClear ();
+void gf_BPDayStart ();
+void gf_BPEventAttack (int lp_victim, int lp_killer);
+void gf_BPEventHeal (int lp_victim, int lp_healer);
+void gf_BPEventBlock (int lp_victim, int lp_blocker);
+void gf_BPEventLook (int lp_investigator);
+void gf_BPEventVisit (int lp_victim, int lp_visitor);
+void gf_BPEventBus (int lp_player);
+text gf_BPCountName (int lp_n);
+void gf_BPDraw (int lp_reader);
+text gf_BPRoleName (int lp_player);
+void gt_BPPaper_Init ();
+void gf_VUCardSwitches (int lp_player);
 int gf_FDOwner ();
 int gf_FDStage (int lp_player);
 bool gf_FDIsSurvivor (int lp_player);
@@ -5794,6 +5834,28 @@ void gf_InitializeVariables () {
     gv_e78AAFE7BDAAE58FAFE883BD[1][36] = StringExternal("Param/Value/FDCRIME");
     gv_bankSaveWeights[0][1][36] = 1.0;
     gv_roleWeights[1][36] = 1.0;
+
+// 流动摊贩（城镇 1/37）
+    gv_roleNameArray[1][37] = StringExternal("Param/Value/VUNAME");
+    gv_roleDescriptionArray[1][37] = StringExternal("Param/Value/VUDESC");
+    gv_investigatorVUINV1 = StringExternal("Param/Value/VUINV1");
+    gv_investigatorVUINV2 = StringExternal("Param/Value/VUINV2");
+    gv_roleInvestigatorArray[1][37][0] = gv_investigatorVUINV1;
+    gv_roleInvestigatorArray[1][37][1] = gv_investigatorVUINV2;
+    gv_e78AAFE7BDAAE58FAFE883BD[1][37] = StringExternal("Param/Value/VUCRIME");
+    gv_bankSaveWeights[0][1][37] = 1.0;
+    gv_roleWeights[1][37] = 1.0;
+
+// 报纸店老板（城镇 1/38）
+    gv_roleNameArray[1][38] = StringExternal("Param/Value/BPNAME");
+    gv_roleDescriptionArray[1][38] = StringExternal("Param/Value/BPDESC");
+    gv_investigatorBPINV1 = StringExternal("Param/Value/BPINV1");
+    gv_investigatorBPINV2 = StringExternal("Param/Value/BPINV2");
+    gv_roleInvestigatorArray[1][38][0] = gv_investigatorBPINV1;
+    gv_roleInvestigatorArray[1][38][1] = gv_investigatorBPINV2;
+    gv_e78AAFE7BDAAE58FAFE883BD[1][38] = StringExternal("Param/Value/BPCRIME");
+    gv_bankSaveWeights[0][1][38] = 1.0;
+    gv_roleWeights[1][38] = 1.0;
     gv_bankSaveWeights[0][1][34] = 0.0;
     gv_bankSaveWeights[0][1][33] = 0.0;
     gv_channelTextColor[1] = Color(78.43, 78.43, 78.43);
@@ -6704,6 +6766,8 @@ void gf_InitializeVariables () {
     gv_roleNameArray[4][21] = StringExternal("Param/Value/BZLEAD");
     gv_roleDescriptionArray[4][21] = StringExternal("Param/Value/BRLEADMAFIA");
     gv_roleNameArray[4][22] = StringExternal("Param/Value/QLLEAD");
+    gv_roleNameArray[4][23] = StringExternal("Param/Value/MRNAME");
+    gv_roleDescriptionArray[4][23] = StringExternal("Param/Value/MRDESC");
     gv_roleDescriptionArray[4][22] = StringExternal("Param/Value/BRLEADTRIAD");
     gv_channelTextColor[4] = Color(78.43, 78.43, 78.43);
     gv_textBackgroundColor1[4] = Color(9.80, 11.76, 15.69);
@@ -7031,6 +7095,8 @@ void gf_InitializeOther () {
     gv_roleNameInput[1][34] = "jijiuzhuanjia";
     gv_roleNameInput[1][35] = "zhujiao";
     gv_roleNameInput[1][36] = "fandianlaoban";
+    gv_roleNameInput[1][37] = "liudongtanfan";
+    gv_roleNameInput[1][38] = "baozhidianlaoban";
     gv_roleNameInput[2][1] = "dangtu";
     gv_roleNameInput[2][2] = "jiaofu";
     gv_roleNameInput[2][3] = "peishi";
@@ -12167,6 +12233,7 @@ void gf_SequencePrep () {
 
     // Variable Initialization
 
+    gf_BPClear();
     // Implementation
     // 阶段三前置（shw239）：局部数组已提升为全局，入口清零还原「每次调用都是全新」
     gv_seqPrepList[0] = 0;
@@ -12726,6 +12793,10 @@ void gf_SequencePrep () {
 
             if ((gv_roles[lv_a][1] == 1) && (gv_roles[lv_a][0] == 36)) {
                 gf_SKP_1_fandianlaoban_2(lv_a);
+            }
+
+            if ((gv_roles[lv_a][1] == 1) && (gv_roles[lv_a][0] == 37) && (gv_action[lv_a][0] > 0)) {
+                gf_SKP_1_liudongtanfan_2(lv_a);
             }
 
             if ((gv_roles[lv_a][1] == 1) && (gv_roles[lv_a][0] == 11) && (gv_action[lv_a][0] > 0)) {
@@ -13944,6 +14015,10 @@ void gf_SequenceKills () {
 
         if ((gv_roles[lv_a][1] == 1) && (gv_roles[lv_a][0] == 36)) {
             gf_SKK_1_fandianlaoban(lv_a);
+        }
+
+        if ((gv_roles[lv_a][1] == 1) && (gv_roles[lv_a][0] == 37)) {
+            gf_SKK_1_liudongtanfan(lv_a);
         }
     }
 
@@ -17483,6 +17558,10 @@ bool gf_GSKillPlayerDirect (int lp_player, bool lp_disguised, bool lp_gsStaged) 
 
     // Implementation
     gv_dqTag[lp_player] = 0;
+    if ((gv_isNight == true) && (gv_bhNightKiller[lp_player] > 0) && (gv_bhNightKiller[lp_player] != lp_player)) {
+        gf_BPEventAttack(lp_player, gv_bhNightKiller[lp_player]);
+    }
+
     if ((PlayerGroupHasPlayer(gv_alivePlayers, lp_player) == true) || (lp_gsStaged == true)) {
         gf_FDOnDeath(lp_player);
         lv_intensity = gv_dayNumber;
@@ -33918,6 +33997,7 @@ void gf_RSTownSetup () {
     // Variable Initialization
 
     // Implementation
+    gf_VURevertBuffs();
     // 阶段三前置（shw239）：局部数组已提升为全局，入口清零还原「每次调用都是全新」
     gv_rsTownX[0] = 0;
     gv_rsTownX[1] = 0;
@@ -34147,6 +34227,10 @@ void gf_RSTownSetup () {
 
                     if ((gv_roles[lv_a][0] == 36)) {
                         gf_SKR_1_fandianlaoban(lv_a);
+                    }
+
+                    if ((gv_roles[lv_a][0] == 37)) {
+                        gf_SKR_1_liudongtanfan(lv_a);
                     }
 
                     if ((gv_roles[lv_a][0] == 4)) {
@@ -38100,7 +38184,13 @@ int gf_ASGuessRole (int lp_picked, int lp_index) {
         else if ((lp_index == 33)) {
             lv_role = 36;
         }
-        else if ((lp_index >= 34)) {
+        else if ((lp_index == 34)) {
+            lv_role = 37;
+        }
+        else if ((lp_index == 35)) {
+            lv_role = 38;
+        }
+        else if ((lp_index >= 36)) {
             lv_role = 0;
         }
     }
@@ -38186,7 +38276,7 @@ void gf_ASE5AEA1E69FA5E98089E9A1B92 (int lp_player, int lp_picked) {
     int lv_role;
 
     // Automatic Variable Declarations
-    const int auto1E31EC9C_ae = 33;
+    const int auto1E31EC9C_ae = 35;
     const int auto1E31EC9C_ai = 1;
     const int autoED7EF63C_ae = 20;
     const int autoED7EF63C_ai = 1;
@@ -41012,6 +41102,35 @@ void gf_RTTownRoleText (int lp_player) {
         gv_roleBoxText[lv_a][2] = (gv_roleBoxText[lv_a][2] + StringExternal("Param/Value/FDBOX2G"));
         gv_roleBoxText[lv_a][2] = (gv_roleBoxText[lv_a][2] + StringExternal("Param/Value/FDBOX2H"));
         SoundPlay(SoundLink("Hellion_What", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
+    }
+
+    if ((gv_roles[lv_a][1] == 1) && (gv_roles[lv_a][0] == 37)) {
+        gv_roleBoxText[lv_a][0] = StringExternal("Param/Value/VUALIGN");
+        gv_roleBoxText[lv_a][4] = StringExternal("Param/Value/VUBOX4");
+        gv_roleBoxText[lv_a][1] = StringExternal("Param/Value/VUBOX1");
+        gv_roleBoxText[lv_a][2] = StringExternal("Param/Value/VUBOX2A");
+        gv_roleBoxText[lv_a][2] = (gv_roleBoxText[lv_a][2] + StringExternal("Param/Value/VUBOX2B"));
+        gv_roleBoxText[lv_a][2] = (gv_roleBoxText[lv_a][2] + StringExternal("Param/Value/VUBOX2C"));
+        gv_roleBoxText[lv_a][2] = (gv_roleBoxText[lv_a][2] + StringExternal("Param/Value/VUBOX2D"));
+        gv_roleBoxText[lv_a][2] = (gv_roleBoxText[lv_a][2] + StringExternal("Param/Value/VUBOX2E"));
+        gv_roleBoxText[lv_a][2] = (gv_roleBoxText[lv_a][2] + StringExternal("Param/Value/VUBOX2F"));
+        SoundPlay(SoundLink("Hellion_What", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
+    }
+
+    if ((gv_roles[lv_a][1] == 1) && (gv_roles[lv_a][0] == 38)) {
+        gv_roleBoxText[lv_a][0] = StringExternal("Param/Value/BPALIGN");
+        gv_roleBoxText[lv_a][4] = StringExternal("Param/Value/BPBOX4");
+        gv_roleBoxText[lv_a][1] = StringExternal("Param/Value/BPBOX1");
+        gv_roleBoxText[lv_a][2] = StringExternal("Param/Value/BPBOX2A");
+        gv_roleBoxText[lv_a][2] = (gv_roleBoxText[lv_a][2] + StringExternal("Param/Value/BPBOX2B"));
+        gv_roleBoxText[lv_a][2] = (gv_roleBoxText[lv_a][2] + StringExternal("Param/Value/BPBOX2C"));
+        gv_roleBoxText[lv_a][2] = (gv_roleBoxText[lv_a][2] + StringExternal("Param/Value/BPBOX2D"));
+        gv_roleBoxText[lv_a][2] = (gv_roleBoxText[lv_a][2] + StringExternal("Param/Value/BPBOX2E"));
+        SoundPlay(SoundLink("Hellion_What", -1), PlayerGroupSingle(lv_a), 100.0, 0.0);
+    }
+
+    if ((gf_VUInGame() == true)) {
+        gf_VUCardSwitches(lv_a);
     }
 
     gv_roleBoxText[lv_a][3] = StringExternal("Param/Value/15079DCA");
@@ -51908,8 +52027,14 @@ void gf_OSGenerateChances () {
                             if ((lv_c[lv_x] == false)) {
                                 lv_l[1] += 1;
                                 if ((gv_categoriesArray[lv_x] == 4)) {
-                                    if (((gv_rolesArray[lv_x] == 21) || (gv_rolesArray[lv_x] == 22))) {
-                                        gf_BHPickLeader(gv_rolesArray[lv_x]);
+                                    if (((gv_rolesArray[lv_x] == 21) || (gv_rolesArray[lv_x] == 22) || (gv_rolesArray[lv_x] == 23))) {
+                                        if ((gv_rolesArray[lv_x] == 23)) {
+                                            gf_BHPickMerchant();
+                                        }
+                                        else {
+                                            gf_BHPickLeader(gv_rolesArray[lv_x]);
+                                        }
+
                                         if ((gv_bhPickRole != 0)) {
                                             lv_c[lv_x] = true;
                                             gv_roleOptions[gv_bhPickPool][gv_bhPickRole][10] = true;
@@ -72119,6 +72244,7 @@ bool gt_NightSequence_Func (bool testConds, bool runActions) {
         }
 
         if ((gv_roles[lv_a][1] == 1) && (gv_roles[lv_a][0] == 3) && (gv_visitation[lv_a] != 0) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true)) {
+            gf_BPEventHeal(gv_visitation[lv_a], lv_a);
             gv_healing[gv_visitation[lv_a]] += 1;
             gf_DEBUG(("healing is set to: " + IntToString(gv_healing[gv_visitation[lv_a]])));
             if ((gv_roleOptions[1][3][1] == true)) {
@@ -76299,6 +76425,10 @@ bool gt_ASActionButtonATown_Func (bool testConds, bool runActions) {
 
         if ((gv_roles[lv_source][1] == 1) && (gv_roles[lv_source][0] == 36)) {
             gf_SKA_1_fandianlaoban(lv_source, lv_target);
+        }
+
+        if ((gv_roles[lv_source][1] == 1) && (gv_roles[lv_source][0] == 37)) {
+            gf_SKA_1_liudongtanfan(lv_source, lv_target);
         }
 
         gf_BHConvertedActionNotice(lv_source, lv_old0, lv_old1);
@@ -84148,6 +84278,14 @@ bool gt_OSRoleSelect_Func (bool testConds, bool runActions) {
                 gv_roleSelection = 36;
             }
 
+            if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 33)) {
+                gv_roleSelection = 37;
+            }
+
+            if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 34)) {
+                gv_roleSelection = 38;
+            }
+
         }
 
     }
@@ -84609,62 +84747,66 @@ bool gt_OSRoleSelect_Func (bool testConds, bool runActions) {
             }
 
             if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 8)) {
-                gv_roleSelection = 3;
+                gv_roleSelection = 23;
             }
 
             if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 9)) {
-                gv_roleSelection = 9;
+                gv_roleSelection = 3;
             }
 
             if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 10)) {
-                gv_roleSelection = 10;
+                gv_roleSelection = 9;
             }
 
             if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 11)) {
-                gv_roleSelection = 11;
+                gv_roleSelection = 10;
             }
 
             if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 12)) {
-                gv_roleSelection = 15;
+                gv_roleSelection = 11;
             }
 
             if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 13)) {
-                gv_roleSelection = 16;
+                gv_roleSelection = 15;
             }
 
             if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 14)) {
-                gv_roleSelection = 17;
+                gv_roleSelection = 16;
             }
 
             if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 15)) {
-                gv_roleSelection = 18;
+                gv_roleSelection = 17;
             }
 
             if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 16)) {
-                gv_roleSelection = 19;
+                gv_roleSelection = 18;
             }
 
             if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 17)) {
-                gv_roleSelection = 12;
+                gv_roleSelection = 19;
             }
 
             if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 18)) {
-                gv_roleSelection = 13;
+                gv_roleSelection = 12;
             }
 
             if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 19)) {
-                gv_roleSelection = 14;
+                gv_roleSelection = 13;
             }
 
             if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 20)) {
-                gv_roleSelection = 20;
+                gv_roleSelection = 14;
             }
 
             if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 21)) {
-                gv_roleSelection = 21;
+                gv_roleSelection = 20;
             }
 
             if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 22)) {
+                gv_roleSelection = 21;
+            }
+
+            if ((DialogControlGetSelectedItem(EventDialogControl(), gv_host) == 23)) {
                 gv_roleSelection = 22;
             }
 
@@ -84871,6 +85013,8 @@ bool gt_OSMenus_Func (bool testConds, bool runActions) {
                 DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/E49D49F4") + gv_roleNameArray[gv_roleCategory][34] + StringExternal("Param/Value/F63CDC9A")));
                 DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/E49D49F4") + gv_roleNameArray[gv_roleCategory][35] + StringExternal("Param/Value/F63CDC9A")));
                 DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/E49D49F4") + gv_roleNameArray[gv_roleCategory][36] + StringExternal("Param/Value/F63CDC9A")));
+                DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/E49D49F4") + gv_roleNameArray[gv_roleCategory][37] + StringExternal("Param/Value/F63CDC9A")));
+                DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/E49D49F4") + gv_roleNameArray[gv_roleCategory][38] + StringExternal("Param/Value/F63CDC9A")));
             }
 
         }
@@ -85013,6 +85157,7 @@ bool gt_OSMenus_Func (bool testConds, bool runActions) {
                 DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/60E36BEC") + gv_roleNameArray[gv_roleCategory][6] + StringExternal("Param/Value/99D5E2C3")));
                 DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/52C07AF0") + gv_roleNameArray[gv_roleCategory][7] + StringExternal("Param/Value/7D6B74F4")));
                 DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/99B5709D") + gv_roleNameArray[gv_roleCategory][8] + StringExternal("Param/Value/473B315B")));
+                DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/83B203DA") + gv_roleNameArray[gv_roleCategory][23] + StringExternal("Param/Value/4CDB7830")));
                 DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/77C7C042") + gv_roleNameArray[gv_roleCategory][3] + StringExternal("Param/Value/B89338B0")));
                 DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/8A027E07") + gv_roleNameArray[gv_roleCategory][9] + StringExternal("Param/Value/18102891")));
                 DialogControlAddItem(gv_rolesMenusItem[1], PlayerGroupAll(), (StringExternal("Param/Value/406A1076") + gv_roleNameArray[gv_roleCategory][10] + StringExternal("Param/Value/41071FCE")));
@@ -86672,6 +86817,7 @@ void SH_InitTriggers () {
     gt_ASCultSmiteveto_Init();
     gt_ASTriadTarget_Init();
     gt_ASMayorAction_Init();
+    gt_BPPaper_Init();
     gt_SQShow_Init();
     gt_ASCryerAction_Init();
     gt_ZMChoice_Init();
@@ -90080,6 +90226,9 @@ bool gf_QiziAtHouse (int lp_player, int lp_house) {
 // 限制：只写「谁被谁限制」，不动访问
 void gf_BHSetBlocker (int lp_target, int lp_blocker) {
     gv_roleblocked[lp_target] = lp_blocker;
+    if ((lp_blocker > 0) && (lp_target > 0)) {
+        gf_BPEventBlock(lp_target, lp_blocker);
+    }
 }
 
 // 解除限制
@@ -93887,6 +94036,7 @@ void gf_SKF_1_fushou (int lv_a) {
     const int auto14832DC9_ae = 15;
     const int auto14832DC9_ai = 1;
     // Implementation
+    gf_BPEventLook(lv_a);
 if ((gv_e6B395E5B888E58FA0E5B182[lv_a] > 5) && ((gv_e6B395E5B888E58FA0E5B182[lv_a] > 4) || (gv_roleOptions[1][21][3] == true))) {
     lv_b = 1;
     for ( ; ( (auto14832DC9_ai >= 0 && lv_b <= auto14832DC9_ae) || (auto14832DC9_ai < 0 && lv_b >= auto14832DC9_ae) ) ; lv_b += auto14832DC9_ai ) {
@@ -93917,6 +94067,7 @@ if ((gv_visitation[lv_a] != 0) && (gv_e6B395E5B888E68A80E883BD[lv_a][3] == false
 // 阶段三抽取（shw238）：城镇 1/2 ← 原 gf_SequenceAfter 行13729
 void gf_SKF_1_jingzhang (int lv_a) {
     // Implementation
+    gf_BPEventLook(lv_a);
 if (((gv_e78AAFE7BDAAE4BA8BE5AE9E[gv_visitation[lv_a]][0] == true) || (gv_e78AAFE7BDAAE4BA8BE5AE9E[gv_visitation[lv_a]][1] == true) || (gv_e78AAFE7BDAAE4BA8BE5AE9E[gv_visitation[lv_a]][2] == true) || (gv_e78AAFE7BDAAE4BA8BE5AE9E[gv_visitation[lv_a]][3] == true) || (gv_e78AAFE7BDAAE4BA8BE5AE9E[gv_visitation[lv_a]][4] == true) || (gv_e78AAFE7BDAAE4BA8BE5AE9E[gv_visitation[lv_a]][5] == true) || (gv_e78AAFE7BDAAE4BA8BE5AE9E[gv_visitation[lv_a]][6] == true) || (gv_e78AAFE7BDAAE4BA8BE5AE9E[gv_visitation[lv_a]][7] == true) || (gv_e78AAFE7BDAAE4BA8BE5AE9E[gv_visitation[lv_a]][8] == true) || (gv_e78AAFE7BDAAE4BA8BE5AE9E[gv_visitation[lv_a]][9] == true) || (gv_e78AAFE7BDAAE4BA8BE5AE9E[gv_visitation[lv_a]][10] == true))) {
     gf_CBSystemMessage(StringExternal("Param/Value/33FE9712"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
 }
@@ -94016,6 +94167,7 @@ void gf_SKF_1_guanchazhe (int lv_a) {
     int lv_i;
     text lv_t;
     // Implementation
+    gf_BPEventLook(lv_a);
 if ((gv_action[lv_a][0] > 0) && (gv_diedAtNight[lv_a] == false) && (gv_roleblocked[lv_a] == 0)) {
     lv_t = null;
     lv_b = 0;
@@ -94058,6 +94210,7 @@ if ((gv_action[lv_a][0] > 0) && (gv_diedAtNight[lv_a] == false) && (gv_roleblock
 // 阶段三抽取（shw238）：城镇 1/4 ← 原 gf_SequenceAfter 行13849
 void gf_SKF_1_tanyuan (int lv_a) {
     // Implementation
+    gf_BPEventLook(lv_a);
 if (((gv_seqAfterPlagueInteract[gv_visitation[lv_a]] == true) || (gv_immune[gv_visitation[lv_a]][2] == false))) {
     if ((((gv_roles[lv_a][1] == 1) && (gv_roles[lv_a][0] == 4) && (gv_roleOptions[1][4][0] == true)) || ((((gv_roles[lv_a][1] == 2) && (gv_roleOptions[2][4][1] == true)) || ((gv_roles[lv_a][1] == 5) && (gv_roleOptions[5][4][1] == true))) && (gv_roles[lv_a][0] == 4)))) {
         if ((gv_framed[gv_visitation[lv_a]][1] != 0) && (gv_roles[lv_a][1] == 1) && (gv_roles[lv_a][0] == 4)) {
@@ -94102,6 +94255,7 @@ gv_seqAfterWait[2] = true;
 // 阶段三抽取（shw238）：城镇 1/27 ← 原 gf_SequenceAfter 行13894
 void gf_SKF_1_lianbangtanyuan (int lv_a) {
     // Implementation
+    gf_BPEventLook(lv_a);
 TriggerExecute(gt_E78AAFE7BDAAE8AEB0E5BD95, false, false);
 if ((gv_roleOptions[1][27][0] == true)) {
     gf_CBSystemMessage((StringExternal("Param/Value/14230C7D") + gf_BHInvestigatedRoleName(gv_visitation[lv_a]) + StringExternal("Param/Value/3004D2CB")), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0,0,0));
@@ -94139,6 +94293,7 @@ void gf_SKF_1_jiandie (int lv_a) {
     const int auto925AADD2_ae = 15;
     const int auto925AADD2_ai = 1;
     // Implementation
+    gf_BPEventLook(lv_a);
     if ((gf_BHSpyActive(lv_a) == false)) {
         return;
     }
@@ -94607,6 +94762,7 @@ void gf_SKF_1_shiguan (int lv_a) {
     int autoCHRON30B_ae;
     const int autoCHRON30B_ai = 1;
     // Implementation
+    gf_BPEventLook(lv_a);
 gv_shots[lv_a] -= 1;
 autoCHRON30B_ae = (gv_dayNumber - 1);
 lv_c = false;
@@ -94640,6 +94796,7 @@ void gf_SKF_1_jianshizhe (int lv_a) {
     const int autoCC8F6D48_ae = 15;
     const int autoCC8F6D48_ai = 1;
     // Implementation
+    gf_BPEventLook(lv_a);
 lv_c = false;
 lv_b = 1;
 for ( ; ( (autoCC8F6D48_ai >= 0 && lv_b <= autoCC8F6D48_ae) || (autoCC8F6D48_ai < 0 && lv_b >= autoCC8F6D48_ae) ) ; lv_b += autoCC8F6D48_ai ) {
@@ -103784,6 +103941,19 @@ void gf_SKA_3_limao (int lv_source, int lv_target) {
 }
 
 // 1 致命  2 调查  3 保护  4 政府  5 权利  6 支援  7 欺诈。权利盖过其他；致命加别的类型只记别的类型。
+// 城镇 商户 随机槽（池 4/23）：从商户角色里随机抽一个。新增商户角色时在表里加一行。
+void gf_BHPickMerchant () {
+    int[16] lv_list;
+    int lv_n;
+
+    lv_n = 3;
+    lv_list[0] = 36;
+    lv_list[1] = 37;
+    lv_list[2] = 38;
+    gv_bhPickPool = 1;
+    gv_bhPickRole = lv_list[RandomInt(0, lv_n - 1)];
+}
+
 int gf_SQBucket (int lp_pool, int lp_role) {
     if ((lp_pool == 1)) {
         if ((lp_role == 6)) {
@@ -109796,11 +109966,490 @@ void gf_FDVoteBoostNotice () {
     }
 }
 
+// 新增角色（非原图抽取）：城镇 1/38 报纸店老板。
+text gf_BPRoleName (int lp_player) {
+    return gv_roleNameArray[gv_roles[lp_player][1]][gv_roles[lp_player][0]];
+}
+
+// 1 名 / 2 名 / ... 的前缀
+text gf_BPCountName (int lp_n) {
+    if ((lp_n == 1)) {
+        return StringExternal("Param/Value/BPNUM1");
+    }
+
+    if ((lp_n == 2)) {
+        return StringExternal("Param/Value/BPNUM2");
+    }
+
+    if ((lp_n == 3)) {
+        return StringExternal("Param/Value/BPNUM3");
+    }
+
+    if ((lp_n == 4)) {
+        return StringExternal("Param/Value/BPNUM4");
+    }
+
+    if ((lp_n == 5)) {
+        return StringExternal("Param/Value/BPNUM5");
+    }
+    return (IntToText(lp_n) + StringExternal("Param/Value/BPNUMMORE"));
+}
+
+// 同标签合并：已有就把计数 +1，否则追加一条
+void gf_BPAdd (int lp_tag, text lp_body) {
+    int lv_i;
+
+    lv_i = 0;
+    while ((lv_i < gv_bpLogN)) {
+        if ((gv_bpTag[lv_i] == lp_tag)) {
+            gv_bpCount[lv_i] += 1;
+            return;
+        }
+
+        lv_i += 1;
+    }
+
+    if ((gv_bpLogN >= 64)) {
+        return;
+    }
+
+    gv_bpTag[gv_bpLogN] = lp_tag;
+    gv_bpCount[gv_bpLogN] = 1;
+    gv_bpLog[gv_bpLogN] = lp_body;
+    gv_bpLogN += 1;
+}
+
+void gf_BPClear () {
+    int lv_i;
+
+    lv_i = 0;
+    while ((lv_i < 64)) {
+        gv_bpTag[lv_i] = 0;
+        gv_bpCount[lv_i] = 0;
+        lv_i += 1;
+    }
+
+    gv_bpLogN = 0;
+}
+
+void gf_BPEventAttack (int lp_victim, int lp_killer) {
+    if ((lp_victim < 1) || (lp_victim > 15) || (lp_killer < 1) || (lp_killer > 15)) {
+        return;
+    }
+
+    gf_BPAdd((1000000 + (gv_roles[lp_victim][1] * 100000) + (gv_roles[lp_victim][0] * 1000) + (gv_roles[lp_killer][1] * 100) + gv_roles[lp_killer][0]), (gf_BPRoleName(lp_victim) + StringExternal("Param/Value/BPATK2") + gf_BPRoleName(lp_killer) + StringExternal("Param/Value/BPATK3")));
+}
+
+void gf_BPEventHeal (int lp_victim, int lp_healer) {
+    if ((lp_victim < 1) || (lp_victim > 15) || (lp_healer < 1) || (lp_healer > 15)) {
+        return;
+    }
+
+    gf_BPAdd((2000000 + (gv_roles[lp_victim][1] * 100000) + (gv_roles[lp_victim][0] * 1000) + (gv_roles[lp_healer][1] * 100) + gv_roles[lp_healer][0]), (gf_BPRoleName(lp_victim) + StringExternal("Param/Value/BPHEAL2") + gf_BPRoleName(lp_healer) + StringExternal("Param/Value/BPHEAL3")));
+}
+
+void gf_BPEventBlock (int lp_victim, int lp_blocker) {
+    if ((lp_victim < 1) || (lp_victim > 15) || (lp_blocker < 1) || (lp_blocker > 15)) {
+        return;
+    }
+
+    gf_BPAdd((3000000 + (gv_roles[lp_victim][1] * 100000) + (gv_roles[lp_victim][0] * 1000) + (gv_roles[lp_blocker][1] * 100) + gv_roles[lp_blocker][0]), (gf_BPRoleName(lp_victim) + StringExternal("Param/Value/BPBLK2") + gf_BPRoleName(lp_blocker) + StringExternal("Param/Value/BPBLK3")));
+}
+
+void gf_BPEventVisit (int lp_victim, int lp_visitor) {
+    if ((lp_victim < 1) || (lp_victim > 15) || (lp_visitor < 1) || (lp_visitor > 15)) {
+        return;
+    }
+
+    gf_BPAdd((4000000 + (gv_roles[lp_victim][1] * 100000) + (gv_roles[lp_victim][0] * 1000) + (gv_roles[lp_visitor][1] * 100) + gv_roles[lp_visitor][0]), (gf_BPRoleName(lp_victim) + StringExternal("Param/Value/BPVIS2") + gf_BPRoleName(lp_visitor) + StringExternal("Param/Value/BPVIS3")));
+}
+
+// 调查结果原样抄一份进信息库（调查免疫时显示阵营）
+void gf_BPEventLook (int lp_investigator) {
+    int lv_t;
+    int lv_pool;
+    int lv_role;
+    text lv_seen;
+
+    if ((lp_investigator < 1) || (lp_investigator > 15)) {
+        return;
+    }
+
+    lv_t = gv_visitation[lp_investigator];
+    if ((lv_t < 1) || (lv_t > 15) || (lv_t == lp_investigator)) {
+        return;
+    }
+
+    if ((PlayerGroupHasPlayer(gv_alivePlayers, lp_investigator) == false)) {
+        return;
+    }
+
+    lv_pool = gf_DQSeenPool(lv_t);
+    lv_role = gf_DQSeenRole(lv_t);
+    if ((gf_BHSeenFaction(lv_t) == 2)) {
+        lv_seen = StringExternal("Param/Value/BPFAC2M");
+    }
+    else if ((gf_BHSeenFaction(lv_t) == 5)) {
+        lv_seen = StringExternal("Param/Value/BPFAC5M");
+    }
+    else {
+        lv_seen = gv_roleInvestigatorArray[lv_pool][lv_role][0];
+    }
+
+    gf_BPAdd((5000000 + (gv_roles[lp_investigator][1] * 100000) + (gv_roles[lp_investigator][0] * 1000) + (lv_pool * 100) + lv_role), (gf_BPRoleName(lp_investigator) + StringExternal("Param/Value/BPLOOK2") + lv_seen + StringExternal("Param/Value/BPLOOK3")));
+}
+
+void gf_BPEventBus (int lp_player) {
+    if ((lp_player < 1) || (lp_player > 15)) {
+        return;
+    }
+
+    gf_BPAdd((6000000 + (gv_roles[lp_player][1] * 100000) + (gv_roles[lp_player][0] * 1000)), (gf_BPRoleName(lp_player) + StringExternal("Param/Value/BPBUS2")));
+}
+
+// 白天开场：重置领报额度，把昨晚的访问和巴士调换补进报纸
+void gf_BPDayStart () {
+    int lv_p;
+    int lv_v;
+
+    lv_p = 1;
+    while ((lv_p <= 15)) {
+        gv_bpRead[lv_p] = false;
+        if ((PlayerGroupHasPlayer(gv_currentPlayers, lv_p) == true)) {
+            lv_v = gv_visitation[lv_p];
+            if ((lv_v >= 1) && (lv_v <= 15) && (lv_v != lv_p)) {
+                gf_BPEventVisit(lv_p, lv_v);
+            }
+
+            // 巴士司机：两名被调换的人各记一条
+            if ((gv_roles[lv_p][1] == 1) && (gv_roles[lv_p][0] == 9)) {
+                if ((gv_visitation[lv_p] >= 1) && (gv_visitation[lv_p] <= 15)) {
+                    gf_BPEventBus(gv_visitation[lv_p]);
+                }
+
+                if ((gv_visitation2[lv_p] >= 1) && (gv_visitation2[lv_p] <= 15)) {
+                    gf_BPEventBus(gv_visitation2[lv_p]);
+                }
+            }
+        }
+
+        lv_p += 1;
+    }
+}
+
+// 读者取一条
+void gf_BPDraw (int lp_reader) {
+    int lv_i;
+
+    if ((gv_bpPublic == false)) {
+        gf_CBSystemMessage(StringExternal("Param/Value/BPCMDNONE"), lp_reader, lp_reader, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+        return;
+    }
+
+    if ((gv_bpRead[lp_reader] == true)) {
+        gf_CBSystemMessage(StringExternal("Param/Value/BPCMDDONE"), lp_reader, lp_reader, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+        return;
+    }
+
+    if ((gv_bpLogN <= 0)) {
+        gf_CBSystemMessage(StringExternal("Param/Value/BPNONEWS"), lp_reader, lp_reader, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+        return;
+    }
+
+    gv_bpRead[lp_reader] = true;
+    lv_i = RandomInt(0, gv_bpLogN - 1);
+    gf_CBSystemMessage((StringExternal("Param/Value/BPNEWS") + gf_BPCountName(gv_bpCount[lv_i]) + gv_bpLog[lv_i]), lp_reader, lp_reader, 0, SoundLink("UI_TipSelect", -1), Color(0.00, 0.00, 0.00));
+}
+
+bool gt_BPPaper_Func (bool testConds, bool runActions) {
+    int lv_p;
+    playergroup lv_g;
+
+    lv_p = EventPlayer();
+    if ((gv_gameOver == true) || (lv_p < 1) || (lv_p > 15)) {
+        return false;
+    }
+
+    if ((gv_roles[lv_p][1] == 1) && (gv_roles[lv_p][0] == 38)) {
+        if ((gv_dayNumber < 2)) {
+            gf_CBSystemMessage(StringExternal("Param/Value/BPCMDEARLY"), lv_p, lv_p, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+            return false;
+        }
+
+        if ((gv_bpPublic == false)) {
+            gv_bpPublic = true;
+            lv_g = gv_currentPlayers;
+            lv_p = -1;
+            while (true) {
+                lv_p = PlayerGroupNextPlayer(lv_g, lv_p);
+                if (lv_p < 0) { break; }
+                gf_CBSystemMessage(StringExternal("Param/Value/BPCMDOK"), lv_p, lv_p, 0, SoundLink("UI_TipSelect", -1), Color(0.00, 0.00, 0.00));
+            }
+        }
+        else {
+            gf_CBSystemMessage(StringExternal("Param/Value/BPCMDDONE"), EventPlayer(), EventPlayer(), 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+        }
+        return false;
+    }
+
+    gf_BPDraw(EventPlayer());
+    return false;
+}
+
+void gt_BPPaper_Init () {
+    gt_BPPaper = TriggerCreate("gt_BPPaper_Func");
+    TriggerAddEventChatMessage(gt_BPPaper, c_playerAny, "-paper", true);
+}
+
+// 新增角色（非原图抽取）：城镇 1/37 流动摊贩。
+// 一次性次数型能力是否已经用掉（义警子弹、天选者雷击）。
+bool gf_VUUsedOnce (int lp_player) {
+    if ((gv_roles[lp_player][1] == 1) && (gv_roles[lp_player][0] == 6)) {
+        return (gv_shots[lp_player] <= 0);
+    }
+
+    if ((gv_roles[lp_player][1] == 3) && (gv_roles[lp_player][0] == 32)) {
+        return (gv_txStrikes[lp_player] <= 0);
+    }
+
+    if ((gv_roles[lp_player][1] == 1) && ((gv_roles[lp_player][0] == 12) || (gv_roles[lp_player][0] == 19) || (gv_roles[lp_player][0] == 20))) {
+        return gv_activated[lp_player];
+    }
+
+    if ((gv_bhFeignRole[lp_player] != 0)) {
+        return true;
+    }
+    return false;
+}
+
+// 把上一个夜晚开出去的额外选项收回来（镇民夜晚开场调用）。
+void gf_VURevertBuffs () {
+    int lv_p;
+
+    lv_p = 1;
+    while ((lv_p <= 15)) {
+        if ((gv_vuBuff[lv_p] == true)) {
+            gv_roleOptions[gv_vuBuffPool[lv_p]][gv_vuBuffRole[lv_p]][gv_vuBuffIdx[lv_p]] = false;
+            gv_vuBuff[lv_p] = false;
+        }
+
+        lv_p += 1;
+    }
+}
+
+// 场上是否有流动摊贩（在场时所有角色卡多显示一行）。
+bool gf_VUInGame () {
+    int lv_p;
+
+    lv_p = 1;
+    while ((lv_p <= 15)) {
+        if ((gv_roles[lv_p][1] == 1) && (gv_roles[lv_p][0] == 37)) {
+            return true;
+        }
+
+        lv_p += 1;
+    }
+    return false;
+}
+
+// 流动摊贩在场时，把角色自带的开关逐条列在卡上（开关本身不增不减）。
+void gf_VUCardSwitches (int lp_player) {
+    int lv_i;
+
+    lv_i = 0;
+    while ((lv_i <= 11)) {
+        if ((gv_roleOptionExists[gv_roles[lp_player][1]][gv_roles[lp_player][0]][lv_i] == true)) {
+            gv_roleBoxText[lp_player][2] = (gv_roleBoxText[lp_player][2] + StringExternal("Param/Value/VUSWPRE"));
+            gv_roleBoxText[lp_player][2] = (gv_roleBoxText[lp_player][2] + gv_roleOptionsText[gv_roles[lp_player][1]][gv_roles[lp_player][0]][lv_i]);
+        }
+
+        lv_i += 1;
+    }
+}
+
+// 新增角色（非原图抽取）：城镇 1/37 流动摊贩。
+void gf_SKR_1_liudongtanfan (int lv_a) {
+    if ((lv_a < 1) || (lv_a > 15)) {
+        return;
+    }
+
+    gf_CBSystemMessage(StringExternal("Param/Value/VUPREP"), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+    gf_RAVendorActions(lv_a);
+}
+
+void gf_RAVendorActions (int lp_player) {
+    int lv_a;
+
+    lv_a = 1;
+    while ((lv_a <= 15)) {
+        if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == true) && (lv_a != lp_player)) {
+            if ((gv_vuVisited[lp_player][lv_a] == true)) {
+                DialogControlSetVisible(gv_actionDialogItem[lv_a][5], PlayerGroupSingle(lp_player), false);
+            }
+            else {
+                libNtve_gf_SetDialogItemTooltip(gv_actionDialogItem[lv_a][5], StringExternal("Param/Value/VUBTN"), PlayerGroupSingle(lp_player));
+                DialogControlSetVisible(gv_actionDialogItem[lv_a][5], PlayerGroupSingle(lp_player), true);
+                libNtve_gf_SetDialogItemColor(gv_actionDialogItem[lv_a][5], Color(0.00, 100.00, 0.00), PlayerGroupSingle(lp_player));
+                DialogControlSetSize(gv_actionDialogItem[lv_a][5], PlayerGroupSingle(lp_player), 120, 30);
+                libNtve_gf_SetDialogItemImage(gv_actionDialogItem[lv_a][5], "ActionNormal.dds", PlayerGroupSingle(lp_player));
+                libNtve_gf_SetDialogItemImage2(gv_actionDialogItem[lv_a][5], "ActionHighlight.dds", PlayerGroupSingle(lp_player));
+            }
+        }
+        else {
+            DialogControlSetVisible(gv_actionDialogItem[lv_a][5], PlayerGroupSingle(lp_player), false);
+        }
+
+        lv_a += 1;
+    }
+}
+
+// 新增角色（非原图抽取）：城镇 1/37 流动摊贩。
+void gf_SKA_1_liudongtanfan (int lv_source, int lv_target) {
+    if ((lv_target < 1) || (lv_target > 15)) {
+        return;
+    }
+
+    if ((gv_vuVisited[lv_source][lv_target] == true)) {
+        gf_CBSystemMessage((StringExternal("Param/Value/VUREPEAT1") + TextWithColor(StringToText(gv_name[lv_target]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_target])) + StringExternal("Param/Value/VUREPEAT2")), lv_source, lv_source, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+        return;
+    }
+
+    if ((lv_target == lv_source) && (gv_action[lv_source][0] != 0)) {
+        DialogControlSetVisible(gv_actionDialogItem[lv_source][5], PlayerGroupSingle(lv_source), false);
+        DialogControlSetVisible(gv_actionDialogItem[gv_action[lv_source][0]][5], PlayerGroupSingle(lv_source), true);
+        gf_CBSystemMessage(StringExternal("Param/Value/VUCLEAR"), lv_source, lv_source, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+        gv_action[lv_source][0] = 0;
+    }
+    else {
+        if ((lv_target != lv_source)) {
+            if ((gv_action[lv_source][0] != 0)) {
+                DialogControlSetVisible(gv_actionDialogItem[gv_action[lv_source][0]][5], PlayerGroupSingle(lv_source), true);
+            }
+
+            gv_action[lv_source][0] = lv_target;
+            DialogControlSetVisible(gv_actionDialogItem[lv_source][5], PlayerGroupSingle(lv_source), true);
+            DialogControlSetVisible(gv_actionDialogItem[lv_target][5], PlayerGroupSingle(lv_source), false);
+            gf_CBSystemMessage((StringExternal("Param/Value/VUSEL1") + TextWithColor(StringToText(gv_name[lv_target]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_target])) + StringExternal("Param/Value/VUSEL2")), lv_source, lv_source, 0, SoundLink("UI_TipSelect", -1), Color(0.00, 0.00, 0.00));
+        }
+    }
+}
+
+// 新增角色（非原图抽取）：城镇 1/37 流动摊贩。
+void gf_SKP_1_liudongtanfan_2 (int lv_a) {
+    int lv_t;
+
+    lv_t = gv_action[lv_a][0];
+    if ((lv_t < 1) || (lv_t > 15) || (lv_t == lv_a)) {
+        gf_BHVisitSelf(lv_a);
+    }
+    else {
+        gf_BHVisit(lv_a, lv_t);
+    }
+}
+
+// 新增角色（非原图抽取）：城镇 1/37 流动摊贩。
+void gf_SKK_1_liudongtanfan (int lv_a) {
+    int lv_go;
+    int lv_pool;
+    int lv_role;
+    int lv_i;
+    int lv_bucket;
+    int lv_n;
+    int[12] lv_cand;
+
+    if ((lv_a < 1) || (lv_a > 15)) {
+        return;
+    }
+
+    if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_a) == false)) {
+        return;
+    }
+
+    if ((gv_jailed[lv_a] != 0) || (gv_roleblocked[lv_a] != 0)) {
+        return;
+    }
+
+    lv_go = gv_visitation[lv_a];
+    if ((gv_visitation2[lv_a] > 0)) {
+        lv_go = gv_visitation2[lv_a];
+    }
+    if ((lv_go < 1) || (lv_go > 15) || (lv_go == lv_a)) {
+        return;
+    }
+
+    // 整局不能重复上门：去过的记下来，不管这趟有没有加成
+    gv_vuVisited[lv_a][lv_go] = true;
+
+    // 目标当夜死了：不做任何弥补，他也没能买走东西
+    if ((PlayerGroupHasPlayer(gv_alivePlayers, lv_go) == false)) {
+        gf_CBSystemMessage((StringExternal("Param/Value/VUFAIL1") + TextWithColor(StringToText(gv_name[lv_go]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_go])) + StringExternal("Param/Value/VUFAIL2")), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+        return;
+    }
+
+    lv_pool = gv_roles[lv_go][1];
+    lv_role = gv_roles[lv_go][0];
+    lv_bucket = gf_SQBucket(lv_pool, lv_role);
+    if (!((lv_bucket == 1) || (lv_bucket == 2) || (lv_bucket == 3) || (lv_bucket == 4) || (lv_bucket == 6) || (lv_bucket == 7))) {
+        gf_CBSystemMessage((StringExternal("Param/Value/VUFAIL1") + TextWithColor(StringToText(gv_name[lv_go]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_go])) + StringExternal("Param/Value/VUFAIL2")), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+        return;
+    }
+
+    if ((gf_VUUsedOnce(lv_go) == true)) {
+        gf_CBSystemMessage((StringExternal("Param/Value/VUFAIL1") + TextWithColor(StringToText(gv_name[lv_go]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_go])) + StringExternal("Param/Value/VUFAIL2")), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+        return;
+    }
+
+    // 多个关着的开关里随机挑一个（不锁定第一个）
+    lv_n = 0;
+    lv_i = 0;
+    while ((lv_i <= 11)) {
+        if ((gv_roleOptionExists[lv_pool][lv_role][lv_i] == true) && (gv_roleOptions[lv_pool][lv_role][lv_i] == false)) {
+            lv_cand[lv_n] = lv_i;
+            lv_n += 1;
+        }
+
+        lv_i += 1;
+    }
+
+    if ((lv_n <= 0)) {
+        gf_CBSystemMessage((StringExternal("Param/Value/VUFAIL1") + TextWithColor(StringToText(gv_name[lv_go]), libNtve_gf_ConvertPlayerColorToColor(gv_playerColor[lv_go])) + StringExternal("Param/Value/VUFAIL2")), lv_a, lv_a, 0, SoundLink("Silent", -1), Color(0.00, 0.00, 0.00));
+        return;
+    }
+
+    lv_i = lv_cand[RandomInt(0, lv_n - 1)];
+    gv_roleOptions[lv_pool][lv_role][lv_i] = true;
+    gv_vuBuff[lv_go] = true;
+    gv_vuBuffPool[lv_go] = lv_pool;
+    gv_vuBuffRole[lv_go] = lv_role;
+    gv_vuBuffIdx[lv_go] = lv_i;
+    gf_CBSystemMessage(StringExternal("Param/Value/VUOK"), lv_a, lv_a, 0, SoundLink("UI_TipSelect", -1), Color(0.00, 0.00, 0.00));
+    gf_RTRoleCard(lv_go);
+    gf_RefreshRoleBox();
+}
+
+// 白天：把买到的那个开关本身的文字显示在聊天框（只发给本人，不是私信）。
+void gf_VUMorning () {
+    int lv_p;
+
+    lv_p = 1;
+    while ((lv_p <= 15)) {
+        if ((gv_vuBuff[lv_p] == true) && (PlayerGroupHasPlayer(gv_alivePlayers, lv_p) == true)) {
+            gf_CBSystemMessage(gv_roleOptionsText[gv_vuBuffPool[lv_p]][gv_vuBuffRole[lv_p]][gv_vuBuffIdx[lv_p]], lv_p, lv_p, 0, SoundLink("UI_TipSelect", -1), Color(0.00, 0.00, 0.00));
+        }
+
+        lv_p += 1;
+    }
+}
+
+
 // 白天私发：每个活人手上几份食物（老板自己那一行是库存）。
 void gf_FDMorning () {
     int lv_a;
     int lv_p;
     text lv_line;
+
+    gf_VUMorning();
+    gf_BPDayStart();
 
     lv_p = 1;
     while ((lv_p <= 15)) {

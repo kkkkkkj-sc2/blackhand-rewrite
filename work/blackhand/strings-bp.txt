@@ -1,0 +1,45 @@
+// 报纸店老板（城镇 1/38）
+Param/Value/BPNAME=<c val="00FF00">报纸店老板</c>
+Param/Value/BPALIGN=<c val="00FF00">城镇（商户）</c>
+Param/Value/BPDESC=街角那家报纸店的老板，什么消息都比别人先知道一步。<n/><n/><c val="BBDDFF">从第二个白天开始，可以输入 -paper 公示身份；公示后，其他角色输入 -paper 会随机获知一条昨晚的信息。</c>
+Param/Value/BPBOX1=从第二个白天开始，可以输入 -paper 公示身份；公示后，其他角色输入 -paper 会随机获知一条昨晚的信息。
+Param/Value/BPBOX2A=<n/>- 你的能力无视限制
+Param/Value/BPBOX2B=<n/>- 你整理的信息依旧会被调查免疫角色影响
+Param/Value/BPBOX2C=<n/>- 领取信息的人可能拿到同一条消息
+Param/Value/BPBOX2D=<n/>- 信息有时效性，只会显示昨晚发生的事
+Param/Value/BPBOX2E=<n/>- 一名角色受到多数能力影响时，会分别显示成多条信息
+Param/Value/BPBOX4=你是街角那家报纸店的老板。
+Param/Value/BPCRIME=无
+Param/Value/BPINV1=你发现你目标的住所里摆置着数个罕见并危险的物品
+Param/Value/BPINV2=- 他可能是陷阱师、天工、恶棍、伪造者、饭店老板、流动摊贩、报纸店老板，或者冤魂。
+Param/Value/BPCMDOK=<s val="ModLeftSize16"><c val="00FF00">孩子们，报纸店开张啦，输入'-paper'获取最新消息。</c></s>
+Param/Value/BPCMDEARLY=第二天开始才能公示你的身份。
+Param/Value/BPCMDDONE=你今天已经看过报纸了。
+Param/Value/BPCMDNONE=报纸还没开张，再等等吧。
+Param/Value/BPNONEWS=今天的报纸上没有什么值得登的消息。
+Param/Value/BPNEWS=你从报纸上读到：
+Param/Value/BPATK1=一名
+Param/Value/BPATK2=被
+Param/Value/BPATK3=攻击了。
+Param/Value/BPHEAL1=一名
+Param/Value/BPHEAL2=被
+Param/Value/BPHEAL3=救治了。
+Param/Value/BPBLK1=一名
+Param/Value/BPBLK2=被
+Param/Value/BPBLK3=限制了。
+Param/Value/BPVIS1=一名
+Param/Value/BPVIS2=昨晚被
+Param/Value/BPVIS3=访问了。
+Param/Value/BPFAC2=黑手党
+Param/Value/BPFAC2M=黑手党成员
+Param/Value/BPFAC5=三合会
+Param/Value/BPFAC5M=三合会成员
+Param/Value/BPBUS2=被巴士司机调换了。
+Param/Value/BPNUM1=一名
+Param/Value/BPNUM2=两名
+Param/Value/BPNUM3=三名
+Param/Value/BPNUM4=四名
+Param/Value/BPNUM5=五名
+Param/Value/BPNUMMORE=名
+Param/Value/MRNAME=<c val="00FF00">城镇</c> <c val="88FFCC">商户</c>
+Param/Value/MRDESC=可能是饭店老板、流动摊贩、报纸店老板。

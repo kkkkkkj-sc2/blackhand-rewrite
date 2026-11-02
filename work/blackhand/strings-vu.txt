@@ -1,0 +1,30 @@
+// 流动摊贩（城镇 1/37）
+Param/Value/VUNAME=<c val="00FF00">流动摊贩</c>
+Param/Value/VUALIGN=<c val="00FF00">城镇（商户）</c>
+Param/Value/VUDESC=推着小车走街穿巷的小贩，货担上什么都有一些，从针头线脑到稀奇古怪的玩意儿。<n/><n/><c val="BBDDFF">每个夜晚，可以拜访一名玩家，让他的身份能力多出一个选项。</c>
+Param/Value/VUBOX1=每个夜晚，可以拜访一名玩家，让他的身份能力多出一个选项。
+Param/Value/VUBOX2A=<n/>- 当你在场时，所有角色卡都会显示额外选项
+Param/Value/VUBOX2B=<n/>- 被你选中的玩家会得知自己开启的额外选项
+Param/Value/VUBOX2C=<n/>- 你的能力只对以下分类的身份生效
+Param/Value/VUBOX2D=<n/>- 政府、调查、保护、致命、支援、欺诈
+Param/Value/VUBOX2E=<n/>- 如果你的目标在你访问之前就使用过一次性能力，则你的加成无效
+Param/Value/VUBOX2F=<n/>- 你不能去重复的人家中
+Param/Value/VUBOX4=你是推着小车走街穿巷的小贩。
+Param/Value/VUCRIME=无
+Param/Value/VUINV1=你发现你的目标在住所间不断移动
+Param/Value/VUINV2=- 他可能是巴士司机、保镖、护林人、饭店老板、流动摊贩、陷阱师、天工、欺骗者/迷惑、恶棍，或者冤魂。
+Param/Value/VUBTN=前往拜访
+Param/Value/VUPREP=你已经准备好了商品。
+Param/Value/VUSEL1=你决定去
+Param/Value/VUSEL2=家售卖商品。
+Param/Value/VUCLEAR=你今晚决定不摆摊了。
+Param/Value/VUREPEAT1=你已经去过
+Param/Value/VUREPEAT2=家了，换一家吧。
+Param/Value/VUOK=他买了你一些商品。
+Param/Value/VUFAIL1=
+Param/Value/VUFAIL2=摆了摆手拒绝了你的售卖。
+Param/Value/VUBUY=一名流动摊贩拜访了你，你在他那边买了些物品……
+Param/Value/VUDAY1=<s val="ModLeftSize16"><c val="00FF00">你从他那里买到的是：
+Param/Value/VUDAY2=</c></s>
+Param/Value/VUSWPRE=<n/>- 
+Param/Value/VUBOXVENDOR=<n/><n/><c val="AAAAAA">流动摊贩在场：角色卡会显示额外选项。</c>

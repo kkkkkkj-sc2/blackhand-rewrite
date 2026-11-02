@@ -212,6 +212,16 @@
      "role": 36,
      "prefix": "E49D49F4",
      "suffix": "F63CDC9A"
+    },
+    {
+     "role": 37,
+     "prefix": "E49D49F4",
+     "suffix": "F63CDC9A"
+    },
+    {
+     "role": 38,
+     "prefix": "E49D49F4",
+     "suffix": "F63CDC9A"
     }
    ]
   },
@@ -856,6 +866,11 @@
      "role": 8,
      "prefix": "99B5709D",
      "suffix": "473B315B"
+    },
+    {
+     "role": 23,
+     "prefix": "83B203DA",
+     "suffix": "4CDB7830"
     },
     {
      "role": 3,
